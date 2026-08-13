@@ -23,6 +23,7 @@
                 <a href="#about">About</a>
                 <a href="#apps-title">Apps</a>
                 <a href="#downloads-title">Downloads</a>
+                <a href="#install-title">Install</a>
             </div>
             <a class="nav-github" href="https://github.com/samwise1776/apps/" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
         </nav>
@@ -134,12 +135,12 @@
 
                     <a
                         class="button button-secondary"
-                        href="https://github.com/samwise1776/apps/tree/main/apps/datadocs"
+                        href="https://github.com/samwise1776/apps/raw/refs/heads/main/apps/datadocs/datadocs.zip"
                         target="_blank"
                         rel="noopener noreferrer"
                     >
-                        View DataDocs
-                        <span aria-hidden="true">↗</span>
+                        Download DataDocs
+                        <span aria-hidden="true">↓</span>
                     </a>
                 </div>
             </article>
@@ -158,8 +159,8 @@
                         <div><dt>Version</dt><dd>1.0.0</dd></div>
                         <div><dt>Price</dt><dd>Free</dd></div>
                     </dl>
-                    <a class="button button-secondary" href="https://github.com/samwise1776/apps/tree/main/apps/learner" target="_blank" rel="noopener noreferrer">
-                        View Learner <span aria-hidden="true">↗</span>
+                    <a class="button button-secondary" href="https://github.com/samwise1776/apps/raw/refs/heads/main/apps/learner/learner.zip" target="_blank" rel="noopener noreferrer">
+                        Download Learner <span aria-hidden="true">↓</span>
                     </a>
                 </div>
             </article>
@@ -178,8 +179,8 @@
                         <div><dt>Version</dt><dd>1.0.0</dd></div>
                         <div><dt>Price</dt><dd>Free</dd></div>
                     </dl>
-                    <a class="button button-secondary" href="https://github.com/samwise1776/apps/tree/main/apps/projecthub" target="_blank" rel="noopener noreferrer">
-                        View ProjectHub <span aria-hidden="true">↗</span>
+                    <a class="button button-secondary" href="https://github.com/samwise1776/apps/raw/refs/heads/main/apps/projecthub/projecthub.zip" target="_blank" rel="noopener noreferrer">
+                        Download ProjectHub <span aria-hidden="true">↓</span>
                     </a>
                 </div>
             </article>
@@ -216,8 +217,8 @@
                         <div><dt>Version</dt><dd>0.1.0</dd></div>
                         <div><dt>Price</dt><dd>Free</dd></div>
                     </dl>
-                    <a class="button button-secondary" href="https://github.com/samwise1776/apps/tree/main/games/scrapzone" target="_blank" rel="noopener noreferrer">
-                        View ScrapZone <span aria-hidden="true">↗</span>
+                    <a class="button button-secondary" href="https://github.com/samwise1776/apps/raw/refs/heads/main/games/scrapzone/ScrapZone.zip" target="_blank" rel="noopener noreferrer">
+                        Download ScrapZone <span aria-hidden="true">↓</span>
                     </a>
                 </div>
             </article>
@@ -296,6 +297,57 @@
             </div>
         </section>
 
+        <section class="install" aria-labelledby="install-title">
+            <div class="section-heading install-heading">
+                <div>
+                    <p class="eyebrow">Get started</p>
+                    <h2 id="install-title">Download. Extract. Build.</h2>
+                </div>
+                <p>The current downloads are source packages, giving you a transparent look at exactly what you run.</p>
+            </div>
+
+            <div class="install-grid">
+                <article class="install-card">
+                    <span class="step-number">01</span>
+                    <h3>Choose an app</h3>
+                    <p>Select a public product above and download its ZIP archive directly from the official GitHub repository.</p>
+                </article>
+                <article class="install-card">
+                    <span class="step-number">02</span>
+                    <h3>Extract the files</h3>
+                    <p>Unzip the package into a new folder. Keep the included directory structure intact before building.</p>
+                </article>
+                <article class="install-card">
+                    <span class="step-number">03</span>
+                    <h3>Build and run</h3>
+                    <p>Use Java 17 or newer for Datacenter apps. ScrapZone requires the .NET 10 SDK and restored dependencies.</p>
+                </article>
+            </div>
+
+            <div class="requirements">
+                <div>
+                    <p class="eyebrow">Requirements</p>
+                    <h3>Desktop software, built from source.</h3>
+                </div>
+                <ul>
+                    <li><strong>DataDocs, Learner, ProjectHub:</strong> Java 17+ on Linux, Windows, or macOS</li>
+                    <li><strong>ScrapZone:</strong> .NET 10 SDK with graphics support</li>
+                    <li><strong>Verification:</strong> SHA-256 checksums are available in the GitHub repository</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="feedback" aria-labelledby="feedback-title">
+            <div>
+                <p class="eyebrow">Help shape Datacenter</p>
+                <h2 id="feedback-title">Found a bug or have an idea?</h2>
+                <p>Share what worked, what didn’t, and what you would like Datacenter to build next.</p>
+            </div>
+            <a class="button button-primary" href="https://github.com/samwise1776/apps/issues/new" target="_blank" rel="noopener noreferrer">
+                Send feedback <span aria-hidden="true">↗</span>
+            </a>
+        </section>
+
         <section class="downloads" aria-labelledby="downloads-title">
             <div>
                 <p class="eyebrow">Discover more</p>
@@ -335,10 +387,12 @@
             <div class="footer-links">
                 <a href="#about">About</a>
                 <a href="#apps-title">Apps</a>
+                <a href="#install-title">Install</a>
                 <a href="https://github.com/samwise1776/apps/" target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>
             <p class="copyright">© 2026 Datacenter. All rights reserved.</p>
         </footer>
+        <script src="app.js"></script>
     </main>
 </body>
 </html>
