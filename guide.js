@@ -9,9 +9,9 @@
   const literals = new Set(["true", "false", "nil", "none", "some", "ok", "err"]);
   const builtins = new Set([
     "print", "println", "input", "len", "range", "sorted", "reversed", "append", "push", "pop", "insert",
-    "remove", "keys", "values", "items", "map", "filter", "reduce", "min", "max", "sum", "abs", "sqrt",
-    "pow", "floor", "ceil", "round", "rand", "rand_int", "random", "str", "int", "float", "bool",
-    "json_parse", "json_stringify", "from_json", "to_json", "sha256", "now", "time", "sleep", "typeof", "sizeof", "clone", "panic",
+    "remove", "contains", "keys", "values", "items", "enumerate", "zip", "map", "filter", "reduce", "min", "max", "sum", "abs",
+    "floor", "ceil", "round", "rand", "rand_int", "random", "str", "int", "float", "bool",
+    "json_parse", "json_stringify", "from_json", "to_json", "sha256", "now", "time", "sleep", "typeof", "clone",
     "chr", "ord", "hex", "oct", "bin", "join", "split", "replace", "trim", "lower", "upper", "parse_int", "parse_float",
     "exit", "readFileLines", "argu", "Window", "Frame", "Button", "Label", "TextField", "PasswordField",
     "TextArea", "Checkbox", "RadioButton", "ToggleSwitch", "Slider", "Spinner", "ProgressBar", "ComboBox",

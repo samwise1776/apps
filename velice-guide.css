@@ -274,6 +274,32 @@
 .guide-success { background: #eafaf5; border-color: #b7ead9; border-left-color: #24a77f; }
 .guide-rule { background: #eefbf7; border-color: #c4eddf; border-left-color: var(--velice-mint); }
 
+.feature-status-row {
+  display: flex;
+  margin: 13px 0 19px;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.feature-status {
+  display: inline-flex;
+  padding: 4px 8px;
+  align-items: center;
+  color: #4f5064;
+  background: #f3f3f7;
+  border: 1px solid #dddde7;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+}
+
+.feature-status.supported { color: #0f7157; background: #e8faf4; border-color: #a9e9d4; }
+.feature-status.partial { color: #8a5b00; background: #fff7df; border-color: #efd58b; }
+.feature-status.reserved { color: #8c3f54; background: #fff0f3; border-color: #efbdc9; }
+.feature-status.planned { color: #5145a6; background: #f0effb; border-color: #d5d1f5; }
+
 .guide-lesson table { width: 100%; overflow: hidden; border-collapse: separate; border-spacing: 0; border: 1px solid #e2e2eb; border-radius: 10px; font-size: 0.85rem; }
 .guide-lesson th, .guide-lesson td { padding: 10px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid #e8e8f0; }
 .guide-lesson th { color: #3f4054; background: #f6f6fa; }
