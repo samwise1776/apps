@@ -8,6 +8,7 @@ development.
 
 | Product | Version | Package |
 |---|---:|---|
+| AppCenter (Linux x64, Java included) | 1.0.0 | [`apps/appcenter/AppCenter-linux-x64.zip`](apps/appcenter/AppCenter-linux-x64.zip) |
 | DataDocs | 1.0.0 | [`apps/datadocs/datadocs.zip`](apps/datadocs/datadocs.zip) |
 | Learner | 1.0.0 | [`apps/learner/learner.zip`](apps/learner/learner.zip) |
 | ProjectHub | 1.0.0 | [`apps/projecthub/projecthub.zip`](apps/projecthub/projecthub.zip) |
