@@ -407,6 +407,11 @@ h3 {
   transform: translateY(-4px);
 }
 
+.featured-card {
+  border-color: rgb(147, 197, 253);
+  background: linear-gradient(145deg, rgba(239, 246, 255, 0.96), rgba(255, 255, 255, 0.92));
+}
+
 .app-icon {
   display: grid;
   width: 76px;
