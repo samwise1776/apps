@@ -401,6 +401,22 @@ h3 {
   margin-top: auto;
 }
 
+.app-actions {
+  display: flex;
+  margin-top: auto;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-actions .button {
+  margin-top: 0;
+}
+
+.velice-icon {
+  background: linear-gradient(145deg, #7c6cf0, #38d9a9);
+  box-shadow: 0 16px 28px rgba(124, 108, 240, 0.25);
+}
+
 .app-card:hover {
   border-color: rgb(147, 197, 253);
   box-shadow: 0 30px 80px rgba(15, 23, 42, 0.14);
@@ -825,7 +841,6 @@ h3 {
   .copyright {
     grid-column: 1;
     width: 100%;
-  }
 }
 
 @media (min-width: 721px) and (max-width: 960px) {
