@@ -13,6 +13,7 @@ development.
 | Learner | 1.0.0 | [`apps/learner/learner.zip`](apps/learner/learner.zip) |
 | ProjectHub | 1.0.0 | [`apps/projecthub/projecthub.zip`](apps/projecthub/projecthub.zip) |
 | Trestrio | 1.0.0 | [`apps/trestrio/trestrio.zip`](apps/trestrio/trestrio.zip) |
+| Velice | 0.1.0 | [`apps/velice/velice.zip`](apps/velice/velice.zip) · [Complete guide](https://samwise1776.github.io/apps/velice.html) |
 | Vexa | 0.1.0 | [`apps/vexa/vexa.zip`](apps/vexa/vexa.zip) |
 
 ## Games
