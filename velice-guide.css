@@ -207,7 +207,6 @@
 .guide-lesson > header h2 { margin: 8px 0 10px; color: var(--velice-ink); font-size: clamp(2rem, 4vw, 3.35rem); }
 .guide-lesson > header p { max-width: 820px; margin-bottom: 27px; color: #737487; font-size: 1.02rem; }
 .guide-lesson h3 { margin: 28px 0 11px; color: #292a40; font-size: 1.25rem; letter-spacing: -0.025em; }
-.guide-lesson h4 { margin: 0 0 6px; color: #3c3d55; font-size: 0.92rem; letter-spacing: -0.01em; }
 .guide-lesson p, .guide-lesson li { color: #65667a; }
 .guide-lesson code:not(pre code), .guide-note code, .guide-warning code, .guide-success code { padding: 2px 5px; color: var(--velice-dark); background: #f0effb; border: 1px solid #e1dff8; border-radius: 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.88em; }
 
@@ -229,7 +228,6 @@
 
 .lesson-grid { display: grid; gap: 24px; }
 .two-columns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.three-columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .lesson-grid > div { min-width: 0; }
 .lesson-grid > div > h3:first-child { margin-top: 0; }
 
@@ -350,7 +348,7 @@ kbd { padding: 2px 6px; color: #404153; background: #f5f5f8; border: 1px solid #
   .guide-nav-list { grid-template-columns: 1fr 1fr; }
   .guide-lesson > header { padding-right: 0; }
   .lesson-complete { position: static; margin-bottom: 12px; }
-  .two-columns, .three-columns, .reference-grid { grid-template-columns: 1fr; }
+  .two-columns, .reference-grid { grid-template-columns: 1fr; }
   .guide-lesson, .guide-intro-card { padding: 22px 17px; border-radius: 15px; }
   .guide-lesson pre { margin-inline: -5px; padding-inline: 13px; }
   .guide-footer { align-items: flex-start; flex-direction: column; }

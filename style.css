@@ -417,12 +417,6 @@ h3 {
   box-shadow: 0 16px 28px rgba(124, 108, 240, 0.25);
 }
 
-.descr1be-icon {
-  background: linear-gradient(145deg, #38d9a9, #20c997);
-  box-shadow: 0 16px 28px rgba(56, 217, 169, 0.25);
-  font-size: 1.15rem;
-}
-
 .app-card:hover {
   border-color: rgb(147, 197, 253);
   box-shadow: 0 30px 80px rgba(15, 23, 42, 0.14);
@@ -865,4 +859,5 @@ h3 {
   *::after {
     transition-duration: 0.01ms !important;
   }
+}
 }
