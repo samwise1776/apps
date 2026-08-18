@@ -1,0 +1,6 @@
+package pages;
+import components.Ui; import java.awt.*; import javax.swing.*; import model.AppStore;
+@SuppressWarnings({"serial", "this-escape"})
+public class Settings extends JPanel {
+ public Settings(){setLayout(new BorderLayout(0,20));setBackground(Ui.BG);setBorder(BorderFactory.createEmptyBorder(28,30,28,30));add(Ui.header("Settings","Manage local ProjectHub data."),BorderLayout.NORTH);JPanel card=new JPanel();card.setBackground(Color.WHITE);card.setLayout(new BoxLayout(card,BoxLayout.Y_AXIS));card.setBorder(BorderFactory.createEmptyBorder(25,25,25,25));card.add(new JLabel("Local workspace"));card.add(Box.createVerticalStrut(8));card.add(Ui.muted("Your data is saved automatically in ~/.projecthub/data.ser"));card.add(Box.createVerticalStrut(22));JButton demo=Ui.button("Load demo data");demo.setAlignmentX(LEFT_ALIGNMENT);demo.addActionListener(e->{AppStore.get().seedDemo();JOptionPane.showMessageDialog(this,"Demo data is ready.");});card.add(demo);card.add(Box.createVerticalStrut(12));JButton clear=Ui.danger("Clear all data");clear.setAlignmentX(LEFT_ALIGNMENT);clear.addActionListener(e->{if(JOptionPane.showConfirmDialog(this,"Permanently clear all workspace data?","Clear data",JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)AppStore.get().clear();});card.add(clear);add(card);}
+}

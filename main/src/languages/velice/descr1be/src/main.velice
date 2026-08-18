@@ -1,0 +1,7 @@
+# main.velice — Descr1be entry point.
+import gui
+import app
+
+var state = app.new_state()
+app.launch(state)
+gui.run()

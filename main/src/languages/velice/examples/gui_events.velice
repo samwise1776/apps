@@ -1,0 +1,57 @@
+# GUI events: clicks, text input, keys, mouse, toggles, sliders, lists
+#
+# Event names use snake_case and are normalized to the widget's events:
+#   on_click, on_change, on_key_down, on_key_up, on_mouse_move,
+#   on_mouse_enter, on_mouse_leave, on_mouse_wheel, on_focus, on_blur
+#
+# The event payload is available as `event` inside the block (a map with
+# x/y/key/state for mouse and keyboard events).
+
+import gui
+
+var window = Window("Events", 520, 420)
+window.on_close { print("window closed") }
+
+var label = Label("Type below to see it echoed")
+window.add(label)
+
+var input = TextField("", name="entry")
+input.on_change {
+    label.text = "You typed: " + input.text
+}
+window.add(input)
+
+var button = Button("Count: 0")
+var count = 0
+button.on_click {
+    count = count + 1
+    button.text = "Count: " + count
+}
+window.add(button)
+
+var check = Checkbox("Enable logging")
+check.on_change {
+    print("logging =", check.value)
+}
+window.add(check)
+
+var slider = Slider(50, 0, 100)
+slider.on_change {
+    print("slider =", slider.value)
+}
+window.add(slider)
+
+var list = ListBox(["red", "green", "blue"], name="colors")
+list.on_select {
+    print("selected:", list.selected)
+}
+window.add(list)
+
+window.on_key_down {
+    print("key:", event.key)
+}
+window.on_mouse_move {
+    print("mouse:", event.x, event.y)
+}
+
+gui.run()

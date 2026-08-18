@@ -1,0 +1,74 @@
+# Generated outputs and restored dependencies
+build/
+dist/
+target/
+bin/obj/
+runtime/
+node_modules/
+.cache/
+.gradle/
+*.class
+*.jar
+*.log
+__pycache__/
+.idea/
+.vscode/
+
+# Python
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Java/Maven
+*.war
+*.ear
+.mvn/repository/
+
+# Node
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor swap/backup
+*.swp
+*.swo
+*~
+
+# Local and private state
+.data/logs/
+ids/*/.id.txt
+ids/.id-broker.sock
+backups/
+releases/
+versions/
+archives/
+
+# Distribution ZIPs (keep only public/zip and desktopcraft downloads)
+*.zip
+!main/src/public/zip/**/*.zip
+!main/src/apps/desktopcraft/downloads/*.zip
+!main/src/apps/desktopcraft/dist/downloads/*.zip
+!main/src/languages/velice/descr1be.zip
+!main/src/languages/velice.zip
+!main/src/apps/assetforge.zip
+
+# Application-specific data
+trestrio/data.json
+apps/trestrio/data.json
+*.tmp
+*.sha256
+*.provenance.json
+
+# Autosave data
+autosave/
+
+# Identity files
+main/src/ids/*/
+

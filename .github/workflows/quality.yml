@@ -1,0 +1,38 @@
+name: Quality
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: apps/trestrio/package-lock.json
+
+      - name: Install Trestrio dependencies
+        run: npm ci --prefix apps/trestrio
+
+      - name: Security audit
+        run: ./datacenter audit
+
+      - name: Validate repository
+        run: ./datacenter check
+
+      - name: Build all active apps
+        run: ./datacenter build
+
+      - name: Verify generated documentation is committed
+        run: git diff --exit-code -- docs/APPS.md

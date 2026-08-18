@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Datacenter Info</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #0d1117,
+                    #121826
+                );
+
+            color: #e6edf3;
+
+            font-family:
+                Inter,
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            line-height: 1.7;
+        }
+
+        /* =========================================
+           TOP BAR
+        ========================================= */
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            padding:
+                14px
+                28px;
+
+            background:
+                rgba(
+                    13,
+                    17,
+                    23,
+                    0.92
+                );
+
+            border-bottom:
+                1px solid #30363d;
+
+            backdrop-filter:
+                blur(12px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            color: white;
+
+            font-size: 20px;
+            font-weight: bold;
+
+            text-decoration: none;
+        }
+
+        .brand-mark {
+            display: grid;
+            place-items: center;
+
+            width: 38px;
+            height: 38px;
+
+            background: #596cff;
+
+            border-radius: 10px;
+
+            font-size: 13px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav a {
+            color: #b6c2d0;
+
+            text-decoration: none;
+
+            transition:
+                color 0.2s ease;
+        }
+
+        .nav a:hover {
+            color: white;
+        }
+
+        /* =========================================
+           LAYOUT
+        ========================================= */
+
+        .page {
+            display: grid;
+
+            grid-template-columns:
+                240px
+                minmax(0, 900px);
+
+            justify-content: center;
+
+            gap: 40px;
+
+            max-width: 1300px;
+
+            margin:
+                0
+                auto;
+
+            padding:
+                40px
+                24px
+                100px;
+        }
+
+        /* =========================================
+           SIDEBAR
+        ========================================= */
+
+        .sidebar {
+            position: sticky;
+
+            top: 90px;
+
+            align-self: start;
+
+            padding: 20px;
+
+            background: #161b22;
+
+            border:
+                1px solid
+                #30363d;
+
+            border-radius: 14px;
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+
+            font-size: 14px;
+
+            color: #8b949e;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+        }
+
+        #toc {
+            display: flex;
+            flex-direction: column;
+
+            gap: 8px;
+        }
+
+        #toc a {
+            color: #b6c2d0;
+
+            text-decoration: none;
+
+            padding:
+                6px
+                8px;
+
+            border-radius: 7px;
+        }
+
+        #toc a:hover {
+            color: white;
+
+            background: #21262d;
+        }
+
+        #toc .level-2 {
+            margin-left: 12px;
+
+            font-size: 14px;
+        }
+
+        #toc .level-3 {
+            margin-left: 24px;
+
+            font-size: 13px;
+        }
+
+        /* =========================================
+           DOCUMENT
+        ========================================= */
+
+        .document {
+            min-width: 0;
+
+            padding:
+                42px
+                48px;
+
+            background: #0d1117;
+
+            border:
+                1px solid
+                #30363d;
+
+            border-radius: 16px;
+
+            box-shadow:
+                0
+                25px
+                80px
+                rgba(
+                    0,
+                    0,
+                    0,
+                    0.35
+                );
+        }
+
+        /* Markdown # title */
+
+        .document h1 {
+            margin-top: 0;
+
+            padding-bottom: 15px;
+
+            border-bottom:
+                1px solid
+                #30363d;
+
+            color: white;
+
+            font-size: 38px;
+            line-height: 1.2;
+        }
+
+        /* Markdown ## */
+
+        .document h2 {
+            margin-top: 45px;
+
+            padding-bottom: 8px;
+
+            border-bottom:
+                1px solid
+                #21262d;
+
+            color: #f0f6fc;
+
+            font-size: 27px;
+        }
+
+        /* Markdown ### */
+
+        .document h3 {
+            margin-top: 32px;
+
+            color: #e6edf3;
+
+            font-size: 21px;
+        }
+
+        .document h4 {
+            margin-top: 25px;
+
+            color: #d0d7de;
+        }
+
+        .document p {
+            margin:
+                15px
+                0;
+
+            color: #c9d1d9;
+        }
+
+        .document strong {
+            color: white;
+        }
+
+        .document a {
+            color: #7aa2ff;
+
+            text-decoration: none;
+        }
+
+        .document a:hover {
+            text-decoration: underline;
+        }
+
+        /* =========================================
+           LISTS
+        ========================================= */
+
+        .document ul,
+        .document ol {
+            padding-left: 30px;
+        }
+
+        .document li {
+            margin:
+                7px
+                0;
+        }
+
+        /* =========================================
+           BLOCK QUOTES
+        ========================================= */
+
+        .document blockquote {
+            margin:
+                20px
+                0;
+
+            padding:
+                4px
+                18px;
+
+            color: #aeb8c4;
+
+            border-left:
+                4px solid
+                #596cff;
+
+            background:
+                rgba(
+                    89,
+                    108,
+                    255,
+                    0.06
+                );
+
+            border-radius:
+                0
+                8px
+                8px
+                0;
+        }
+
+        /* =========================================
+           CODE
+        ========================================= */
+
+        .document code {
+            padding:
+                2px
+                6px;
+
+            background: #161b22;
+
+            color: #ffb86c;
+
+            border:
+                1px solid
+                #30363d;
+
+            border-radius: 5px;
+
+            font-family:
+                "JetBrains Mono",
+                "Fira Code",
+                monospace;
+
+            font-size: 0.9em;
+        }
+
+        .document pre {
+            overflow-x: auto;
+
+            padding: 18px;
+
+            background: #161b22;
+
+            border:
+                1px solid
+                #30363d;
+
+            border-radius: 10px;
+        }
+
+        .document pre code {
+            padding: 0;
+
+            background: transparent;
+
+            border: none;
+
+            color: #d6deeb;
+        }
+
+        /* =========================================
+           SEPARATOR
+        ========================================= */
+
+        .document hr {
+            margin:
+                35px
+                0;
+
+            border: none;
+
+            border-top:
+                1px solid
+                #30363d;
+        }
+
+        /* =========================================
+           LOADING
+        ========================================= */
+
+        .loading {
+            padding: 30px;
+
+            color: #8b949e;
+
+            text-align: center;
+        }
+
+        .error {
+            padding: 20px;
+
+            color: #ff7b72;
+
+            background:
+                rgba(
+                    248,
+                    81,
+                    73,
+                    0.08
+                );
+
+            border:
+                1px solid
+                rgba(
+                    248,
+                    81,
+                    73,
+                    0.3
+                );
+
+            border-radius: 10px;
+        }
+
+        /* =========================================
+           MOBILE
+        ========================================= */
+
+        @media (
+            max-width: 850px
+        ) {
+
+            .page {
+                display: block;
+            }
+
+            .sidebar {
+                position: relative;
+                top: 0;
+
+                margin-bottom: 20px;
+            }
+
+            .document {
+                padding:
+                    28px
+                    22px;
+            }
+
+            .document h1 {
+                font-size: 31px;
+            }
+
+            .nav {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <a
+        class="brand"
+        href="index.html"
+    >
+        <span class="brand-mark">
+            DC
+        </span>
+
+        Datacenter
+    </a>
+
+    <nav class="nav">
+
+        <a href="index.html">
+            Home
+        </a>
+
+        <a href="index.html#apps-title">
+            Apps
+        </a>
+
+        <a href="velice.html">
+            Velice
+        </a>
+
+        <a href="info.html">
+            Info
+        </a>
+
+        <a
+            href="https://github.com/samwise1776/apps/"
+            target="_blank"
+        >
+            GitHub
+        </a>
+
+    </nav>
+
+</header>
+
+<div class="page">
+
+    <!-- =====================================
+         DOCUMENT NAVIGATION
+    ====================================== -->
+
+    <aside class="sidebar">
+
+        <h3>
+            On this page
+        </h3>
+
+        <nav id="toc">
+
+            Loading...
+
+        </nav>
+
+    </aside>
+
+    <!-- =====================================
+         MARKDOWN DOCUMENT
+    ====================================== -->
+
+    <main
+        class="document"
+        id="document"
+    >
+
+        <div class="loading">
+
+            Loading Datacenter documentation...
+
+        </div>
+
+    </main>
+
+</div>
+
+<script>
+
+    // =========================================
+    // LOAD info.md
+    // =========================================
+
+    async function loadDocument() {
+
+        const documentElement =
+            document.getElementById(
+                "document"
+            );
+
+        try {
+
+            const response =
+                await fetch(
+                    "info.md"
+                );
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Could not load info.md"
+                );
+            }
+
+            const markdown =
+                await response.text();
+
+            documentElement.innerHTML =
+                parseMarkdown(
+                    markdown
+                );
+
+            createTableOfContents();
+
+        } catch (error) {
+
+            documentElement.innerHTML =
+                `
+                <div class="error">
+
+                    <h2>
+                        Could not load documentation
+                    </h2>
+
+                    <p>
+                        ${escapeHtml(
+                            error.message
+                        )}
+                    </p>
+
+                </div>
+                `;
+        }
+    }
+
+    // =========================================
+    // SIMPLE MARKDOWN ENGINE
+    // =========================================
+
+    function parseMarkdown(markdown) {
+
+        const lines =
+            markdown.replace(
+                /\r/g,
+                ""
+            ).split(
+                "\n"
+            );
+
+        let html = "";
+
+        let inCodeBlock =
+            false;
+
+        let codeLanguage =
+            "";
+
+        let codeBuffer =
+            [];
+
+        let inList =
+            false;
+
+        let listType =
+            "";
+
+        function closeList() {
+
+            if (!inList) {
+                return;
+            }
+
+            html +=
+                listType === "ol"
+                    ? "</ol>"
+                    : "</ul>";
+
+            inList =
+                false;
+
+            listType =
+                "";
+        }
+
+        for (
+            let i = 0;
+            i < lines.length;
+            i++
+        ) {
+
+            const raw =
+                lines[i];
+
+            const line =
+                raw.trim();
+
+            // =============================
+            // CODE BLOCK
+            // =============================
+
+            if (
+                line.startsWith(
+                    "```"
+                )
+            ) {
+
+                closeList();
+
+                if (!inCodeBlock) {
+
+                    inCodeBlock =
+                        true;
+
+                    codeLanguage =
+                        line.substring(
+                            3
+                        ).trim();
+
+                    codeBuffer =
+                        [];
+
+                } else {
+
+                    html +=
+                        "<pre><code"
+                        +
+                        (
+                            codeLanguage
+                                ?
+                            ` class="language-${escapeHtml(codeLanguage)}"`
+                                :
+                            ""
+                        )
+                        +
+                        ">"
+                        +
+                        escapeHtml(
+                            codeBuffer.join(
+                                "\n"
+                            )
+                        )
+                        +
+                        "</code></pre>";
+
+                    inCodeBlock =
+                        false;
+
+                    codeLanguage =
+                        "";
+
+                    codeBuffer =
+                        [];
+                }
+
+                continue;
+            }
+
+            if (inCodeBlock) {
+
+                codeBuffer.push(
+                    raw
+                );
+
+                continue;
+            }
+
+            // =============================
+            // EMPTY LINE
+            // =============================
+
+            if (line === "") {
+
+                closeList();
+
+                continue;
+            }
+
+            // =============================
+            // HORIZONTAL RULE
+            // =============================
+
+            if (
+                line === "---"
+                ||
+                line === "***"
+            ) {
+
+                closeList();
+
+                html += "<hr>";
+
+                continue;
+            }
+
+            // =============================
+            // HEADINGS
+            // =============================
+
+            const heading =
+                line.match(
+                    /^(#{1,6})\s+(.+)$/
+                );
+
+            if (heading) {
+
+                closeList();
+
+                const level =
+                    heading[1].length;
+
+                const text =
+                    heading[2];
+
+                const id =
+                    createId(
+                        stripMarkdown(
+                            text
+                        )
+                    );
+
+                html +=
+                    `<h${level} id="${id}">`
+                    +
+                    inlineMarkdown(
+                        text
+                    )
+                    +
+                    `</h${level}>`;
+
+                continue;
+            }
+
+            // =============================
+            // BLOCKQUOTE
+            // =============================
+
+            if (
+                line.startsWith(
+                    ">"
+                )
+            ) {
+
+                closeList();
+
+                html +=
+                    "<blockquote><p>"
+                    +
+                    inlineMarkdown(
+                        line.substring(
+                            1
+                        ).trim()
+                    )
+                    +
+                    "</p></blockquote>";
+
+                continue;
+            }
+
+            // =============================
+            // UNORDERED LIST
+            // =============================
+
+            const unordered =
+                line.match(
+                    /^[-*+]\s+(.+)$/
+                );
+
+            if (unordered) {
+
+                if (
+                    !inList
+                    ||
+                    listType !== "ul"
+                ) {
+
+                    closeList();
+
+                    html += "<ul>";
+
+                    inList =
+                        true;
+
+                    listType =
+                        "ul";
+                }
+
+                html +=
+                    "<li>"
+                    +
+                    inlineMarkdown(
+                        unordered[1]
+                    )
+                    +
+                    "</li>";
+
+                continue;
+            }
+
+            // =============================
+            // ORDERED LIST
+            // =============================
+
+            const ordered =
+                line.match(
+                    /^\d+\.\s+(.+)$/
+                );
+
+            if (ordered) {
+
+                if (
+                    !inList
+                    ||
+                    listType !== "ol"
+                ) {
+
+                    closeList();
+
+                    html += "<ol>";
+
+                    inList =
+                        true;
+
+                    listType =
+                        "ol";
+                }
+
+                html +=
+                    "<li>"
+                    +
+                    inlineMarkdown(
+                        ordered[1]
+                    )
+                    +
+                    "</li>";
+
+                continue;
+            }
+
+            // =============================
+            // NORMAL PARAGRAPH
+            // =============================
+
+            closeList();
+
+            html +=
+                "<p>"
+                +
+                inlineMarkdown(
+                    line
+                )
+                +
+                "</p>";
+        }
+
+        closeList();
+
+        return html;
+    }
+
+    // =========================================
+    // INLINE MARKDOWN
+    // =========================================
+
+    function inlineMarkdown(text) {
+
+        let value =
+            escapeHtml(
+                text
+            );
+
+        // Inline code
+
+        value =
+            value.replace(
+                /`([^`]+)`/g,
+                "<code>$1</code>"
+            );
+
+        // Images
+
+        value =
+            value.replace(
+                /!\[([^\]]*)\]\(([^)]+)\)/g,
+                '<img src="$2" alt="$1">'
+            );
+
+        // Links
+
+        value =
+            value.replace(
+                /\[([^\]]+)\]\(([^)]+)\)/g,
+                '<a href="$2">$1</a>'
+            );
+
+        // Bold
+
+        value =
+            value.replace(
+                /\*\*([^*]+)\*\*/g,
+                "<strong>$1</strong>"
+            );
+
+        // Italic
+
+        value =
+            value.replace(
+                /\*([^*]+)\*/g,
+                "<em>$1</em>"
+            );
+
+        return value;
+    }
+
+    // =========================================
+    // TABLE OF CONTENTS
+    // =========================================
+
+    function createTableOfContents() {
+
+        const toc =
+            document.getElementById(
+                "toc"
+            );
+
+        toc.innerHTML =
+            "";
+
+        const headings =
+            document.querySelectorAll(
+                "#document h1, #document h2, #document h3"
+            );
+
+        headings.forEach(
+            heading => {
+
+                const link =
+                    document.createElement(
+                        "a"
+                    );
+
+                link.href =
+                    "#"
+                    +
+                    heading.id;
+
+                link.textContent =
+                    heading.textContent;
+
+                if (
+                    heading.tagName ===
+                    "H2"
+                ) {
+
+                    link.className =
+                        "level-2";
+                }
+
+                if (
+                    heading.tagName ===
+                    "H3"
+                ) {
+
+                    link.className =
+                        "level-3";
+                }
+
+                toc.appendChild(
+                    link
+                );
+            }
+        );
+
+        if (
+            headings.length === 0
+        ) {
+
+            toc.textContent =
+                "No sections";
+        }
+    }
+
+    // =========================================
+    // HELPERS
+    // =========================================
+
+    function escapeHtml(value) {
+
+        return value
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+            .replace(
+                /</g,
+                "&lt;"
+            )
+            .replace(
+                />/g,
+                "&gt;"
+            )
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+            .replace(
+                /'/g,
+                "&#039;"
+            );
+    }
+
+    function createId(text) {
+
+        return text
+            .toLowerCase()
+            .trim()
+            .replace(
+                /[^a-z0-9\s-]/g,
+                ""
+            )
+            .replace(
+                /\s+/g,
+                "-"
+            );
+    }
+
+    function stripMarkdown(text) {
+
+        return text
+            .replace(
+                /[*_`]/g,
+                ""
+            );
+    }
+
+    loadDocument();
+
+</script>
+
+</body>
+</html>

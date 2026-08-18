@@ -1,0 +1,157 @@
+VERSION: v1.0.0
+TITLE: Datacenter
+LOCATION: /home/ray/Data
+SIZE: 355.38 MiB
+SIZE_BYTES: 372640248
+FILES: 483
+TEXT_FILES: 212
+LINES: 13193
+JAVA_FILES: 28
+JAVA_LINES: 4558
+LOGS:
+[2026-08-10 14:24:13] Info.java started; checking all Datacenter applications.
+[2026-08-10 14:24:13] Time: 2026-08-10 14:24:13 Java: 26.0.1 OS: Linux 7.0.0-29-generic Architecture: amd64 Processors: 4 JVM memory: 5.36 MB used / 952.00 MB maximum PID: 172120 Uptime: 1937 ms Apps path: /home/ray/Data/apps
+[2026-08-10 14:24:32] Info.java started; checking all Datacenter applications.
+[2026-08-10 14:24:32] Time: 2026-08-10 14:24:32 Java: 26.0.1 OS: Linux 7.0.0-29-generic Architecture: amd64 Processors: 4 JVM memory: 5.41 MB used / 952.00 MB maximum PID: 172811 Uptime: 3198 ms Apps path: /home/ray/Data/apps
+[2026-08-10 14:24:39] Info.java started; checking all Datacenter applications.
+[2026-08-10 14:24:39] Time: 2026-08-10 14:24:39 Java: 26.0.1 OS: Linux 7.0.0-29-generic Architecture: amd64 Processors: 4 JVM memory: 5.44 MB used / 952.00 MB maximum PID: 173121 Uptime: 3115 ms Apps path: /home/ray/Data/apps
+[2026-08-10 14:24:41] App1.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:24:43] DataDocs.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:24:43] Game.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:24:47] Info.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:24:47] Repair scan complete: 4 passed, 0 failed.
+[2026-08-10 14:24:51] App1.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:24:52] DataDocs.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:24:52] Game.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:24:54] Info.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:24:54] Repair scan complete: 4 passed, 0 failed.
+[2026-08-10 14:24:55] Info.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:24:55] Info.java: LAUNCH: java -cp /home/ray/Data/runtime/classes apps.Info
+[2026-08-10 14:24:57] Info.java started; checking all Datacenter applications.
+[2026-08-10 14:24:57] Time: 2026-08-10 14:24:57 Java: 26.0.1 OS: Linux 7.0.0-29-generic Architecture: amd64 Processors: 4 JVM memory: 5.39 MB used / 952.00 MB maximum PID: 173410 Uptime: 1798 ms Apps path: /home/ray/Data/apps
+[2026-08-10 14:25:04] App1.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:25:05] DataDocs.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:25:05] Game.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:25:07] Info.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:25:07] Repair scan complete: 4 passed, 0 failed.
+[2026-08-10 14:25:07] DataDocs.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:25:07] DataDocs.java: LAUNCH: java -cp /home/ray/Data/runtime/classes apps.DataDocs
+[2026-08-10 14:25:14] DataDocs.java: EXIT: process returned 0
+[2026-08-10 14:25:19] Info.java: EXIT: process returned 143
+[2026-08-10 14:26:20] GameCs.java: CREATE: generated a Datacenter window app with the shared procedural icon.
+[2026-08-10 14:26:20] Created application GameCs.java
+[2026-08-10 14:26:20] App1.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:26:21] DataDocs.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:26:21] Game.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:26:21] GameCs.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:26:21] Info.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:26:21] Repair scan complete: 5 passed, 0 failed.
+[2026-08-10 14:30:55] Info.java started; checking all Datacenter applications.
+[2026-08-10 14:30:55] Time: 2026-08-10 14:30:55 Java: 26.0.1 OS: Linux 7.0.0-29-generic Architecture: amd64 Processors: 4 JVM memory: 5.48 MB used / 952.00 MB maximum PID: 178336 Uptime: 2010 ms Apps path: /home/ray/Data/apps
+[2026-08-10 14:31:04] App1.java: REPAIR OK: compiled successfully.
+[2026-08-10 14:31:25] Hello.cs: CREATE: generated a Datacenter window app with the shared procedural icon.
+[2026-08-10 14:31:25] Created application Hello.cs
+[2026-08-10 16:37:43] Info.java started; checking all Datacenter applications.
+[2026-08-10 16:37:43] Time: 2026-08-10 16:37:43 Java: 26.0.1 OS: Linux 7.0.0-29-generic Architecture: amd64 Processors: 4 JVM memory: 5.44 MB used / 952.00 MB maximum PID: 19939 Uptime: 797 ms Apps path: /home/ray/Data/apps
+[2026-08-10 16:37:46] App1.java: REPAIR OK: compiled successfully.
+[2026-08-10 16:37:46] apps.csproj: CHECK: app is present and readable=true
+[2026-08-10 16:37:46] DataDocs.java: REPAIR OK: compiled successfully.
+[2026-08-10 16:37:46] Game.java: REPAIR OK: compiled successfully.
+[2026-08-10 16:37:47] Info.java: REPAIR OK: compiled successfully.
+[2026-08-10 16:38:03] Program.cs: REPAIR FAILED: C# compiler errors detected. Determining projects to restore...   Restored /home/ray/Data/runtime/csharp/Program/Program.csproj (in 249 ms). /home/ray/Data/apps/Program.cs(2,7): error CS0246: The type or namespace name 'Raylib_cs' could not be found (are you missing a using directive or an assembly reference?) [/home/ray/Data/runtime/csharp/Program/Program.csproj]  Build FAILED.  /home/ray/Data/apps/Program.cs(2,7): error CS0246: The type or namespace name 'Raylib_cs' could not be found (are you missing a using directive or an assembly reference?) [/home/ray/Data/runtime/csharp/Program/Program.csproj]     0 Warning(s)     1 Error(s)  Time Elapsed 00:00:14.60
+[2026-08-10 16:38:03] README.md: CHECK: app is present and readable=true
+[2026-08-10 16:38:03] Repair scan complete: 6 passed, 1 failed.
+[2026-08-10 16:38:35] Program.cs: REPAIR FAILED: C# compiler errors detected. Determining projects to restore...   All projects are up-to-date for restore. /home/ray/Data/apps/Program.cs(2,7): error CS0246: The type or namespace name 'Raylib_cs' could not be found (are you missing a using directive or an assembly reference?) [/home/ray/Data/runtime/csharp/Program/Program.csproj]  Build FAILED.  /home/ray/Data/apps/Program.cs(2,7): error CS0246: The type or namespace name 'Raylib_cs' could not be found (are you missing a using directive or an assembly reference?) [/home/ray/Data/runtime/csharp/Program/Program.csproj]     0 Warning(s)     1 Error(s)  Time Elapsed 00:00:02.00
+[2026-08-10 19:26:52] Info.java started; checking all Datacenter applications.
+[2026-08-10 19:26:52] Time: 2026-08-10 19:26:52 Java: 26.0.1 OS: Linux 7.0.0-29-generic Architecture: amd64 Processors: 4 JVM memory: 5.51 MB used / 952.00 MB maximum PID: 105994 Uptime: 1812 ms Apps path: /home/ray/Data/apps
+[2026-08-10 19:26:57] App1.java: REPAIR OK: compiled successfully.
+[2026-08-10 19:26:57] apps.csproj: CHECK: app is present and readable=true
+[2026-08-10 19:26:58] DataDocs.java: REPAIR OK: compiled successfully.
+[2026-08-10 19:26:58] Game.java: REPAIR OK: compiled successfully.
+[2026-08-10 19:27:00] Info.java: REPAIR OK: compiled successfully.
+[2026-08-10 19:27:47] DataDocs.java: REPAIR OK: compiled successfully.
+[2026-08-10 19:27:47] DataDocs.java: LAUNCH: java -cp /home/ray/Data/runtime/classes apps.DataDocs
+[2026-08-10 19:54:56] [INFO] Datacenter Manager started. One version step = 100 completed lines.
+[2026-08-10 19:54:59] [INFO] Datacenter Manager stopped.
+[2026-08-10 21:31:54] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-10 21:31:54] [INFO] Removed stale version metadata: README.md.version
+[2026-08-10 21:32:38] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-10 21:32:38] [INFO] Removed stale version metadata: README.md.version
+[2026-08-10 21:34:08] [INFO] Datacenter Manager started. One version step = 100 completed lines.
+[2026-08-10 21:34:09] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-10 21:34:09] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 00:49:56] [INFO] Datacenter Manager stopped.
+[2026-08-11 08:11:33] [INFO] Datacenter Manager started. One version step = 100 completed lines.
+[2026-08-11 08:24:27] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:27] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:27] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:29] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:29] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:29] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:31] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:31] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:31] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:33] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:33] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:33] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:35] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:35] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:35] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:37] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:37] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:37] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:39] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:39] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:39] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:41] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:41] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:41] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:43] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:43] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:43] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:45] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:45] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:45] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:47] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:47] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:47] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:49] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:49] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:49] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:51] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:51] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:51] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:53] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:53] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:53] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:55] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:55] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:55] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:57] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:57] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:57] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:24:59] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:24:59] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:24:59] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:25:01] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:25:01] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:25:01] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:25:03] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:25:03] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:25:03] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:25:05] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:25:05] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:25:05] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:25:07] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:25:07] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:25:07] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:25:09] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:25:09] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:25:09] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:25:11] [INFO] Updated 2 metadata to v0.0.0
+[2026-08-11 08:25:11] [INFO] Removed stale version metadata: README.md.version
+[2026-08-11 08:25:11] [INFO] Removed stale version metadata: 1.zip.version
+[2026-08-11 08:51:58] [INFO] Datacenter Manager started. One version step = 100 completed lines.
+[2026-08-11 08:52:01] [INFO] Datacenter Manager stopped.
+[2026-08-11 09:03:26] [INFO] Datacenter Manager started. One version step = 100 completed lines.
+[2026-08-11 09:10:14] [INFO] Datacenter Manager stopped.

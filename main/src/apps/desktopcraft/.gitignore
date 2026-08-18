@@ -1,0 +1,21 @@
+# Local configuration and credentials
+.env
+.env.local
+
+# Language and tool caches
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+# Editor and operating-system noise
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+core
+core.*
+
+# Runtime-only files
+*.log

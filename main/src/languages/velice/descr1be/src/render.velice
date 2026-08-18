@@ -1,0 +1,56 @@
+# render.velice — draw the project widget tree as a live designer preview.
+import gui
+import util
+import templates
+import theme
+
+# Render root widgets of `project` into `container`.
+#   selected_id : id of the widget to highlight (or nil)
+#   on_select   : function(id) called when a preview widget is clicked
+fn render(container, project, selected_id = nil, on_select = nil) {
+    container.clear()
+    var t = theme.colors(util.map_get(project, "theme", "dark"))
+    for root in project["widgets"] {
+        _draw(container, root, selected_id, on_select, t)
+    }
+    return container
+}
+
+fn _draw(parent, node, selected_id, on_select, t) {
+    var type_label = templates.type_label(node["type"])
+    var sel = selected_id != nil and selected_id == node["id"]
+    var f = Frame(name = node["id"], parent = parent)
+    parent.add(f)
+    f.set("x", node["x"])
+    f.set("y", node["y"])
+    f.set("width", util.max_of(node["w"], 40))
+    f.set("height", util.max_of(node["h"], 24))
+    if sel {
+        f.set("background", t["accent"])
+    } else {
+        f.set("background", t["surface2"])
+    }
+    var lab = Label(name = node["id"] + "_lab", parent = f, text = type_label + " " + node["name"])
+    f.add(lab)
+    lab.set("x", 4)
+    lab.set("y", 2)
+    lab.set("font_size", 9)
+    if sel {
+        lab.set("color", t["accent_text"])
+    } else {
+        lab.set("color", t["text_muted"])
+    }
+    if on_select != nil {
+        _bind_select(f, on_select, node["id"])
+    }
+    for child in node["children"] {
+        _draw(f, child, selected_id, on_select, t)
+    }
+    return f
+}
+
+fn _bind_select(widget, on_select, id) {
+    widget.on_click {
+        on_select(id)
+    }
+}

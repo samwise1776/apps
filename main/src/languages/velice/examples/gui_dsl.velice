@@ -1,0 +1,51 @@
+# Declarative GUI DSL
+#
+#   window Name { props and widgets }
+#   Widget name { prop = expr; onEvent { block } }
+#   run Name
+#
+# The event name inside the DSL is camelCase (onClick, onChange, ...) and the
+# prefix `on` is stripped by the parser, so `onClick` matches the widget API.
+
+import gui
+
+window Main {
+    title = "Declarative DSL"
+    width = 640
+    height = 400
+
+    Label header {
+        text = "Velice GUI DSL"
+        font_size = 18
+        bold = true
+    }
+
+    TextField name {
+        text = ""
+        placeholder = "Your name"
+    }
+
+    Button greet {
+        text = "Greet"
+        onClick {
+            if name.text == "" {
+                print("Hello, stranger!")
+            } else {
+                print("Hello, " + name.text + "!")
+            }
+        }
+    }
+
+    Button clear {
+        text = "Clear"
+        onClick {
+            name.text = ""
+        }
+    }
+
+    StatusBar status {
+        text = "Ready"
+    }
+}
+
+run Main

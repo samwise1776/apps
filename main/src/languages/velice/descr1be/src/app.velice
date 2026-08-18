@@ -1,0 +1,401 @@
+# app.velice — Descr1be main window, panels, and project handlers.
+import gui
+import util
+import model
+import history
+import render
+import inspector
+import editor
+import console
+import projectio
+import generator
+import sourceparse
+import aibuilder
+import templates
+import theme
+
+WINDOW_W = 1280
+WINDOW_H = 800
+CONSOLE_H = 140
+PANEL_W = 272
+
+fn new_state() {
+    return {
+        "project": model.default_project(),
+        "history": history.create(),
+        "selected": nil,
+        "mode": "design",
+        "window": nil,
+        "toolbar": nil,
+        "design_panel": nil,
+        "code_panel": nil,
+        "ai_panel": nil,
+        "canvas": nil,
+        "inspector": nil,
+        "palette": nil,
+        "code_editor": nil,
+        "console": nil,
+        "prompt": nil,
+        "mode_buttons": {},
+    }
+}
+
+fn launch(state) {
+    _build_window(state)
+    _set_mode(state, "design")
+    _refresh_all(state)
+    _log(state, "Descr1be ready. Add widgets from the palette, or switch to AI to describe an app.")
+    return state["window"]
+}
+
+# ── window construction ─────────────────────────────────────────────────
+fn _build_window(state) {
+    set_theme("Dark")
+    var win = Window("Descr1be — visual builder", WINDOW_W, WINDOW_H)
+    state["window"] = win
+    var t = theme.colors("dark")
+    var panel_h = WINDOW_H - 44 - CONSOLE_H - 4
+
+    var toolbar = _frame(win, "toolbar", 0, 0, WINDOW_W, 44)
+    toolbar.set("background", t["surface"])
+    state["toolbar"] = toolbar
+
+    _mode_button(state, "AI", "ai", 8, t)
+    _mode_button(state, "Design", "design", 84, t)
+    _mode_button(state, "Code", "code", 164, t)
+
+    _tool_button(toolbar, "Undo", 300, state, _mk_undo(state))
+    _tool_button(toolbar, "Redo", 380, state, _mk_redo(state))
+    _tool_button(toolbar, "Delete", 460, state, _mk_delete(state))
+    _tool_button(toolbar, "Run", 560, state, _mk_run(state))
+    _tool_button(toolbar, "Save", 640, state, _mk_save(state))
+    _tool_button(toolbar, "Export", 720, state, _mk_export(state))
+
+    var design_panel = _frame(win, "design_panel", 0, 44, WINDOW_W, panel_h)
+    design_panel.set("background", t["bg"])
+    state["design_panel"] = design_panel
+
+    var palette = ListBox(name = "palette", parent = design_panel)
+    design_panel.add(palette)
+    palette.set("x", 8)
+    palette.set("y", 8)
+    palette.set("width", 180)
+    palette.set("height", panel_h - 16)
+    palette.set("items", _palette_labels())
+    palette.on_select {
+        _add_widget(state, _label_to_type(palette.selected))
+    }
+    state["palette"] = palette
+
+    var canvas = _frame(design_panel, "canvas", 196, 8, WINDOW_W - 196 - PANEL_W - 20, panel_h - 16)
+    canvas.set("background", t["bg"])
+    state["canvas"] = canvas
+
+    var insp = _frame(design_panel, "inspector", WINDOW_W - PANEL_W - 8, 8, PANEL_W, panel_h - 16)
+    insp.set("background", t["surface"])
+    state["inspector"] = insp
+
+    var code_panel = _frame(win, "code_panel", 0, 44, WINDOW_W, panel_h)
+    code_panel.set("background", t["bg"])
+    state["code_panel"] = code_panel
+    var ed = editor.make(code_panel, 0, 0, WINDOW_W, panel_h)
+    ed.on_change {
+        _on_code_change(state, ed.text)
+    }
+    state["code_editor"] = ed
+
+    var ai_panel = _frame(win, "ai_panel", 0, 44, WINDOW_W, panel_h)
+    ai_panel.set("background", t["bg"])
+    state["ai_panel"] = ai_panel
+    var hint = Label(name = "ai_hint", parent = ai_panel, text = "Describe the app in plain words:")
+    ai_panel.add(hint)
+    hint.set("x", 16)
+    hint.set("y", 16)
+    hint.set("font_size", 13)
+    var prompt = TextArea(name = "prompt", parent = ai_panel)
+    ai_panel.add(prompt)
+    prompt.set("x", 16)
+    prompt.set("y", 44)
+    prompt.set("width", WINDOW_W - 340)
+    prompt.set("height", 150)
+    state["prompt"] = prompt
+    var build = Button(name = "build_btn", parent = ai_panel, text = "Build App")
+    ai_panel.add(build)
+    build.set("x", 16)
+    build.set("y", 208)
+    build.set("width", 150)
+    build.set("height", 34)
+    build.on_click {
+        _ai_build(state)
+    }
+
+    var console_panel = _frame(win, "console", 0, WINDOW_H - CONSOLE_H, WINDOW_W, CONSOLE_H)
+    console_panel.set("background", t["surface2"])
+    var con = console.make(console_panel, "console", 8, 8, WINDOW_W - 16, CONSOLE_H - 16)
+    state["console"] = con
+
+    win.on_close {
+        _log(state, "goodbye")
+    }
+    return win
+}
+
+fn _frame(parent, name, x, y, w, h) {
+    var f = Frame(name = name, parent = parent)
+    parent.add(f)
+    f.set("x", x)
+    f.set("y", y)
+    f.set("width", w)
+    f.set("height", h)
+    f.set("layout", "free")
+    return f
+}
+
+fn _mode_button(state, label, mode, x, t) {
+    var toolbar = state["toolbar"]
+    var b = Button(name = "mode_" + mode, parent = toolbar, text = label)
+    toolbar.add(b)
+    b.set("x", x)
+    b.set("y", 6)
+    b.set("width", 70)
+    b.set("height", 30)
+    b.set("background", t["button"])
+    var target = mode
+    b.on_click {
+        _set_mode(state, target)
+    }
+    state["mode_buttons"][mode] = b
+    return b
+}
+
+fn _tool_button(toolbar, label, x, state, handler) {
+    var b = Button(name = "tool_" + label, parent = toolbar, text = label)
+    toolbar.add(b)
+    b.set("x", x)
+    b.set("y", 6)
+    b.set("width", 70)
+    b.set("height", 30)
+    b.on_click {
+        handler()
+    }
+    return b
+}
+
+# ── callbacks (fresh closures per build) ────────────────────────────────
+fn _mk_undo(state) {
+    return fn() { _undo(state) }
+}
+
+fn _mk_redo(state) {
+    return fn() { _redo(state) }
+}
+
+fn _mk_delete(state) {
+    return fn() { _delete_selected(state) }
+}
+
+fn _mk_run(state) {
+    return fn() { _run_project(state) }
+}
+
+fn _mk_save(state) {
+    return fn() { _save_project(state) }
+}
+
+fn _mk_export(state) {
+    return fn() { _export_project(state) }
+}
+
+# ── mode handling ───────────────────────────────────────────────────────
+fn _set_mode(state, mode) {
+    state["mode"] = mode
+    state["design_panel"].set("visible", mode == "design")
+    state["code_panel"].set("visible", mode == "code")
+    state["ai_panel"].set("visible", mode == "ai")
+    _style_mode_buttons(state)
+    if mode == "code" {
+        _refresh_code(state)
+    }
+}
+
+fn _style_mode_buttons(state) {
+    var t = theme.colors(util.map_get(state["project"], "theme", "dark"))
+    var active = state["mode"]
+    for mode in keys(state["mode_buttons"]) {
+        var b = state["mode_buttons"][mode]
+        if active == mode {
+            b.set("background", t["accent"])
+        } else {
+            b.set("background", t["button"])
+        }
+    }
+}
+
+# ── refresh ─────────────────────────────────────────────────────────────
+fn _refresh_all(state) {
+    _refresh_canvas(state)
+    _refresh_inspector(state)
+    _refresh_code(state)
+}
+
+fn _refresh_canvas(state) {
+    render.render(state["canvas"], state["project"], state["selected"], _mk_select(state))
+}
+
+fn _mk_select(state) {
+    return fn(id) { _select(state, id) }
+}
+
+fn _select(state, id) {
+    state["selected"] = id
+    _refresh_canvas(state)
+    _refresh_inspector(state)
+}
+
+fn _refresh_inspector(state) {
+    var node = nil
+    if state["selected"] != nil {
+        node = model.find_node(state["project"]["widgets"], state["selected"])
+    }
+    inspector.render(state["inspector"], node, _mk_change(state))
+}
+
+fn _mk_change(state) {
+    return fn(id, key, value) { _change_prop(state, id, key, value) }
+}
+
+fn _refresh_code(state) {
+    editor.load(state["code_editor"], state["project"])
+}
+
+# ── model actions ───────────────────────────────────────────────────────
+fn _add_widget(state, wtype) {
+    var y = model.next_free_spot(state["project"]["widgets"])
+    var node = model.make_node(wtype, nil, 20, y)
+    history.save(state["history"], state["project"])
+    append(state["project"]["widgets"], node)
+    state["selected"] = node["id"]
+    _refresh_all(state)
+    _log(state, "added " + wtype + " widget")
+}
+
+fn _delete_selected(state) {
+    var id = state["selected"]
+    if id == nil { return }
+    history.save(state["history"], state["project"])
+    state["project"]["widgets"] = model.remove_node(state["project"]["widgets"], id)
+    state["selected"] = nil
+    _refresh_all(state)
+    _log(state, "deleted widget")
+}
+
+fn _change_prop(state, id, key, value) {
+    history.save(state["history"], state["project"])
+    model.update_prop(state["project"]["widgets"], id, key, value)
+    _refresh_canvas(state)
+    _refresh_code(state)
+}
+
+fn _undo(state) {
+    var snap = history.undo(state["history"])
+    if snap == nil { return }
+    state["project"] = snap
+    state["selected"] = nil
+    _refresh_all(state)
+    _log(state, "undo")
+}
+
+fn _redo(state) {
+    var snap = history.redo(state["history"])
+    if snap == nil { return }
+    state["project"] = snap
+    state["selected"] = nil
+    _refresh_all(state)
+    _log(state, "redo")
+}
+
+fn _on_code_change(state, source) {
+    var parsed = nil
+    try {
+        parsed = sourceparse.from_source(source)
+    } catch e {
+        _log(state, "parse error: " + str(e))
+        return
+    }
+    if parsed == nil {
+        _log(state, "could not parse source")
+        return
+    }
+    state["project"] = parsed
+    history.save(state["history"], state["project"])
+    _refresh_canvas(state)
+    _refresh_inspector(state)
+    _log(state, "source applied")
+}
+
+fn _ai_build(state) {
+    var text = state["prompt"].text
+    if trim(text) == "" {
+        _log(state, "type a description first")
+        return
+    }
+    history.save(state["history"], state["project"])
+    state["project"] = aibuilder.build_from_prompt(text, state["project"])
+    state["selected"] = nil
+    _refresh_all(state)
+    _log(state, "built project from prompt")
+}
+
+fn _run_project(state) {
+    var source = generator.generate(state["project"])
+    _log(state, "running project…")
+    var res = aibuilder.run_source(source)
+    if res == nil {
+        _log(state, "run failed: no result")
+        return
+    }
+    if res["code"] != 0 {
+        _log(state, "run failed: " + trim(str(res["stderr"])))
+    } else {
+        _log(state, "run ok. output: " + trim(str(res["stdout"])))
+    }
+}
+
+fn _save_project(state) {
+    var path = projectio.default_path(state["project"])
+    projectio.save(state["project"], path)
+    _log(state, "saved to " + path)
+}
+
+fn _export_project(state) {
+    var path = join_path(home_dir(), "descr1be_" + _slug_name(state["project"]["name"]) + ".velice")
+    projectio.export_source(state["project"], path)
+    _log(state, "exported source to " + path)
+}
+
+fn _slug_name(name) {
+    var s = replace(str(name), " ", "_")
+    s = replace(s, "/", "_")
+    s = lower(s)
+    return s
+}
+
+fn _log(state, msg) {
+    console.log(state["console"], msg)
+}
+
+fn _palette_labels() {
+    var out = []
+    for item in templates.palette() {
+        append(out, item["label"])
+    }
+    return out
+}
+
+fn _label_to_type(label) {
+    if label == nil { return "button" }
+    for item in templates.palette() {
+        if item["label"] == label { return item["type"] }
+    }
+    return "button"
+}

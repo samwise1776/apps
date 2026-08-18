@@ -1,0 +1,36 @@
+# Pattern matching
+fn classify(n) {
+    return match n {
+        0 => "zero",
+        1 => "one",
+        n if n < 0 => "negative",
+        n if n > 100 => "huge",
+        _ => "normal",
+    }
+}
+
+print(classify(0))
+print(classify(1))
+print(classify(-5))
+print(classify(500))
+print(classify(42))
+
+fn describe(x) {
+    match x {
+        0 => print("zero"),
+        _ => print("other"),
+    }
+}
+describe(0)
+describe(7)
+
+fn sum_list(items) {
+    let mut total = 0
+    for item in items {
+        total = total + item
+    }
+    return total
+}
+
+print("sum [1,2,3]:", sum_list([1, 2, 3]))
+print("sum []:", sum_list([]))

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make your own website</title>
+    <link rel="icon" href="assets/desktopcraft-icon.svg">
+    <style>
+        body {
+            background-color: rgb(226, 226, 225);
+            font-family: sans-serif;
+        }
+        :root {
+            --ink: rgb(24, 17, 17);
+        }
+        .white-box {
+            background-color: white;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        /* Code Box Container */
+        .code-container {
+            position: relative;
+            background-color: #282c34;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        pre {
+            margin: 0;
+            overflow-x: auto;
+        }
+        code {
+            font-family: monospace;
+            font-size: 14px;
+        }
+        /* Copy Button Styling */
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #4f525d;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover {
+            background-color: #616473;
+        }
+        /* Syntax Highlighting Colors */
+        .tag { color: #e06c75; }    /* Pink/Red */
+        .attr { color: #d19a66; }   /* Orange */
+        .val { color: #98c379; }    /* Green */
+        .text { color: #abb2bf; }   /* White/Gray */
+    </style>
+</head>
+<body>
+    <main class="white-box">
+        <section class="main-text">
+            <p>If you want to make a website like this first you will need a <code>index.html</code>. Create the file called e.g index.html. you will have to write the following:</p>
+            
+            <div class="code-container">
+                <button class="copy-btn" onclick="copyCode()">Copy</button>
+                <pre><code id="html-code" class="text">&lt;<span class="tag">!DOCTYPE html</span>&gt;
+&lt;<span class="tag">html</span> <span class="attr">lang</span>=<span class="val">"en"</span>&gt;
+&lt;<span class="tag">head</span>&gt;
+    &lt;<span class="tag">meta</span> <span class="attr">charset</span>=<span class="val">"UTF-8"</span>&gt;
+    &lt;<span class="tag">meta</span> <span class="attr">viewport</span>=<span class="val">"width=device-width, initial-scale=1.0"</span>&gt;
+    &lt;<span class="tag">title</span>&gt;Document&lt;/<span class="tag">title</span>&gt;
+&lt;/<span class="tag">head</span>&gt;
+&lt;<span class="tag">body</span>&gt;
+
+&lt;/<span class="tag">body</span>&gt;
+&lt;/<span class="tag">html</span>&gt;</code></pre>
+            </div>
+
+    <p>Make the &lt;<span class="tag">title</span>&gt;Document&lt;/<span class="tag">title</span>&gt; be whatever website title you want.</p>
+
+        </section>
+    </main>
+
+    <script>
+        function copyCode() {
+            // Get the text inside the code block
+            const codeText = document.getElementById('html-code').innerText;
+            
+            // Copy it to the clipboard
+            navigator.clipboard.writeText(codeText).then(() => {
+                const button = document.querySelector('.copy-btn');
+                button.innerText = 'Copied!';
+                
+                // Reset button text after 2 seconds
+                setTimeout(() => {
+                    button.innerText = 'Copy';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+    </script>
+    <script src="advice.js"></script>
+</body>
+</html>

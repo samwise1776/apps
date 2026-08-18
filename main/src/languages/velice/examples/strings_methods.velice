@@ -1,0 +1,13 @@
+# String methods: contains / starts / ends / inbetween
+
+a = "print(\"Hello\")"
+
+if a.contains("print(\"") and a.ends(")") {
+    message = a.inbetween("\"\"")
+    print("extracted: " + message)
+}
+
+print("contains ell:  " + str("hello".contains("ell")))
+print("starts with he: " + str("hello".starts("he")))
+print("ends with lo:  " + str("hello".ends("lo")))
+print("inbetween ():  " + "foo(bar)baz".inbetween("()"))

@@ -1,0 +1,33 @@
+# Functional programming
+# Higher-order functions
+fn compose(f, g) {
+    return fn(x) { return f(g(x)) }
+}
+
+fn add_one(x) { return x + 1 }
+fn double(x) { return x * 2 }
+
+let add_one_then_double = compose(double, add_one)
+print("compose result:", add_one_then_double(5))
+
+# Piping
+fn square(x) { return x * x }
+fn increment(x) { return x + 1 }
+print("piped:", 4 |> square |> increment)
+
+# Immutability - reassign to transform
+let list = [1, 2, 3]
+let list2 = list + [4]
+print("original:", list)
+print("new:", list2)
+
+# Pure functions
+fn pure_add(a, b) { return a + b }
+print("pure:", pure_add(2, 3))
+
+# Currying pattern
+fn make_adder(n) {
+    return fn(x) { return x + n }
+}
+let add5 = make_adder(5)
+print("curried add5:", add5(10))

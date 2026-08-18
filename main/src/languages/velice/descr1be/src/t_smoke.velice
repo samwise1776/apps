@@ -1,0 +1,115 @@
+# t_smoke.velice — headless smoke tests for the Descr1be modules.
+import util
+import model
+import history
+import generator
+import sourceparse
+import projectio
+import aibuilder
+import app
+
+fn check(cond, msg) {
+    if not cond {
+        print("FAIL: " + msg)
+        throw "test failed: " + msg
+    }
+}
+
+# ── model ──────────────────────────────────────────────────────────────
+var p = model.default_project()
+check(len(p["widgets"]) == 1, "default project has 1 root")
+check(p["widgets"][0]["type"] == "frame", "root is a frame")
+
+var b = model.make_node("button", "Go", 30, 40)
+check(b["type"] == "button", "make_node type")
+check(b["name"] == "Go", "make_node name")
+check(b["props"]["text"] == "Button", "button default text")
+check(b["w"] == 100 and b["h"] == 32, "button default size")
+
+var found = model.find_node(p["widgets"], p["widgets"][0]["id"])
+check(found != nil and found["name"] == "Main", "find_node")
+
+model.update_prop(p["widgets"], p["widgets"][0]["id"], "x", "55")
+check(p["widgets"][0]["x"] == 55, "update_prop x coerced to int")
+
+p["widgets"] = model.remove_node(p["widgets"], p["widgets"][0]["id"])
+check(len(p["widgets"]) == 0, "remove_node")
+
+# ── history ────────────────────────────────────────────────────────────
+var h = history.create()
+p = model.default_project()
+history.save(h, p)
+append(p["widgets"], model.make_node("label", "L1", 10, 10))
+history.save(h, p)
+check(history.can_undo(h), "can_undo")
+check(not history.can_redo(h), "no redo initially")
+var snap = history.undo(h)
+check(snap != nil and len(snap["widgets"]) == 1, "undo restores 1 root")
+check(history.can_redo(h), "can_redo after undo")
+var re = history.redo(h)
+check(re != nil and len(re["widgets"]) == 2, "redo restores 2 roots")
+
+# ── generator + sourceparse round-trip ─────────────────────────────────
+var gp = model.default_project()
+var src = generator.generate(gp)
+check(contains(src, "window MyApp {"), "generator emits window")
+var back = sourceparse.from_source(src)
+check(back != nil, "from_source parses")
+check(back["name"] == "MyApp", "round-trip name")
+check(len(back["widgets"]) == 1, "round-trip root count")
+var rt_root = back["widgets"][0]
+check(rt_root["type"] == "frame", "round-trip frame type")
+check(rt_root["x"] == gp["widgets"][0]["x"], "round-trip x")
+check(rt_root["w"] == gp["widgets"][0]["w"], "round-trip w")
+check(rt_root["children"][0]["type"] == "button", "round-trip child")
+check(rt_root["children"][0]["props"]["text"] == "Greet", "round-trip child prop")
+var src2 = generator.generate(back)
+check(src == src2, "generate(parse(generate(p))) == generate(p)")
+
+# events round-trip
+var ep = model.default_project()
+var eb = model.make_node("button", "Go", 10, 10)
+eb["events"] = {"onClick": "print(\"hi\")"}
+append(ep["widgets"][0]["children"], eb)
+var esrc = generator.generate(ep)
+var eback = sourceparse.from_source(esrc)
+check(eback["widgets"][0]["children"][1]["events"]["onClick"] == "print(\"hi\")", "event round-trip")
+
+# ── projectio ──────────────────────────────────────────────────────────
+var path = join_path(temp_dir(), "descr1be_test.json")
+projectio.save(ep, path)
+var loaded = projectio.load(path)
+check(loaded != nil and len(loaded["widgets"]) == 1, "projectio load")
+var out_path = join_path(temp_dir(), "descr1be_test.velice")
+projectio.export_source(ep, out_path)
+check(file_exists(out_path), "export writes file")
+
+# ── aibuilder ──────────────────────────────────────────────────────────
+var counter = aibuilder.build_from_prompt("a counter with a count label and plus button", p)
+check(len(counter["widgets"]) == 1, "ai counter root")
+var login = aibuilder.build_from_prompt("build me a login form", p)
+check(login["widgets"][0]["name"] == "Login", "ai login form")
+
+# ── app launches headless ──────────────────────────────────────────────
+var st = app.new_state()
+var win = app.launch(st)
+check(win != nil, "app window created")
+check(st["window"] == win, "state window set")
+check(st["console"] != nil, "console exists")
+check(len(st["project"]["widgets"]) == 1, "app default project")
+check(st["design_panel"].children.len > 0, "design panel has children")
+check(st["canvas"].children.len >= 1, "canvas rendered widgets")
+
+# simulate actions
+app._add_widget(st, "button")
+check(len(st["project"]["widgets"]) == 2, "add_widget adds root")
+check(st["selected"] != nil, "add_widget selects")
+app._delete_selected(st)
+check(len(st["project"]["widgets"]) == 1, "delete removes root")
+app._change_prop(st, st["project"]["widgets"][0]["id"], "x", "99")
+check(st["project"]["widgets"][0]["x"] == 99, "change_prop updates model")
+app._set_mode(st, "code")
+check(st["mode"] == "code", "set_mode code")
+app._set_mode(st, "design")
+
+print("ALL SMOKE TESTS PASSED")

@@ -1,0 +1,39 @@
+# util.velice — small helper functions used across Descr1be.
+
+fn map_get(m, k, default = nil) {
+    if typeof(m) != "map" { return default }
+    if contains(keys(m), k) { return m[k] }
+    return default
+}
+
+fn num_to_str(v) {
+    if typeof(v) == "string" { return v }
+    return str(v)
+}
+
+fn max_of(a, b) {
+    if a > b { return a }
+    return b
+}
+
+fn min_of(a, b) {
+    if a < b { return a }
+    return b
+}
+
+fn rand_id() {
+    return random_id("w")
+}
+
+fn first(list, default = nil) {
+    if typeof(list) == "array" {
+        if len(list) > 0 { return list[0] }
+        return default
+    }
+    return default
+}
+
+fn has(m, k) {
+    if typeof(m) != "map" { return false }
+    return contains(keys(m), k)
+}

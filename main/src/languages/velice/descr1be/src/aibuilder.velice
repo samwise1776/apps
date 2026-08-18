@@ -1,0 +1,114 @@
+# aibuilder.velice — prompt-to-project heuristics (no external LLM).
+# Turns short English prompts into a widget tree with simple behaviors.
+import model
+import util
+
+# Build a fresh project from a prompt string.
+fn build_from_prompt(prompt, project) {
+    var p = lower(str(prompt))
+    var widgets = []
+    if _has_any(p, ["login", "sign in", "signin", "log in", "auth", "form"]) {
+        widgets = _login_form()
+    } elif _has_any(p, ["counter", "count", "increment", "clicker"]) {
+        widgets = _counter()
+    } elif _has_any(p, ["todo", "task", "to-do", "list"]) {
+        widgets = _todo()
+    } elif _has_any(p, ["greet", "hello", "welcome", "name"]) {
+        widgets = _greeter()
+    } else {
+        widgets = _fallback()
+    }
+    return {
+        "name": util.map_get(project, "name", "MyApp"),
+        "version": "1",
+        "theme": util.map_get(project, "theme", "dark"),
+        "widgets": widgets,
+    }
+}
+
+# Run generated Velice source and return the result map.
+fn run_source(source) {
+    var dev_root = join_path(script_dir(), "..", "..")
+    var path = join_path(temp_dir(), "descr1be_run.velice")
+    write_file(path, source)
+    var cmd = python_path + " " + join_path(dev_root, "velice", "__main__.py") + " run " + path
+    return run_shell(cmd)
+}
+
+fn _has_any(s, words) {
+    for w in words {
+        if contains(s, w) { return true }
+    }
+    return false
+}
+
+fn _login_form() {
+    var root = model.make_node("frame", "Login", 20, 20)
+    root["w"] = 320
+    root["h"] = 220
+    var u = model.make_node("label", "UserLabel", 30, 30)
+    u["props"] = {"text": "Username"}
+    var un = model.make_node("textfield", "Username", 120, 28)
+    var pw = model.make_node("password", "Password", 120, 64)
+    var b = model.make_node("button", "SignIn", 120, 100)
+    b["props"] = {"text": "Sign In"}
+    b["events"] = {"onClick": "print(\"Signed in as\", Username.text)"}
+    root["children"] = [u, un, pw, b]
+    return [root]
+}
+
+fn _counter() {
+    var root = model.make_node("frame", "Counter", 20, 20)
+    root["w"] = 260
+    root["h"] = 170
+    var lab = model.make_node("label", "Count", 30, 30)
+    lab["w"] = 200
+    lab["props"] = {"text": "0", "font_size": 32}
+    var plus = model.make_node("button", "Add", 30, 100)
+    plus["props"] = {"text": "+1"}
+    plus["events"] = {"onClick": "Count.text = str(parse_int(Count.text) + 1)"}
+    root["children"] = [lab, plus]
+    return [root]
+}
+
+fn _todo() {
+    var root = model.make_node("frame", "Todo", 20, 20)
+    root["w"] = 320
+    root["h"] = 280
+    var inp = model.make_node("textfield", "Task", 20, 20)
+    var add = model.make_node("button", "AddTask", 210, 20)
+    add["props"] = {"text": "Add"}
+    add["events"] = {"onClick": "print(\"Added:\", Task.text)"}
+    var lst = model.make_node("listbox", "Tasks", 20, 60)
+    lst["w"] = 280
+    lst["h"] = 200
+    root["children"] = [inp, add, lst]
+    return [root]
+}
+
+fn _greeter() {
+    var root = model.make_node("frame", "Greeter", 20, 20)
+    root["w"] = 320
+    root["h"] = 190
+    var lab = model.make_node("label", "Hello", 30, 30)
+    lab["props"] = {"text": "Hello, world!", "font_size": 22}
+    var inp = model.make_node("textfield", "Name", 30, 90)
+    var b = model.make_node("button", "Greet", 200, 90)
+    b["props"] = {"text": "Greet"}
+    b["events"] = {"onClick": "Hello.text = \"Hello, \" + Name.text + \"!\""}
+    root["children"] = [lab, inp, b]
+    return [root]
+}
+
+fn _fallback() {
+    var root = model.make_node("frame", "App", 20, 20)
+    root["w"] = 300
+    root["h"] = 180
+    var lab = model.make_node("label", "Title", 30, 30)
+    lab["props"] = {"text": "My App", "font_size": 22}
+    var b = model.make_node("button", "Go", 30, 90)
+    b["props"] = {"text": "Go"}
+    b["events"] = {"onClick": "print(\"Hello!\")"}
+    root["children"] = [lab, b]
+    return [root]
+}

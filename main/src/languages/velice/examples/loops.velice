@@ -1,0 +1,27 @@
+# All loop forms
+print("-- for range --")
+for i in 0..5 {
+    print(i)
+}
+
+print("-- for array --")
+let fruits = ["apple", "banana", "cherry"]
+for fruit in fruits {
+    print(fruit)
+}
+
+print("-- while --")
+let mut n = 0
+while n < 3 {
+    print(n)
+    n = n + 1
+}
+
+print("-- loop + break/continue --")
+let mut x = 0
+loop {
+    x = x + 1
+    if x % 2 == 0 { continue }
+    print(x)
+    if x >= 5 { break }
+}

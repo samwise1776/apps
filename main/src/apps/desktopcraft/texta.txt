@@ -1,0 +1,2 @@
+# Desktopcraft feedback submissions
+# New entries are appended by database/server.py and this file is never published.

@@ -1,0 +1,42 @@
+# Object-oriented programming
+class Animal {
+    fn init(name) {
+        self.name = name
+    }
+    fn speak() {
+        print(self.name + " makes a sound")
+    }
+}
+
+class Dog extends Animal {
+    fn speak() {
+        print(self.name + " barks!")
+    }
+    fn fetch() {
+        print(self.name + " fetches the ball")
+    }
+}
+
+let a = Animal("Generic")
+a.speak()
+
+let d = Dog("Rex")
+d.speak()
+d.fetch()
+
+class Rectangle {
+    fn init(w, h) {
+        self.w = w
+        self.h = h
+    }
+    fn area() {
+        return self.w * self.h
+    }
+    fn perimeter() {
+        return 2 * (self.w + self.h)
+    }
+}
+
+let rect = Rectangle(5, 3)
+print("area:", rect.area())
+print("perimeter:", rect.perimeter())

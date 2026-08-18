@@ -1,0 +1,28 @@
+# Functions, closures, default args
+fn add(a, b) {
+    return a + b
+}
+print("add(2,3):", add(2, 3))
+
+fn greet(name, greeting = "Hello") {
+    return greeting + ", " + name + "!"
+}
+print(greet("Velice"))
+print(greet("Velice", "Hi"))
+
+fn counter() {
+    let mut c = 0
+    return fn() {
+        c = c + 1
+        return c
+    }
+}
+let c = counter()
+print("counter:", c(), c(), c())
+
+# Recursion
+fn fib(n) {
+    if n < 2 { return n }
+    return fib(n - 1) + fib(n - 2)
+}
+print("fib(10):", fib(10))

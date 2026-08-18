@@ -1,0 +1,1747 @@
+"""Velice GUI widget classes over the Tk backend."""
+import os
+
+from velice.gui.runtime import app as _app, tk, GuiError
+
+TAG = "_velice"
+
+
+def _to_camel(name):
+    parts = name.split("_")
+    return parts[0] + "".join(p[:1].upper() + p[1:] for p in parts[1:])
+
+
+def _to_snake(name):
+    out = []
+    for i, ch in enumerate(name):
+        if ch.isupper() and i > 0:
+            out.append("_")
+        out.append(ch.lower())
+    return "".join(out)
+
+
+class Widget:
+    widget_type = "widget"
+    _prop_map = {}
+    _events = {"onClick": "<Button-1>", "onDoubleClick": "<Double-Button-1>",
+               "onMouseMove": "<Motion>", "onMouseEnter": "<Enter>",
+               "onMouseLeave": "<Leave>", "onMouseWheel": "<MouseWheel>",
+               "onMouseDown": "<ButtonPress-1>", "onMouseUp": "<ButtonRelease-1>",
+               "onDrag": "<B1-Motion>", "onRightClick": "<Button-3>",
+               "onRightDown": "<ButtonPress-3>",
+               "onKeyDown": "<KeyPress>", "onKeyUp": "<KeyRelease>",
+               "onFocus": "<FocusIn>", "onBlur": "<FocusOut>"}
+
+    def __init__(self, parent=None, name=None, app=None, **props):
+        self.app = app or _app
+        self.parent = parent
+        self.name = name
+        self.children = []
+        self.props = {}
+        self.events = {}
+        self.tk = None
+        self._visible = True
+        self._placed = False
+        self._parent_free = False
+        self._velice_widget = True
+        for k, v in props.items():
+            self.set(k, v)
+        if name and getattr(self.app, "named", None) is not None:
+            self.app.named[name] = self
+
+    # ── properties ─────────────────────────────────────────────────────
+    def set(self, key, value):
+        key = key.replace("-", "_")
+        self.props[key] = value
+        if key == "text":
+            self._set_text(value)
+        elif key == "value":
+            self._set_value(value)
+        elif key in ("enabled", "disabled"):
+            self._set_enabled(value if key == "enabled" else not value)
+        elif key == "visible":
+            self._set_visible(value)
+        elif key == "tooltip":
+            self._set_tooltip(value)
+        elif key == "font_size":
+            self._set_font_size(value)
+        elif key == "width":
+            self._set_size("width", value)
+        elif key == "height":
+            self._set_size("height", value)
+        elif key == "x":
+            self._set_position("x", value)
+        elif key == "y":
+            self._set_position("y", value)
+        elif key == "layout":
+            self._set_layout(value)
+        elif key == "background":
+            self._set_background(value)
+        elif key == "items":
+            self._set_items(value)
+        elif key == "selected":
+            self._set_selected(value)
+        elif key == "placeholder":
+            self._set_placeholder(value)
+        elif key == "readonly":
+            self._set_readonly(value)
+        elif key == "max_length":
+            self._set_max_length(value)
+        elif key in ("min", "max", "step"):
+            self._set_scale(key, value)
+        elif key == "justify":
+            self._set_justify(value)
+        elif key == "bold":
+            self._set_bold(value)
+        elif key == "color":
+            self._set_color(value)
+        elif key == "multiple":
+            self._set_multiple(value)
+        elif hasattr(self, "_set_" + key):
+            try:
+                getattr(self, "_set_" + key)(value)
+            except Exception:
+                pass
+        return self
+
+    def get(self, key):
+        key = key.replace("-", "_")
+        if key == "text":
+            return self._get_text()
+        if key == "value":
+            return self._get_value()
+        if key == "selected":
+            return self._get_selected()
+        if key in ("x", "y", "width", "height"):
+            return self._get_geometry(key)
+        return self.props.get(key)
+
+    # ── geometry / layout ──────────────────────────────────────────────
+    def _get_geometry(self, key):
+        if key == "x":
+            return self._get_x()
+        if key == "y":
+            return self._get_y()
+        if key == "width":
+            return self._get_width()
+        return self._get_height()
+
+    def _get_x(self):
+        if self.tk is not None:
+            try:
+                return int(self.tk.winfo_x())
+            except Exception:
+                pass
+        return self.props.get("x", 0)
+
+    def _get_y(self):
+        if self.tk is not None:
+            try:
+                return int(self.tk.winfo_y())
+            except Exception:
+                pass
+        return self.props.get("y", 0)
+
+    def _get_width(self):
+        if self.tk is not None:
+            try:
+                return int(self.tk.winfo_width())
+            except Exception:
+                pass
+        return self.props.get("width", None)
+
+    def _get_height(self):
+        if self.tk is not None:
+            try:
+                return int(self.tk.winfo_height())
+            except Exception:
+                pass
+        return self.props.get("height", None)
+
+    def _set_position(self, key, v):
+        v = int(v)
+        self.props[key] = v
+        if self.tk is None:
+            return
+        try:
+            if self._placed or self._parent_free or self._use_place():
+                self._apply_place()
+        except Exception:
+            pass
+
+    def _set_size(self, key, v):
+        v = int(v)
+        self.props[key] = v
+        if self.tk is None:
+            return
+        if self._placed or self._parent_free or self._use_place():
+            try:
+                self._apply_place()
+            except Exception:
+                pass
+            return
+        try:
+            if key == "width":
+                self.tk.configure(width=v)
+            else:
+                self.tk.configure(height=v)
+        except Exception:
+            pass
+
+    def _set_layout(self, v):
+        self.props["layout"] = str(v)
+        if str(v) == "free" and self.tk is not None:
+            for child in self.children:
+                if child.tk is not None:
+                    child._parent_free = True
+                    try:
+                        child.pack_forget()
+                    except Exception:
+                        pass
+                    try:
+                        child._apply_place()
+                    except Exception:
+                        pass
+
+    def _use_place(self):
+        return (self.props.get("layout") == "free" or
+                self.props.get("positioned") is not None or
+                self.props.get("x") is not None or
+                self.props.get("y") is not None)
+
+    def _free_layout(self):
+        if self.props.get("layout") == "free":
+            return True
+        return any(getattr(c, "_use_place", lambda: False)() for c in self.children)
+
+    def _apply_place(self):
+        if self.tk is None:
+            return
+        kw = {"x": int(self.props.get("x", 0)), "y": int(self.props.get("y", 0))}
+        if self.props.get("width") is not None:
+            kw["width"] = int(self.props["width"])
+        if self.props.get("height") is not None:
+            kw["height"] = int(self.props["height"])
+        self.tk.place(**kw)
+        self._placed = True
+
+    def move(self, x, y):
+        self.set("x", x)
+        self.set("y", y)
+        return self
+
+    def resize(self, w, h):
+        self.set("width", w)
+        self.set("height", h)
+        return self
+
+    def set_bounds(self, x, y, w, h):
+        self.set("x", x)
+        self.set("y", y)
+        self.set("width", w)
+        self.set("height", h)
+        return self
+
+    def _set_text(self, v):
+        if self.tk is None: return
+        try:
+            if isinstance(self.tk, tk.Label):
+                self.tk.configure(text=str(v))
+            elif isinstance(self.tk, tk.Button):
+                self.tk.configure(text=str(v))
+            elif hasattr(self.tk, "insert") and not self._tk_has_text():
+                self.tk.delete(0, "end")
+                self.tk.insert(0, str(v))
+            elif isinstance(self.tk, tk.Text):
+                self.tk.delete("1.0", "end")
+                self.tk.insert("1.0", str(v))
+        except Exception:
+            pass
+
+    def _tk_has_text(self):
+        return isinstance(self.tk, (tk.Text, tk.Label, tk.Button))
+
+    def _set_value(self, v):
+        if self.tk is None: return
+        if hasattr(self.tk, "set"):
+            try:
+                self.tk.set(v)
+            except Exception:
+                pass
+
+    def _set_enabled(self, v):
+        if self.tk is None: return
+        try:
+            self.tk.configure(state="normal" if v else "disabled")
+        except Exception:
+            pass
+
+    def _set_visible(self, v):
+        self._visible = bool(v)
+        if self.tk is None: return
+        try:
+            if self._placed or self._use_place():
+                if v: self._apply_place()
+                else: self.tk.place_forget()
+            elif v:
+                self.tk.pack(**self._pack_args())
+            else:
+                self.tk.pack_forget()
+        except Exception:
+            pass
+
+    def _set_tooltip(self, v):
+        if self.tk is None: return
+        tip = tk.Toplevel(self.tk, bg="black")
+        tip.overrideredirect(True)
+        lab = tk.Label(tip, text=str(v), bg="#333", fg="#fff", padx=6, pady=3)
+        lab.pack()
+        self.tk.bind("<Enter>", lambda e: tip.geometry(f"+{e.x_root+12}+{e.y_root+12}") or tip.deiconify())
+        self.tk.bind("<Leave>", lambda e: tip.withdraw())
+        tip.withdraw()
+
+    def _set_font_size(self, v):
+        if self.tk is None: return
+        try:
+            self.tk.configure(font=(self._font_family(), int(v)))
+        except Exception:
+            pass
+
+    def _set_background(self, v):
+        if self.tk is None: return
+        try: self.tk.configure(bg=v)
+        except Exception: pass
+
+    def _set_items(self, v):
+        pass
+    def _set_selected(self, v):
+        pass
+    def _set_placeholder(self, v):
+        pass
+    def _set_readonly(self, v):
+        pass
+    def _set_max_length(self, v):
+        pass
+    def _set_scale(self, key, v):
+        pass
+    def _set_justify(self, v):
+        pass
+    def _set_bold(self, v):
+        if self.tk is None: return
+        try:
+            old = self.tk.cget("font")
+            if isinstance(old, str) and "bold" not in old.lower():
+                self.tk.configure(font=(old, "bold"))
+            elif isinstance(old, (list, tuple)):
+                parts = list(old)
+                if len(parts) >= 2 and "bold" not in [str(p).lower() for p in parts]:
+                    parts.append("bold")
+                    self.tk.configure(font=tuple(parts))
+        except Exception:
+            pass
+    def _set_color(self, v):
+        pass
+    def _set_multiple(self, v):
+        pass
+
+    def _get_text(self): return self.props.get("text", "")
+    def _get_value(self): return self.props.get("value", None)
+    def _get_selected(self): return self.props.get("selected", None)
+
+    # ── events ─────────────────────────────────────────────────────────
+    def bind(self, event, callback):
+        ev = event if event.startswith("on") else "on" + event
+        canonical = _to_camel(ev)
+        self.events[canonical] = callback
+        self.events[ev] = callback
+        if self.tk is None:
+            return
+        seq = self._events.get(canonical)
+        if seq:
+            try:
+                self.tk.bind(seq, lambda e, ev=canonical: self._fire(ev, e))
+            except Exception:
+                pass
+
+    def _fire(self, event, e=None):
+        cb = self.events.get(event) or self.events.get(_to_camel(event)) or self.events.get(_to_snake(event))
+        if cb:
+            info = None
+            if e is not None:
+                try:
+                    info = {"x": getattr(e, "x", None),
+                            "y": getattr(e, "y", None),
+                            "key": getattr(e, "keysym", None),
+                            "state": getattr(e, "state", 0),
+                            "button": getattr(e, "num", None),
+                            "widget": self.name,
+                            "root_x": getattr(e, "x_root", None),
+                            "root_y": getattr(e, "y_root", None),
+                            "width": getattr(e, "width", None),
+                            "height": getattr(e, "height", None)}
+                except Exception:
+                    info = {}
+            return cb(info)
+        return None
+
+    def _fire_now(self, event):
+        return self._fire(event)
+
+    # ── hierarchy ──────────────────────────────────────────────────────
+    def add(self, child):
+        child.parent = self
+        if child not in self.children:
+            self.children.append(child)
+        if not self.app.headless and self.tk is not None:
+            child._parent_free = self._free_layout()
+            child.place_in(self.tk)
+        return child
+
+    def _unmap(self):
+        if self.tk is not None:
+            try: self.tk.place_forget()
+            except Exception: pass
+            try: self.tk.pack_forget()
+            except Exception: pass
+
+    def remove(self, child=None):
+        """Remove this widget (or, when called as parent.remove(child),
+        the given child) from its parent and destroy it."""
+        target = child if child is not None else self
+        if target.parent is not None and target in target.parent.children:
+            target.parent.children.remove(target)
+        target.parent = None
+        target._unmap()
+        if target.tk is not None:
+            try: target.tk.destroy()
+            except Exception: pass
+        return None
+
+    def clear(self):
+        """Remove and destroy every child widget."""
+        for child in list(self.children):
+            child.remove()
+        self.children = []
+        return self
+
+    def reparent(self, new_parent):
+        """Move this widget under a new parent, preserving it."""
+        if self.parent is not None and self in self.parent.children:
+            self.parent.children.remove(self)
+        self._unmap()
+        self.parent = new_parent
+        if new_parent is not None and self not in new_parent.children:
+            new_parent.children.append(self)
+        if not self.app.headless and new_parent is not None and new_parent.tk is not None:
+            self._parent_free = new_parent._free_layout()
+            self.place_in(new_parent.tk)
+        return self
+
+    def bring_to_front(self):
+        if self.parent is not None and self in self.parent.children:
+            self.parent.children.remove(self)
+            self.parent.children.append(self)
+        if self.tk is not None:
+            try: self.tk.lift()
+            except Exception: pass
+        return self
+
+    def send_to_back(self):
+        if self.parent is not None and self in self.parent.children:
+            self.parent.children.remove(self)
+            self.parent.children.insert(0, self)
+        if self.tk is not None:
+            try: self.tk.lower()
+            except Exception: pass
+        return self
+
+    def _host(self):
+        """Return the nearest realized parent, falling back to the app root."""
+        parent = self.parent
+        while parent is not None and parent.tk is None:
+            parent = parent.parent
+        if parent is not None and parent.tk is not None:
+            return parent.tk
+        return self.app.root
+
+    def realize(self):
+        """Create the underlying Tk widget (no-op when headless)."""
+        if self.app.headless:
+            self.app.record("create", type=self.widget_type, name=self.name,
+                            props=dict(self.props))
+            return self
+        if self.tk is not None:
+            return self
+        self._create()
+        if self.tk is not None:
+            for ev, cb in list(self.events.items()):
+                self.bind(ev, cb)
+            self.apply_theme()
+        return self
+
+    def realize_tree(self):
+        self.realize()
+        for child in self.children:
+            child.parent = self
+            if not self.app.headless and self.tk is not None:
+                child._parent_free = self._free_layout()
+                child.place_in(self.tk)
+            else:
+                child.realize_tree()
+        return self
+
+    def place_in(self, parent_tk):
+        self.realize()
+        if self.tk is None:
+            return
+        place_mode = self._parent_free or self._use_place()
+        if place_mode:
+            try: self._apply_place()
+            except Exception: pass
+        elif self._visible:
+            try: self.tk.pack(**self._pack_args())
+            except Exception: pass
+        for child in self.children:
+            child.parent = self
+            child._parent_free = self._free_layout()
+            child.place_in(self.tk)
+
+    def _pack_args(self):
+        return {"fill": "both", "expand": True, "padx": 4, "pady": 4}
+
+    def descendants(self):
+        out = []
+        for c in self.children:
+            out.append(c)
+            out.extend(c.descendants())
+        return out
+
+    def apply_theme(self):
+        t = self.app.theme
+        if self.tk is None:
+            return
+        try:
+            if isinstance(self.tk, (tk.Label, tk.Button)):
+                self.tk.configure(bg=t["button"], fg=t["button_text"])
+            elif isinstance(self.tk, (tk.Entry, tk.Text, tk.Listbox)):
+                self.tk.configure(bg=t["input"], fg=t["text"])
+        except Exception:
+            pass
+
+    def _font_family(self):
+        return self.props.get("font_family", "Segoe UI" if os.name == "nt" else "Helvetica")
+
+    def __repr__(self):
+        return f"<{self.widget_type}{(' ' + self.name) if self.name else ''}>"
+
+
+# ── concrete widgets ───────────────────────────────────────────────────
+class Window(Widget):
+    widget_type = "window"
+
+    def __init__(self, title="Velice", width=800, height=600, parent=None, name=None, **props):
+        super().__init__(parent=parent, name=name, **props)
+        app = self.app
+        app.ensure_root()
+        self.title = title
+        self.tk = None
+        self._frame = None
+        self._closable = True
+        self._last_size = (int(width), int(height))
+        self.props["width"] = int(width)
+        self.props["height"] = int(height)
+        self.props["title"] = str(title)
+        if not app.headless and app.root is not None:
+            self.tk = tk.Toplevel(app.root)
+            self.tk.protocol("WM_DELETE_WINDOW", lambda: self._request_close())
+            self.tk.title(str(title))
+            self.tk.geometry(f"{width}x{height}")
+            self.tk.bind("<Configure>", self._on_configure)
+        app.windows[name or title] = self
+        self.apply_props(props)
+
+    def apply_props(self, props):
+        mapping = {
+            "title": lambda v: self._set_title(v),
+            "width": lambda v: self._set_win_size("width", v),
+            "height": lambda v: self._set_win_size("height", v),
+            "resizable": lambda v: self._set_resizable(v),
+            "maximized": lambda v: self._set_maximized(v),
+            "fullscreen": lambda v: self._set_fullscreen(v),
+            "transparent": lambda v: self._set_transparent(v),
+            "borderless": lambda v: self._set_borderless(v),
+            "always_on_top": lambda v: self._set_ontop(v),
+            "closable": lambda v: self._set_closable(v),
+        }
+        for k, v in props.items():
+            fn = mapping.get(k)
+            if fn: fn(v)
+            else: self.set(k, v)
+
+    def closable(self, v):
+        self._set_closable(v)
+        return self
+
+    def _request_close(self):
+        """Run the onClose handler; destroy only if it does not cancel."""
+        try:
+            result = self._fire_now("onClose")
+        except Exception:
+            result = None
+        if result is False:
+            return False
+        self.close()
+        return True
+
+    def _on_configure(self, e):
+        if e.widget is not self.tk:
+            return
+        try:
+            w, h = int(e.width), int(e.height)
+        except Exception:
+            return
+        if (w, h) != self._last_size:
+            self._last_size = (w, h)
+            try:
+                self._fire_now("onResize")
+            except Exception:
+                pass
+
+    def _set_closable(self, v):
+        self._closable = bool(v)
+        if self.tk is not None:
+            try:
+                if self._closable:
+                    self.tk.protocol("WM_DELETE_WINDOW", lambda: self._request_close())
+                else:
+                    self.tk.protocol("WM_DELETE_WINDOW", lambda: None)
+            except Exception:
+                pass
+
+    def _set_title(self, v):
+        self.title = str(v)
+        if self.tk is not None:
+            self.tk.title(str(v))
+
+    def _set_win_size(self, key, v):
+        self.props[key] = int(v)
+        if self.tk is None: return
+        try:
+            self.tk.geometry(f"{v}x{self.tk.winfo_height()}" if key == "width"
+                             else f"{self.tk.winfo_width()}x{v}")
+        except Exception:
+            pass
+
+    def _set_size(self, key, v):
+        self._set_win_size(key, int(v))
+
+    def _set_position(self, key, v):
+        self.props[key] = int(v)
+        if self.tk is None: return
+        try:
+            x, y = self.tk.winfo_x(), self.tk.winfo_y()
+            if key == "x":
+                x = int(v)
+            else:
+                y = int(v)
+            self.tk.geometry(f"+{x}+{y}")
+        except Exception:
+            pass
+
+    def _set_resizable(self, v):
+        if self.tk is not None:
+            try: self.tk.resizable(bool(v), bool(v))
+            except Exception: pass
+
+    def _set_maximized(self, v):
+        if self.tk is not None and v:
+            try: self.tk.state("zoomed")
+            except Exception: pass
+
+    def _set_fullscreen(self, v):
+        if self.tk is not None:
+            try: self.tk.attributes("-fullscreen", bool(v))
+            except Exception: pass
+
+    def _set_transparent(self, v):
+        if self.tk is not None:
+            try: self.tk.attributes("-alpha", 0.5 if v else 1.0)
+            except Exception: pass
+
+    def _set_borderless(self, v):
+        if self.tk is not None:
+            try: self.tk.overrideredirect(bool(v))
+            except Exception: pass
+
+    def _set_ontop(self, v):
+        if self.tk is not None:
+            try: self.tk.attributes("-topmost", bool(v))
+            except Exception: pass
+
+    def show(self):
+        if self.tk is not None:
+            try: self.tk.deiconify()
+            except Exception: pass
+        self._fire_now("onLoad")
+
+    def close(self):
+        if self.tk is not None:
+            try: self.tk.destroy()
+            except Exception: pass
+        for key, win in list(getattr(self.app, "windows", {}).items()):
+            if win is self:
+                self.app.windows.pop(key, None)
+                break
+        self.tk = None
+        return None
+
+    def place_in(self, parent_tk):
+        pass
+
+    def _pack_args(self):
+        return {}
+
+
+class Frame(Widget):
+    widget_type = "frame"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Frame(self._host(), bg=self.app.theme.get("surface", "#2a2a3e"))
+
+    def _host(self):
+        if self.parent is not None and self.parent.tk is not None:
+            return self.parent.tk
+        if self.tk is None:
+            return None
+        return self.tk.master
+
+
+class ScrollPane(Widget):
+    """A container whose children live in a scrollable viewport.
+
+        var pane = ScrollPane(640, 480)
+        pane.add(Label("line 1"))
+        win.add(pane)
+    """
+    widget_type = "scrollpane"
+
+    def __init__(self, width=320, height=200, vertical=True, horizontal=False,
+                 parent=None, name=None, app=None, **props):
+        super().__init__(parent=parent, name=name, app=app, **props)
+        if width is not None:
+            self.props.setdefault("width", int(width))
+        if height is not None:
+            self.props.setdefault("height", int(height))
+        self._vertical = bool(vertical)
+        self._horizontal = bool(horizontal)
+        self._canvas = None
+        self._inner_tk = None
+        self._vbar = None
+        self._hbar = None
+
+    def _create(self):
+        if self.tk is not None:
+            return
+        theme = self.app.theme
+        bg = theme.get("surface", "#2a2a3e")
+        shell = tk.Frame(self._host(), bg=bg)
+        canvas = tk.Canvas(shell, bg=bg, highlightthickness=0,
+                           width=int(self.props.get("width", 320)),
+                           height=int(self.props.get("height", 200)))
+        if self._vertical:
+            self._vbar = tk.Scrollbar(shell, orient="vertical", command=canvas.yview)
+        if self._horizontal:
+            self._hbar = tk.Scrollbar(shell, orient="horizontal", command=canvas.xview)
+
+        def _noop(*_args):
+            pass
+
+        canvas.configure(yscrollcommand=self._vbar.set if self._vbar else _noop,
+                         xscrollcommand=self._hbar.set if self._hbar else _noop)
+        inner = tk.Frame(canvas, bg=bg)
+        self._inner_tk = inner
+        self._inner_window = canvas.create_window((0, 0), window=inner, anchor="nw")
+
+        def _sync(_e=None):
+            try:
+                canvas.configure(scrollregion=canvas.bbox("all"))
+                if self._horizontal:
+                    canvas.itemconfigure(self._inner_window, width=canvas.winfo_width())
+            except Exception:
+                pass
+
+        inner.bind("<Configure>", _sync)
+        canvas.bind("<Configure>", _sync)
+
+        def _wheel(e, d):
+            if self._vertical:
+                try: canvas.yview_scroll(d, "units")
+                except Exception: pass
+
+        for target in (canvas, inner):
+            target.bind("<MouseWheel>", lambda e: _wheel(e, -1 * (e.delta // 120 if e.delta else 1)), add="+")
+            target.bind("<Button-4>", lambda e: _wheel(e, -1), add="+")
+            target.bind("<Button-5>", lambda e: _wheel(e, 1), add="+")
+
+        if self._vbar:
+            self._vbar.pack(side="right", fill="y")
+        if self._hbar:
+            self._hbar.pack(side="bottom", fill="x")
+        canvas.pack(side="left", fill="both", expand=True)
+        self.tk = shell
+        self._canvas = canvas
+
+    def _host(self):
+        parent = self.parent
+        while parent is not None and parent.tk is None:
+            parent = parent.parent
+        if parent is not None and parent.tk is not None:
+            return parent.tk
+        return self.app.root
+
+    def add(self, child):
+        child.parent = self
+        if child not in self.children:
+            self.children.append(child)
+        if not self.app.headless and self.tk is not None:
+            child._parent_free = True
+            child.place_in(self._inner_tk)
+        return child
+
+    def place_in(self, parent_tk):
+        self.realize()
+        if self.tk is None:
+            return
+        if self._parent_free or self._use_place():
+            try:
+                self._apply_place()
+            except Exception:
+                pass
+        elif self._visible:
+            try:
+                self.tk.pack(**self._pack_args())
+            except Exception:
+                pass
+        for child in self.children:
+            child.parent = self
+            child.place_in(self._inner_tk)
+
+    def scroll_to_top(self):
+        if self._canvas is not None:
+            try: self._canvas.yview_moveto(0.0)
+            except Exception: pass
+        return self
+
+    def scroll_to_bottom(self):
+        if self._canvas is not None:
+            try: self._canvas.yview_moveto(1.0)
+            except Exception: pass
+        return self
+
+    def scroll_to(self, x=None, y=None):
+        if self._canvas is None:
+            return self
+        try:
+            if y is not None:
+                self._canvas.yview_moveto(float(y))
+            if x is not None:
+                self._canvas.xview_moveto(float(x))
+        except Exception:
+            pass
+        return self
+
+    def _get_scroll_x(self):
+        if self._canvas is None:
+            return 0.0
+        try:
+            return float(self._canvas.xview()[0])
+        except Exception:
+            return 0.0
+
+    def _get_scroll_y(self):
+        if self._canvas is None:
+            return 0.0
+        try:
+            return float(self._canvas.yview()[0])
+        except Exception:
+            return 0.0
+
+
+class Button(Widget):
+    widget_type = "button"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Button(self._host(), text=self.props.get("text", ""),
+                                command=lambda: self._fire_now("onClick"))
+
+    def _host(self):
+        p = self.parent
+        while p is not None and p.tk is None and p.widget_type != "window":
+            p = p.parent
+        if p is not None and p.tk is not None:
+            return p.tk
+        if p is not None and p.widget_type == "window" and p._frame is not None:
+            return p._frame
+        return p.tk if (p and p.tk) else (self.app.root or None)
+
+
+class Label(Widget):
+    widget_type = "label"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Label(self._host(), text=self.props.get("text", ""),
+                               bg=self.app.theme.get("surface", "#2a2a3e"),
+                               fg=self.app.theme.get("text", "#e6e6f0"),
+                               font=(self._font_family(), self.app.theme.get("font_size", 12)))
+
+
+class TextField(Widget):
+    widget_type = "textfield"
+    _placeholder_active = False
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Entry(self._host(), bg=self.app.theme.get("input", "#23233a"),
+                               fg=self.app.theme.get("text", "#e6e6f0"))
+            if self.props.get("placeholder"):
+                self._apply_placeholder()
+            if self.props.get("text"):
+                self._set_text(self.props["text"])
+            self.tk.bind("<KeyRelease>", lambda e: self._fire("onChange", e), add="+")
+
+    def _apply_placeholder(self):
+        if self.tk is None:
+            return
+        ph = str(self.props.get("placeholder", ""))
+        text = self.props.get("text", "")
+        if not ph:
+            return
+        if text or self.tk.get():
+            self._placeholder_active = False
+            self.tk.configure(fg=self.app.theme.get("text", "#e6e6f0"))
+            return
+        self._placeholder_active = True
+        self.tk.configure(fg=self.app.theme.get("text_muted", "#8888aa"))
+        if not self.tk.get():
+            self.tk.delete(0, "end")
+            self.tk.insert(0, ph)
+        self.tk.bind("<FocusIn>", lambda e: self._placeholder_clear(), add="+")
+        self.tk.bind("<FocusOut>", lambda e: self._placeholder_restore(), add="+")
+
+    def _placeholder_clear(self):
+        if self._placeholder_active:
+            self.tk.delete(0, "end")
+            self.tk.configure(fg=self.app.theme.get("text", "#e6e6f0"))
+            self._placeholder_active = False
+
+    def _placeholder_restore(self):
+        if not self.tk.get():
+            self._apply_placeholder()
+
+    def _set_placeholder(self, v):
+        self.props["placeholder"] = v
+        if self.tk is not None:
+            self._apply_placeholder()
+
+    def _set_text(self, v):
+        self.props["text"] = v
+        if self.tk is None:
+            return
+        self._placeholder_active = False
+        self.tk.configure(fg=self.app.theme.get("text", "#e6e6f0"))
+        try:
+            self.tk.delete(0, "end")
+            self.tk.insert(0, str(v))
+        except Exception:
+            pass
+
+    def _get_text(self):
+        if self.tk is not None:
+            try:
+                val = self.tk.get()
+                if self._placeholder_active and val == self.props.get("placeholder", ""):
+                    return ""
+                return val
+            except Exception:
+                pass
+        return self.props.get("text", "")
+
+    def clear(self):
+        self.set("text", "")
+        return self
+
+
+class PasswordField(TextField):
+    widget_type = "passwordfield"
+
+    def _create(self):
+        super()._create()
+        if self.tk is not None:
+            self.tk.configure(show="*")
+
+
+class TextArea(Widget):
+    widget_type = "textarea"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Text(self._host(), bg=self.app.theme.get("input", "#23233a"),
+                              fg=self.app.theme.get("text", "#e6e6f0"),
+                              wrap="word", height=self.props.get("height", 8))
+            if self.props.get("text"):
+                self._set_text(self.props["text"])
+
+    def _set_text(self, v):
+        self.props["text"] = v
+        if self.tk is None:
+            return
+        try:
+            self.tk.delete("1.0", "end")
+            self.tk.insert("1.0", str(v))
+        except Exception:
+            pass
+
+    def _get_text(self):
+        if self.tk is not None:
+            try:
+                return self.tk.get("1.0", "end-1c")
+            except Exception:
+                pass
+        return self.props.get("text", "")
+
+    def append(self, text):
+        if self.tk is not None:
+            try:
+                self.tk.insert("end", str(text))
+                self.tk.see("end")
+            except Exception:
+                pass
+        self.props["text"] = self.props.get("text", "") + str(text)
+        return self
+
+    def clear(self):
+        self.set("text", "")
+        return self
+
+    def set_readonly(self, v):
+        if self.tk is not None:
+            try:
+                self.tk.configure(state="disabled" if v else "normal")
+            except Exception:
+                pass
+        return self
+
+    def scroll_to_end(self):
+        if self.tk is not None:
+            try: self.tk.see("end")
+            except Exception: pass
+        return self
+
+
+class Checkbox(Widget):
+    widget_type = "checkbox"
+
+    def _create(self):
+        if self.tk is None:
+            var = tk.BooleanVar(value=bool(self.props.get("value", False)))
+            self.tk = tk.Checkbutton(self._host(), text=self.props.get("text", ""),
+                                     variable=var, bg=self.app.theme.get("surface"),
+                                     fg=self.app.theme.get("text"), activebackground=self.app.theme.get("surface"),
+                                     command=lambda: self._fire_now("onChange"))
+            self._var = var
+
+    def _get_value(self):
+        return bool(getattr(self, "_var", None) and self._var.get()) or self.props.get("value", False)
+
+
+class RadioButton(Widget):
+    widget_type = "radio"
+
+    def _create(self):
+        if self.tk is None:
+            var = tk.StringVar(value=self.props.get("value", ""))
+            self.tk = tk.Radiobutton(self._host(), text=self.props.get("text", ""),
+                                     variable=var, value=str(self.props.get("radio_value", "")),
+                                     bg=self.app.theme.get("surface"), fg=self.app.theme.get("text"),
+                                     command=lambda: self._fire_now("onChange"))
+            self._var = var
+
+
+class ToggleSwitch(Checkbox):
+    widget_type = "toggle"
+
+
+class Slider(Widget):
+    widget_type = "slider"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Scale(self._host(), from_=self.props.get("min", 0),
+                               to=self.props.get("max", 100),
+                               orient="horizontal",
+                               command=lambda v: (self._fire_now("onChange")),
+                               bg=self.app.theme.get("surface"), fg=self.app.theme.get("text"),
+                               highlightthickness=0)
+            self.tk.set(self.props.get("value", 50))
+
+    def _get_value(self):
+        try: return self.tk.get()
+        except Exception: return self.props.get("value", 50)
+
+
+class Spinner(Widget):
+    widget_type = "spinner"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Spinbox(self._host(), from_=self.props.get("min", 0),
+                                 to=self.props.get("max", 100))
+
+
+class ProgressBar(Widget):
+    widget_type = "progress"
+
+    def _create(self):
+        if self.tk is None:
+            try:
+                from tkinter import ttk
+                self.tk = ttk.Progressbar(self._host(), maximum=100)
+                self.tk.set(self.props.get("value", 0))
+            except Exception:
+                self.tk = tk.Label(self._host(), text=f"{self.props.get('value', 0)}%")
+
+    def _set_value(self, v):
+        if self.tk is not None:
+            try: self.tk.set(v)
+            except Exception: pass
+
+
+class ComboBox(Widget):
+    widget_type = "combobox"
+
+    def _create(self):
+        if self.tk is None:
+            from tkinter import ttk
+            items = [str(x) for x in self.props.get("items", [])]
+            self.tk = ttk.Combobox(self._host(), values=items, state="readonly")
+            if items and self.props.get("selected") is not None:
+                try: self.tk.set(str(self.props["selected"]))
+                except Exception: pass
+            self.tk.bind("<<ComboboxSelected>>", lambda e: self._fire_now("onSelect"))
+
+    def _set_items(self, v):
+        self.props["items"] = v
+        if self.tk is not None:
+            try: self.tk.configure(values=[str(x) for x in v])
+            except Exception: pass
+
+    def _get_text(self):
+        if self.tk is not None:
+            try: return self.tk.get()
+            except Exception: pass
+        return self.props.get("text", "")
+
+    def _get_selected(self):
+        if self.tk is not None:
+            try:
+                idx = self.tk.current()
+                if idx >= 0:
+                    return str(self.tk.get())
+            except Exception:
+                pass
+        return self.props.get("selected", None)
+
+    def _set_selected(self, v):
+        self.props["selected"] = v
+        if self.tk is not None:
+            try: self.tk.set(str(v))
+            except Exception: pass
+
+    def _get_value(self):
+        return self._get_selected()
+
+
+class ListBox(Widget):
+    widget_type = "listbox"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Listbox(self._host(), bg=self.app.theme.get("input"),
+                                 fg=self.app.theme.get("text"),
+                                 selectmode="multiple" if self.props.get("multiple") else "browse",
+                                 height=self.props.get("height", 6))
+            for item in self.props.get("items", []):
+                self.tk.insert("end", str(item))
+            self.tk.bind("<<ListboxSelect>>", lambda e: self._fire_now("onSelect"))
+
+    def _set_items(self, v):
+        self.props["items"] = v
+        if self.tk is not None:
+            try:
+                self.tk.delete(0, "end")
+                for item in v:
+                    self.tk.insert("end", str(item))
+            except Exception: pass
+
+    def _set_selected(self, v):
+        self.props["selected"] = v
+        if self.tk is not None:
+            try:
+                self.tk.selection_clear(0, "end")
+                values = v if isinstance(v, (list, tuple)) else [v]
+                for i in range(self.tk.size()):
+                    if self.tk.get(i) in [str(x) for x in values]:
+                        self.tk.selection_set(i)
+                self.tk.see(0)
+            except Exception:
+                pass
+
+    def _get_selected(self):
+        try:
+            sel = self.tk.curselection()
+            items = [self.tk.get(i) for i in sel]
+            if self.props.get("multiple"):
+                return items
+            return items[0] if items else None
+        except Exception:
+            return self.props.get("selected", None)
+
+    def _get_text(self):
+        sel = self._get_selected()
+        if isinstance(sel, list):
+            return ", ".join(sel)
+        return sel or ""
+
+    def clear(self):
+        if self.tk is not None:
+            try: self.tk.delete(0, "end")
+            except Exception: pass
+        self.props["items"] = []
+        return self
+
+
+class Table(Widget):
+    widget_type = "table"
+
+    def _create(self):
+        if self.tk is None:
+            from tkinter import ttk
+            container = tk.Frame(self._host(), bg=self.app.theme.get("surface", "#2a2a3e"))
+            tree = ttk.Treeview(container, show="headings")
+            scroll = tk.Scrollbar(container, orient="vertical", command=tree.yview)
+            tree.configure(yscrollcommand=scroll.set)
+            tree.pack(side="left", fill="both", expand=True)
+            scroll.pack(side="right", fill="y")
+            self.tk = container
+            self._tree = tree
+            self._scrollbar = scroll
+            if self.props.get("columns"):
+                self._apply_columns(self.props["columns"])
+            if self.props.get("rows"):
+                self._apply_rows(self.props["rows"])
+
+    def _apply_columns(self, columns):
+        columns = [str(c) for c in columns]
+        self._tree.delete(*self._tree.get_children())
+        self._tree.configure(columns=columns)
+        for c in columns:
+            self._tree.heading(c, text=c)
+            self._tree.column(c, width=120)
+
+    def _set_columns(self, columns):
+        self.props["columns"] = columns
+        if self.tk is not None and self._tree is not None:
+            try: self._apply_columns(columns)
+            except Exception: pass
+
+    def _apply_rows(self, rows):
+        self._tree.delete(*self._tree.get_children())
+        for row in rows:
+            self._tree.insert("", "end", values=[str(x) for x in row])
+
+    def _set_rows(self, rows):
+        self.props["rows"] = rows
+        if self.tk is not None and self._tree is not None:
+            try: self._apply_rows(rows)
+            except Exception: pass
+
+    def add_row(self, row):
+        if self.tk is not None and self._tree is not None:
+            try: self._tree.insert("", "end", values=[str(x) for x in row])
+            except Exception: pass
+        self.props.setdefault("rows", []).append(list(row))
+        return self
+
+    def clear(self):
+        self.props["rows"] = []
+        if self.tk is not None and self._tree is not None:
+            try: self._tree.delete(*self._tree.get_children())
+            except Exception: pass
+        return self
+
+    def _get_selected(self):
+        if self.tk is None or self._tree is None:
+            return None
+        try:
+            sel = self._tree.selection()
+            if not sel:
+                return None
+            return list(self._tree.item(sel[0], "values"))
+        except Exception:
+            return None
+
+
+class ImageView(Widget):
+    widget_type = "image"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Label(self._host())
+        self._load_image(self.props.get("path") or self.props.get("source"))
+
+    def _load_image(self, path):
+        if self.tk is None or not path or not os.path.exists(str(path)):
+            return
+        try:
+            img = tk.PhotoImage(file=str(path))
+            self.tk.configure(image=img)
+            self.tk.image = img
+        except Exception:
+            pass
+
+
+class Hyperlink(Widget):
+    widget_type = "hyperlink"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Label(self._host(), text=self.props.get("text", ""),
+                               fg=self.app.theme.get("primary"), cursor="hand2")
+            self.tk.bind("<Button-1>", lambda e: self._fire_now("onClick"))
+
+
+class MenuBar(Widget):
+    widget_type = "menubar"
+
+    def __init__(self, parent=None, name=None, app=None, **props):
+        super().__init__(parent=parent, name=name, app=app, **props)
+        if self.parent is not None and self.parent.tk is not None and not self.app.headless:
+            try:
+                self.tk = tk.Menu(self.parent.tk)
+                self.parent.tk.config(menu=self.tk)
+            except Exception:
+                self.tk = None
+
+    def add(self, child):
+        if self.tk is not None and child.tk is not None:
+            self.tk.add_cascade(label=child.props.get("text", ""), menu=child.tk)
+        super().add(child)
+
+    def place_in(self, parent_tk):
+        pass
+
+
+class Menu(Widget):
+    widget_type = "menu"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Menu(self._menubar_tk())
+
+    def _menubar_tk(self):
+        p = self.parent
+        while p is not None and p.tk is None:
+            p = p.parent
+        return p.tk if p else None
+
+    def add(self, child):
+        if self.tk is not None:
+            if child.widget_type == "item":
+                self.tk.add_command(label=child.props.get("text", ""),
+                                    command=lambda: child._fire_now("onClick"))
+            elif child.widget_type == "separator":
+                self.tk.add_separator()
+            elif child.widget_type == "menu":
+                self.tk.add_cascade(label=child.props.get("text", ""), menu=child.tk)
+        self.children.append(child)
+        return child
+
+    def place_in(self, parent_tk):
+        pass
+
+
+class TabView(Widget):
+    widget_type = "tabview"
+
+    def _create(self):
+        if self.tk is None:
+            from tkinter import ttk
+            self.tk = ttk.Notebook(self._host())
+            self._tabs = {}
+
+    def add(self, child):
+        super().add(child)
+        if self.tk is not None and child.widget_type == "tab":
+            try:
+                frame = tk.Frame(self.tk, bg=self.app.theme.get("surface"))
+                self.tk.add(frame, text=str(child.props.get("text", child.name or "Tab")))
+                child._frame = frame
+            except Exception:
+                pass
+
+    def _host(self):
+        return self.parent.tk if (self.parent and self.parent.tk) else (self.app.root or None)
+
+
+class Tab(Widget):
+    widget_type = "tab"
+
+    def __init__(self, parent=None, name=None, app=None, **props):
+        super().__init__(parent=parent, name=name, app=app, **props)
+        self._frame = None
+        if self.tk is not None:
+            self.tk = None
+
+    def _host(self):
+        if self._frame is not None:
+            return self._frame
+        return self.parent._host() if (self.parent and hasattr(self.parent, "_host")) else None
+
+    def place_in(self, parent_tk):
+        pass
+
+
+class StatusBar(Widget):
+    widget_type = "statusbar"
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Label(self._host(), text=self.props.get("text", ""),
+                               anchor="w", bg=self.app.theme.get("surface"),
+                               fg=self.app.theme.get("text_muted"))
+
+
+class MenuItem(Widget):
+    widget_type = "item"
+
+    def place_in(self, parent_tk):
+        pass
+
+    def _create(self):
+        pass
+
+
+class MenuSeparator(Widget):
+    widget_type = "separator"
+
+    def place_in(self, parent_tk):
+        pass
+
+    def _create(self):
+        pass
+
+
+class Canvas(Widget):
+    widget_type = "canvas"
+
+    def __init__(self, width=600, height=400, bg="#ffffff", parent=None, name=None, app=None, **props):
+        from velice.gui.canvas import Canvas as _Canvas
+        props.setdefault("width", width)
+        props.setdefault("height", height)
+        props.setdefault("background", bg)
+        super().__init__(parent=parent, name=name, app=app, **props)
+        self._cv = _Canvas(int(width), int(height), str(bg), app=self.app)
+        self._pending_canvas_calls = []
+
+    def _create(self):
+        if self.tk is None:
+            self.tk = tk.Canvas(self._host(), width=int(self.props.get("width", 600)),
+                                height=int(self.props.get("height", 400)),
+                                bg=str(self.props.get("background", "#ffffff")),
+                                highlightthickness=0)
+            self._cv.tk = self.tk
+            pending, self._pending_canvas_calls = self._pending_canvas_calls, []
+            for method, args in pending:
+                getattr(self._cv, method)(*args)
+
+    def _canvas_call(self, method, *args):
+        if self.app.headless:
+            self.realize()
+            return getattr(self._cv, method)(*args)
+        if self.tk is None:
+            self._pending_canvas_calls.append((method, args))
+            return str(args[0]) if method == "screenshot" and args else None
+        return getattr(self._cv, method)(*args)
+
+    # ── drawing (delegated to canvas.Canvas) ───────────────────────────
+    def draw_rect(self, x, y, w, h, color="#000000", outline="", width=1):
+        return self._canvas_call("draw_rect", x, y, w, h, color, outline, width)
+
+    def fill_rect(self, x, y, w, h, color="#000000"):
+        return self._canvas_call("fill_rect", x, y, w, h, color)
+
+    def draw_oval(self, x, y, w, h, color="#000000", outline="", width=1):
+        return self._canvas_call("draw_oval", x, y, w, h, color, outline, width)
+
+    def draw_line(self, x1, y1, x2, y2, color="#000000", width=1):
+        return self._canvas_call("draw_line", x1, y1, x2, y2, color, width)
+
+    def draw_polygon(self, points, color="#000000", outline="", width=1):
+        return self._canvas_call("draw_polygon", points, color, outline, width)
+
+    def draw_text(self, x, y, text, color="#000000", size=12, bold=False, anchor="center"):
+        return self._canvas_call("draw_text", x, y, text, color, size, bold, anchor)
+
+    def draw_arc(self, x, y, w, h, start=0, extent=90, color="#000000", width=1):
+        return self._canvas_call("draw_arc", x, y, w, h, start, extent, color, width)
+
+    def clear(self):
+        return self._canvas_call("clear")
+
+    def screenshot(self, path):
+        return self._canvas_call("screenshot", path)
+
+    def _pack_args(self):
+        return {"side": "top", "fill": "both", "expand": True, "padx": 4, "pady": 4}
+
+
+class CodeEditor(Widget):
+    widget_type = "codeeditor"
+    _syntax_keywords = ["def", "class", "import", "from", "let", "const", "fn",
+                        "if", "elif", "else", "while", "for", "in", "match",
+                        "case", "return", "break", "continue", "throw", "try",
+                        "catch", "finally", "assert", "struct", "enum", "true",
+                        "false", "null", "and", "or", "not", "window", "widget",
+                        "run", "void", "async", "await"]
+
+    def _create(self):
+        if self.tk is None:
+            frame = tk.Frame(self._host(), bg=self.app.theme.get("surface", "#2a2a3e"))
+            font = (self._font_family(), self.app.theme.get("font_size", 12))
+            gutter = tk.Text(frame, width=4, padx=4, bg=self.app.theme.get("surface"),
+                             fg=self.app.theme.get("text_muted", "#8888aa"),
+                             state="disabled", wrap="none", font=font,
+                             highlightthickness=0)
+            text = tk.Text(frame, bg=self.app.theme.get("input", "#23233a"),
+                           fg=self.app.theme.get("text", "#e6e6f0"),
+                           font=font, wrap="none", undo=True,
+                           insertbackground=self.app.theme.get("text"),
+                           selectbackground=self.app.theme.get("primary"),
+                           highlightthickness=0)
+            scroll = tk.Scrollbar(frame, orient="vertical", command=self._both_yview)
+            text.configure(yscrollcommand=self._sync_scroll)
+            gutter.pack(side="left", fill="y")
+            text.pack(side="left", fill="both", expand=True)
+            scroll.pack(side="right", fill="y")
+            self.tk = frame
+            self._gutter = gutter
+            self._text = text
+            self._scrollbar = scroll
+            self._tick = 0
+            text.bind("<KeyRelease>", lambda e: (self._refresh_gutter(), self._fire("onChange", e)), add="+")
+            text.bind("<MouseWheel>", lambda e: self._mousewheel(e), add="+")
+            text.bind("<<Modified>>", lambda e: (text.edit_modified(False), self._refresh_gutter()), add="+")
+            if self.props.get("text"):
+                self._set_text(self.props["text"])
+            self._refresh_gutter()
+            if self.props.get("syntax"):
+                self.highlight()
+
+    def _mousewheel(self, e):
+        try:
+            self._text.yview_scroll(int(-1 * (e.delta / 120)), "units")
+            self._refresh_gutter()
+        except Exception:
+            pass
+
+    def _sync_scroll(self, first, last):
+        try:
+            self._scrollbar.set(first, last)
+            self._gutter.yview_moveto(first)
+        except Exception:
+            pass
+
+    def _both_yview(self, *args):
+        try:
+            self._text.yview(*args)
+            self._gutter.yview(*args)
+            self._scrollbar.set(*self._text.yview())
+        except Exception:
+            pass
+
+    def _refresh_gutter(self):
+        if getattr(self, '_gutter', None) is None:
+            return
+        try:
+            n = int(self._text.index("end-1c").split(".")[0])
+            lines = "\n".join(str(i) for i in range(1, n + 1))
+            self._gutter.configure(state="normal")
+            self._gutter.delete("1.0", "end")
+            self._gutter.insert("1.0", lines)
+            self._gutter.configure(state="disabled")
+            self._gutter.yview_moveto(self._text.yview()[0])
+        except Exception:
+            pass
+
+    def _set_text(self, v):
+        self.props["text"] = v
+        if getattr(self, '_text', None) is None:
+            return
+        try:
+            self._text.delete("1.0", "end")
+            self._text.insert("1.0", str(v))
+            self._text.edit_modified(False)
+            self._refresh_gutter()
+            if self.props.get("syntax"):
+                self.highlight()
+        except Exception:
+            pass
+
+    def _get_text(self):
+        if getattr(self, '_text', None) is not None:
+            try:
+                return self._text.get("1.0", "end-1c")
+            except Exception:
+                pass
+        return self.props.get("text", "")
+
+    def append(self, text):
+        if getattr(self, '_text', None) is not None:
+            try:
+                self._text.insert("end", str(text))
+                self._text.see("end")
+                self._refresh_gutter()
+            except Exception:
+                pass
+        self.props["text"] = self.props.get("text", "") + str(text)
+        return self
+
+    def clear(self):
+        self.set("text", "")
+        return self
+
+    def set_readonly(self, v):
+        if getattr(self, '_text', None) is not None:
+            try:
+                self._text.configure(state="disabled" if v else "normal")
+            except Exception:
+                pass
+        return self
+
+    def scroll_to_end(self):
+        if getattr(self, '_text', None) is not None:
+            try: self._text.see("end")
+            except Exception: pass
+        return self
+
+    def find(self, query, start="1.0"):
+        """Highlight all occurrences and return their count."""
+        q = str(query)
+        if getattr(self, "_text", None) is None or not q:
+            return 0
+        try:
+            self._text.tag_remove("search", "1.0", "end")
+            count = 0
+            pos = self._text.search(q, start, stopindex="end", nocase=True)
+            while pos:
+                end = f"{pos}+{len(q)}c"
+                self._text.tag_add("search", pos, end)
+                count += 1
+                pos = self._text.search(q, end, stopindex="end", nocase=True)
+            self._text.tag_config("search", background="#5a5a00", foreground="#ffffff")
+            return count
+        except Exception:
+            return 0
+
+    def replace(self, find, replace_with):
+        """Replace all occurrences; returns number replaced."""
+        q, r = str(find), str(replace_with)
+        if getattr(self, "_text", None) is None or not q:
+            return 0
+        try:
+            self._text.tag_remove("search", "1.0", "end")
+            count = 0
+            pos = self._text.search(q, "1.0", stopindex="end", nocase=True)
+            while pos:
+                end = f"{pos}+{len(q)}c"
+                self._text.delete(pos, end)
+                self._text.insert(pos, r)
+                count += 1
+                pos = self._text.search(q, f"{pos}+{len(r)}c", stopindex="end", nocase=True)
+            self._refresh_gutter()
+            return count
+        except Exception:
+            return 0
+
+    def highlight(self):
+        """Apply Velice syntax coloring via Tk tags."""
+        if getattr(self, '_text', None) is None:
+            return
+        text = self._text
+        try:
+            text.tag_remove("kw", "1.0", "end")
+            text.tag_remove("str", "1.0", "end")
+            text.tag_remove("num", "1.0", "end")
+            text.tag_remove("cmt", "1.0", "end")
+            text.tag_config("kw", foreground=self.app.theme.get("keyword", "#c586c0"))
+            text.tag_config("str", foreground=self.app.theme.get("string", "#ce9178"))
+            text.tag_config("num", foreground=self.app.theme.get("number", "#b5cea8"))
+            text.tag_config("cmt", foreground=self.app.theme.get("text_muted", "#6a6a8a"),
+                            font=(self._font_family(), self.app.theme.get("font_size", 12), "italic"))
+            src = text.get("1.0", "end-1c")
+            if not src:
+                return
+            pos = 0
+            for m in _TOKEN_RE.finditer(src):
+                kind, tok = m.group("kind"), m.group("tok")
+                if tok in ("", '"'):
+                    continue
+                line1 = src.count("\n", 0, m.start()) + 1
+                col = m.start() - src.rfind("\n", 0, m.start())
+                start = f"{line1}.{col - 1 if col > 0 else 0}"
+                end = f"{start}+{len(tok)}c"
+                text.tag_add(kind, start, end)
+        except Exception:
+            pass
+
+    def bind(self, event, callback):
+        super().bind(event, callback)
+        if getattr(self, '_text', None) is not None:
+            ev = event if event.startswith("on") else "on" + event
+            canonical = _to_camel(ev)
+            seq = self._events.get(canonical)
+            if seq:
+                try:
+                    self._text.bind(seq, lambda e, ev=canonical: self._fire(ev, e), add="+")
+                except Exception:
+                    pass
+        return self
+
+    def _host(self):
+        p = self.parent
+        while p is not None and p.tk is None and p.widget_type != "window":
+            p = p.parent
+        if p is not None and p.tk is not None:
+            return p.tk
+        return p._frame if (p and p.widget_type == "window" and p._frame is not None) else (self.app.root or None)
+
+
+_TOKEN_RE = None
+
+
+def _build_token_re():
+    global _TOKEN_RE
+    if _TOKEN_RE is not None:
+        return _TOKEN_RE
+    import re as _re
+    kw = "|".join(_re.escape(k) for k in CodeEditor._syntax_keywords)
+    _TOKEN_RE = _re.compile(
+        r'(?P<cmt>#.*?$)|(?P<str>"(?:[^"\\]|\\.)*")|(?P<num>\b\d+(?:\.\d+)?\b)|(?P<kw>\b(?:%s)\b)' % kw,
+        _re.MULTILINE)
+    return _TOKEN_RE
+
+
+_build_token_re()

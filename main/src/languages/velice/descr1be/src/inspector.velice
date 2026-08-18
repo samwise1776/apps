@@ -1,0 +1,63 @@
+# inspector.velice — property editors for the selected widget node.
+import gui
+import util
+
+fn render(container, node, on_change = nil) {
+    container.clear()
+    if node == nil {
+        var hint = Label(name = "insp_hint", parent = container, text = "Select a widget to edit")
+        container.add(hint)
+        hint.set("x", 8)
+        hint.set("y", 8)
+        return container
+    }
+    var y = 8
+    var rows = [["name", util.num_to_str(node["name"]), "text"],
+                ["type", node["type"], "ro"],
+                ["x", util.num_to_str(node["x"]), "text"],
+                ["y", util.num_to_str(node["y"]), "text"],
+                ["w", util.num_to_str(node["w"]), "text"],
+                ["h", util.num_to_str(node["h"]), "text"]]
+    for r in rows {
+        y = _row(container, r[0], r[1], r[2], y, on_change, node["id"])
+    }
+    for k in keys(node["props"]) {
+        y = _row(container, k, _fmt(node["props"][k]), "text", y, on_change, node["id"])
+    }
+    for ev in keys(node["events"]) {
+        y = _row(container, ev, node["events"][ev], "text", y, on_change, node["id"])
+    }
+    return container
+}
+
+fn _fmt(v) {
+    var t = typeof(v)
+    if t == "string" or t == "int" or t == "float" or t == "bool" {
+        return util.num_to_str(v)
+    }
+    return json_stringify(v)
+}
+
+fn _row(parent, key, value, kind, y, on_change, node_id) {
+    var lab = Label(name = node_id + "_" + key + "_lab", parent = parent, text = key)
+    parent.add(lab)
+    lab.set("x", 8)
+    lab.set("y", y)
+    lab.set("font_size", 10)
+    var input = TextField(name = node_id + "_" + key, parent = parent, text = value)
+    parent.add(input)
+    input.set("x", 76)
+    input.set("y", y)
+    input.set("width", 180)
+    input.set("height", 24)
+    if kind != "ro" and on_change != nil {
+        _bind_change(input, on_change, node_id, key)
+    }
+    return y + 30
+}
+
+fn _bind_change(input, on_change, node_id, key) {
+    input.on_change {
+        on_change(node_id, key, input.text)
+    }
+}

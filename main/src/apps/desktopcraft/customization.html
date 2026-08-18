@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Customize Desktopcraft colors, brightness, and lesson explanation detail." />
+    <title>Customize — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="customization.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body class="customization-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="customization-topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/desktopcraft-icon.svg" alt="" /></span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav aria-label="Customization navigation">
+        <a href="index.html">Courses</a>
+        <a href="tutorials.html">Tutorials</a>
+        <a href="forum.html">Forum</a>
+        <a href="projects.html">Projects</a>
+        <a href="helper.html">Helper AI</a>
+      </nav>
+    </header>
+
+    <main class="customization-shell" id="main-content">
+      <section class="customization-hero">
+        <div>
+          <p class="section-kicker">MAKE IT YOURS</p>
+          <h1>Set the learning space<br />that works for you.</h1>
+        </div>
+        <p>Choose a color, adjust screen brightness, and decide how much explanation each lesson should show. Your choices apply automatically across Desktopcraft.</p>
+      </section>
+
+      <div class="customization-layout">
+        <form class="customization-controls" id="customizationForm">
+          <section class="customization-panel" aria-labelledby="colorHeading">
+            <div class="customization-panel-heading">
+              <span>01</span>
+              <div><p class="section-kicker">SITE COLOR</p><h2 id="colorHeading">Choose your theme</h2></div>
+            </div>
+            <div class="color-control-row">
+              <label class="color-field" for="themeColor">
+                <span>Custom color</span>
+                <input id="themeColor" name="themeColor" type="color" value="#2e7d5b" />
+              </label>
+              <output id="themeColorValue" for="themeColor">#2E7D5B</output>
+            </div>
+            <div class="color-presets" aria-label="Theme color presets">
+              <button type="button" data-theme-color="#2e7d5b" aria-label="Forest green theme" style="--preset-color:#2e7d5b"></button>
+              <button type="button" data-theme-color="#2869a8" aria-label="Ocean blue theme" style="--preset-color:#2869a8"></button>
+              <button type="button" data-theme-color="#7357a6" aria-label="Violet theme" style="--preset-color:#7357a6"></button>
+              <button type="button" data-theme-color="#b45d35" aria-label="Clay orange theme" style="--preset-color:#b45d35"></button>
+              <button type="button" data-theme-color="#a64262" aria-label="Berry theme" style="--preset-color:#a64262"></button>
+            </div>
+          </section>
+
+          <section class="customization-panel" aria-labelledby="brightnessHeading">
+            <div class="customization-panel-heading">
+              <span>02</span>
+              <div><p class="section-kicker">BRIGHTNESS</p><h2 id="brightnessHeading">Tune the page light</h2></div>
+            </div>
+            <div class="range-heading"><span>Dimmer</span><output id="brightnessValue" for="brightness">100%</output><span>Brighter</span></div>
+            <input id="brightness" name="brightness" type="range" min="70" max="130" step="1" value="100" />
+            <p class="control-help">This changes the visible brightness of every Desktopcraft page without changing your device settings.</p>
+          </section>
+
+          <fieldset class="customization-panel explanation-panel">
+            <legend class="sr-only">Lesson explanation level</legend>
+            <div class="customization-panel-heading">
+              <span>03</span>
+              <div><p class="section-kicker">LESSON DETAIL</p><h2>How much explanation?</h2></div>
+            </div>
+            <label class="explanation-choice">
+              <input type="radio" name="explanationLevel" value="concise" />
+              <span><strong>Concise</strong><small>Show the main idea and essential steps.</small></span>
+            </label>
+            <label class="explanation-choice">
+              <input type="radio" name="explanationLevel" value="balanced" checked />
+              <span><strong>Balanced</strong><small>Keep the standard lesson guidance and examples.</small></span>
+            </label>
+            <label class="explanation-choice">
+              <input type="radio" name="explanationLevel" value="detailed" />
+              <span><strong>Detailed</strong><small>Show the complete reference and open every code-line explanation.</small></span>
+            </label>
+          </fieldset>
+
+          <div class="customization-actions">
+            <button class="button button-ghost" id="resetCustomization" type="button">Reset defaults</button>
+            <button class="button button-primary" type="submit">Save preferences</button>
+          </div>
+          <p class="customization-status" id="customizationStatus" role="status" aria-live="polite">Changes are saved automatically in this browser.</p>
+        </form>
+
+        <aside class="customization-preview" aria-label="Live customization preview">
+          <div class="preview-window">
+            <div class="preview-window-bar"><span></span><span></span><span></span><strong>Lesson preview</strong></div>
+            <div class="preview-window-body">
+              <p class="section-kicker">THE BIG IDEA</p>
+              <h2>Build one clear piece at a time.</h2>
+              <p class="preview-essential">Create the window first, then add controls and connect their actions.</p>
+              <p class="preview-extra">Each control keeps a small part of the interface focused and easy to test.</p>
+              <div class="preview-code"><span>1</span><code>button.addActionListener(event -&gt; save());</code></div>
+              <div class="preview-detail"><strong>What this line does</strong><p>It connects the button click to the save action so the app can respond.</p></div>
+              <button class="button button-primary" type="button">Run example</button>
+            </div>
+          </div>
+          <div class="preview-summary">
+            <span class="preview-swatch" aria-hidden="true"></span>
+            <div><strong id="previewLevelLabel">Balanced explanations</strong><p id="previewBrightnessLabel">100% page brightness</p></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+    <script src="auth.js"></script>
+  </body>
+</html>

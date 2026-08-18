@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Paste any Swing, Tkinter, WinForms, Qt, or Electron snippet and get structured feedback on correctness, style, and simulator coverage." />
+    <title>Code Review — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="review.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body class="review-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="review-topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/desktopcraft-icon.svg" alt="" /></span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav aria-label="Code review navigation">
+        <a href="index.html">Courses</a>
+        <a href="tutorials.html">Tutorials</a>
+        <a href="forum.html">Forum</a>
+        <a href="projects.html">Projects</a>
+        <a class="active" href="review.html" aria-current="page">Code Review</a>
+        <a href="customization.html">Customize</a>
+      </nav>
+    </header>
+
+    <main class="review-shell" id="main-content">
+      <section class="review-hero">
+        <div>
+          <p class="section-kicker">DESKTOPCRAFT REVIEWER</p>
+          <h1>Paste it.<br />See what works.</h1>
+          <p>Drop in a Swing, Tkinter, WinForms, Qt, or Electron snippet. The reviewer checks correctness, suggests style habits, and tells you what the browser simulator can and cannot show.</p>
+        </div>
+        <aside class="review-hero-note">
+          <span aria-hidden="true">⌘↵</span>
+          <div><strong>Instant review</strong><p>Press ⌘/Ctrl + Enter to re-check your code.</p></div>
+        </aside>
+      </section>
+
+      <div class="review-layout">
+        <section class="review-card review-editor-card" aria-labelledby="reviewEditorTitle">
+          <header class="review-editor-heading">
+            <div>
+              <p class="section-kicker">YOUR CODE</p>
+              <h2 id="reviewEditorTitle">Review a snippet</h2>
+            </div>
+            <span class="review-file-name" id="reviewFileName">Main.java</span>
+          </header>
+
+          <div class="review-editor-controls">
+            <label for="reviewLanguage">
+              <span>Toolkit</span>
+              <select id="reviewLanguage">
+                <option value="auto" selected>Detect automatically</option>
+                <option value="java">Java Swing</option>
+                <option value="python">Python Tkinter</option>
+                <option value="csharp">C# WinForms</option>
+                <option value="cpp">C++ Qt Widgets</option>
+                <option value="electron">JavaScript Electron</option>
+              </select>
+            </label>
+            <button id="loadReviewSample" type="button">Load a sample</button>
+          </div>
+
+          <form id="reviewForm">
+            <label class="sr-only" for="reviewCode">Code to review</label>
+            <textarea id="reviewCode" spellcheck="false" placeholder="Paste your desktop app code here, or load a sample to see how the review works…"></textarea>
+            <div class="review-editor-meta">
+              <span><strong id="reviewLineCount">0</strong> lines</span>
+              <span><strong id="reviewByteCount">0</strong> characters</span>
+            </div>
+            <div class="review-actions">
+              <span>Local only — your code never leaves this browser.</span>
+              <button class="button button-primary" id="reviewSubmit" type="submit">Review code</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="review-card review-results-card" aria-labelledby="reviewResultsTitle">
+          <div class="review-results-heading">
+            <div>
+              <p class="section-kicker">FINDINGS</p>
+              <h2 id="reviewResultsTitle">Waiting for code</h2>
+            </div>
+          </div>
+
+          <div id="reviewSummary" class="review-summary" hidden>
+            <div class="review-summary-verdict">
+              <span class="review-verdict-dot" aria-hidden="true"></span>
+              <div><strong id="reviewVerdict">Almost there</strong><p id="reviewDetected">Java Swing</p><p id="reviewStats">0 lines · 0 components · 0 listeners</p></div>
+            </div>
+            <div class="review-summary-counts" id="reviewSummaryCounts"></div>
+            <div class="review-chips" id="reviewChips" hidden aria-label="Recognized APIs"></div>
+          </div>
+
+          <div id="reviewResults" class="review-results">
+            <div class="review-empty">
+              <strong>Nothing reviewed yet</strong>
+              <p>Paste some code, pick a toolkit, or load a sample, then run the review.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="review.js"></script>
+  </body>
+</html>

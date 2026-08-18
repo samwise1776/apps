@@ -1,0 +1,26 @@
+# theme.velice — color palettes for the Descr1be UI and generated apps.
+
+fn colors(name = "dark") {
+    if name == "light" {
+        return {
+            "bg": "#f5f6fa", "surface": "#ffffff", "surface2": "#eceff4",
+            "border": "#d0d4dc", "text": "#1f2430", "text_muted": "#5b6472",
+            "accent": "#3b82f6", "accent_text": "#ffffff",
+            "error": "#e11d48", "ok": "#16a34a",
+            "button": "#e6e9ef", "button_text": "#1f2430",
+            "input": "#ffffff", "selection": "#cfe0ff",
+        }
+    }
+    return {
+        "bg": "#11131a", "surface": "#1a1e2b", "surface2": "#222740",
+        "border": "#2c3350", "text": "#e6e8f0", "text_muted": "#8b93ad",
+        "accent": "#6ea8fe", "accent_text": "#0d1117",
+        "error": "#ff6b81", "ok": "#5bd18a",
+        "button": "#262c44", "button_text": "#e6e8f0",
+        "input": "#141824", "selection": "#2c4a8a",
+    }
+}
+
+fn list() {
+    return ["dark", "light"]
+}

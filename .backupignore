@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+target/
+bin/
+obj/
+runtime/
+releases/
+backups/
+*.class
+*.jar
+*.zip
+*.log
+.git/
+.cache/
+.data/unfinished/
+ids/*/.id.txt

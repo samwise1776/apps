@@ -1,0 +1,31 @@
+# projectio.velice — save/load/export the project.
+import util
+import generator
+
+fn save(project, path) {
+    write_file(path, json_pretty(project))
+    return path
+}
+
+fn load(path) {
+    if not file_exists(path) { return nil }
+    var content = read_file(path)
+    if content == nil { return nil }
+    return json_parse(content)
+}
+
+fn export_source(project, path) {
+    write_file(path, generator.generate(project))
+    return path
+}
+
+fn default_path(project) {
+    return join_path(home_dir(), "descr1be_" + _slug(project["name"]) + ".json")
+}
+
+fn _slug(name) {
+    var s = replace(str(name), " ", "_")
+    s = replace(s, "/", "_")
+    s = replace(s, "\\", "_")
+    return lower(s)
+}

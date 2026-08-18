@@ -1,0 +1,122 @@
+import gui
+
+class DocsApp {
+    fn init() {
+        var win = Window("Velice Documentation", 900, 760)
+        win.resizable = true
+
+        var title = Label("VELICE DOCUMENTATION")
+        title.font_size = 30
+        title.bold = true
+        title.color = "midnightblue"
+
+        var subtitle = Label("A reference app for the Velice language")
+        subtitle.font_size = 16
+        subtitle.color = "royalblue"
+
+        var topics = ComboBox(["Home", "Syntax", "Variables", "Types", "Operators", "Control Flow", "Functions", "Classes", "Traits Structs Enums", "Functional", "Memory", "Errors", "Reflection", "Modules", "Standard Library", "CLI Arguments", "Strings", "Files", "GUI Quick Start", "GUI Widgets", "GUI Properties", "GUI Events", "Dialogs Clipboard", "Canvas", "GUI Runtime", "GUI DSL", "Toolchain", "Examples", "Future Work"])
+        topics.selected = "Home"
+
+        var sectionTitle = Label("Home")
+        sectionTitle.font_size = 22
+        sectionTitle.bold = true
+        sectionTitle.color = "midnightblue"
+
+        var content = TextArea("")
+        content.height = 28
+        content.font_size = 14
+        content.readonly = true
+
+        fn showTopic(topic) {
+            sectionTitle.text = topic
+
+            if topic == "Home" { content.text = "VELICE\n\nVelice is a general-purpose, dynamic, multi-paradigm programming language with a clean C-family style. It is implemented as a tree-walking interpreter in Python.\n\nMain ideas:\n- easy scripting\n- immutable and mutable variables\n- functions and closures\n- classes and inheritance\n- pattern matching\n- collections and functional helpers\n- errors and modules\n- a native GUI library\n\nUse the topic selector above to explore the language." }
+
+            if topic == "Syntax" { content.text = "SYNTAX\n\nComments:\n# line comment\n/* block comment */\n\nLiterals:\n42\n3.14\n0xff\n0b1010\n1_000_000\n\"hello\"\n'hello'\nr\"raw text\"\ntrue\nfalse\nnil\n\nInterpolation:\n\"Hello ${name}!\"\n\nIdentifiers can contain letters, digits, and _. They cannot begin with a digit. Braces { } are the recommended block style." }
+
+            if topic == "Variables" { content.text = "VARIABLES\n\nlet x = 5        # immutable\nlet mut y = 5    # mutable\ny = 6\nvar score = 10   # mutable shorthand\nconst MAX = 100\n\nDeferred var code:\nvar greet = (print(\"hello\"))\ngreet()\n\nA parenthesized initializer on var can act like a zero-argument callable that evaluates later." }
+
+            if topic == "Types" { content.text = "VALUE TYPES\n\nint      arbitrary-precision integer\nfloat    decimal number\nstring   UTF-8 text\nbool     true/false\nnil      no value\narray    ordered mutable list\nmap      key/value dictionary\nfunction callable closure\ninstance class instance\n\nOptional annotations:\nlet x: int = 5\nfn check(name: string) -> bool { return true }\n\nAnnotations are parsed but are not currently full static type checking." }
+
+            if topic == "Operators" { content.text = "OPERATORS\n\nArithmetic: + - * / % **\nComparison: == != < <= > >=\nLogical: and or not !\nBitwise: & | ^\nAssignment: = += -= *= /= %=\nRange: a..b\nPipe: |>\nNil fallback: ??\nTernary: condition ? yes : no\nAccess: .\n\nExamples:\n[1] + [2]\n\"ab\" * 3\n1..5\nvalue ?? fallback" }
+
+            if topic == "Control Flow" { content.text = "CONTROL FLOW\n\nif x > 0 { print(\"positive\") }\nelif x == 0 { print(\"zero\") }\nelse { print(\"negative\") }\n\nvar label = if x > 0 { \"pos\" } else { \"neg\" }\n\nwhile n < 10 { n += 1 }\n\nfor item in items { print(item) }\nfor i in 0..5 { print(i) }\n\nloop { if done { break } }\n\nmatch code {\n    0 => \"ok\",\n    n if n > 100 => \"error\",\n    _ => \"unknown\",\n}\n\nbreak and continue work in loops." }
+
+            if topic == "Functions" { content.text = "FUNCTIONS\n\nfn add(a, b) { return a + b }\n\nDefault arguments:\nfn greet(name, greeting = \"Hello\") { print(greeting + \" \" + name) }\n\nFunctions are first-class values and can be passed around.\n\nClosures:\nfn counter() {\n    let mut c = 0\n    return fn() { c += 1; return c }\n}\n\nRecursion is supported. return with no value returns nil." }
+
+            if topic == "Classes" { content.text = "CLASSES AND INHERITANCE\n\nclass Animal {\n    fn init(name) { self.name = name }\n    fn speak() { print(self.name + \" makes a sound\") }\n}\n\nclass Dog extends Animal {\n    fn speak() { print(self.name + \" barks\") }\n}\n\nlet d = Dog(\"Rex\")\nd.speak()\n\nfn init(...) is the class constructor. self refers to the current instance. extends provides single inheritance." }
+
+            if topic == "Traits Structs Enums" { content.text = "TRAITS, STRUCTS, AND ENUMS\n\nVelice includes declarations for traits, structs, and enums.\n\ntrait describes interface-style behavior.\nstruct describes data records.\nenum describes named variants.\nimpl can provide implementations.\n\nThese features belong to Velice's object-oriented and data-modeling system alongside classes and inheritance." }
+
+            if topic == "Functional" { content.text = "FUNCTIONAL PROGRAMMING\n\nfn add1(x) { return x + 1 }\n\nmap([1,2,3], fn(x) { x * 2 })\nfilter([1,2,3,4], fn(x) { x % 2 == 0 })\nreduce(...)\n\nPipe operator:\nvalue |> function\n\nFunctions are values, closures are supported, and helpers such as map, filter, and reduce can build data pipelines." }
+
+            if topic == "Memory" { content.text = "MEMORY MODEL\n\nVelice uses garbage-collected values. There is no manual memory management.\n\nArrays and maps are mutable by reference.\nStrings and numbers behave as values.\n\nThe language does not expose pointers or manual unsafe memory operations in its current runtime." }
+
+            if topic == "Errors" { content.text = "ERROR HANDLING\n\ntry {\n    risky()\n} catch e {\n    print(e)\n} finally {\n    cleanup()\n}\n\nthrow \"something went wrong\"\n\nassert(condition, \"message\")\n\nvalue ?? fallback\n\ndefer can schedule cleanup when a block exits." }
+
+            if topic == "Reflection" { content.text = "REFLECTION AND INTROSPECTION\n\ntypeof(x)\nsizeof(x)\n\nCollection inspection:\nkeys(map)\nvalues(map)\nitems(map)\n\ntypeof reports categories such as int, string, array, map, function, and class. sizeof returns an element or character count for supported values." }
+
+            if topic == "Modules" { content.text = "MODULES\n\nimport \"math.velice\"\nfrom \"math.velice\" import square\n\nGUI imports also support:\nimport gui\nfrom gui import Window, Button\nfrom gui import *\nimport gui as g\n\nImports load another Velice module and expose imported names according to the import form." }
+
+            if topic == "Standard Library" { content.text = "STANDARD LIBRARY\n\nIO:\nprint, println, input, readFileLines\n\nCOLLECTIONS:\nlen, range, sorted, reversed, append, push, pop, insert, remove, keys, values, items, enumerate, zip\n\nHIGHER-ORDER:\nmap, filter, reduce\n\nNUMERIC:\nmin, max, sum, abs, sqrt, pow, floor, ceil, round, rand, rand_int, random\n\nTEXT AND CONVERSION:\nstr, int, float, bool, chr, ord, hex, oct, bin, join, split, replace, trim, lower, upper, parse_int, parse_float\n\nJSON:\njson_parse, json_stringify, from_json, to_json\n\nCRYPTO:\nsha256\n\nTIME:\nnow, time, sleep\n\nMISC:\ntypeof, sizeof, panic, exit" }
+
+            if topic == "CLI Arguments" { content.text = "COMMAND-LINE ARGUMENTS\n\nargu.0\nargu.1\nargu.len\nprint(argu)\nfor x in argu { print(x) }\n\nExample command:\nvelice run app.velice in.txt out.txt\n\nThen argu.0 is in.txt and argu.1 is out.txt." }
+
+            if topic == "Strings" { content.text = "STRING METHODS\n\n\"hello\".contains(\"ell\")\n\"hello\".starts(\"he\")\n\"hello\".ends(\"lo\")\n\"foo(bar)baz\".inbetween(\"()\")\n\"hello\".len\n\nGeneral text helpers also include:\nsplit\njoin\nreplace\ntrim\nlower\nupper" }
+
+            if topic == "Files" { content.text = "READING FILES\n\nvar lines = readFileLines(\"code.txt\")\n\nwhile lines.hasMore() {\n    var line = lines.currentLine()\n    print(line)\n}\n\nLine reader helpers:\ncontains(x)\ncurrentLine()\ncurrent()\nhasMore()\nreset()\nposition()\nlen\n[index]\nfor x in lines" }
+
+            if topic == "GUI Quick Start" { content.text = "GUI QUICK START\n\nimport gui\n\nvar win = Window(\"My Application\", 800, 600)\nvar label = Label(\"Hello\")\nvar button = Button(\"Click Me\")\n\nbutton.on_click {\n    label.text = \"Clicked!\"\n}\n\nwin.add(label)\nwin.add(button)\n\nwin.on_close { win.close() }\n\ngui.run()\n\nimport gui injects the GUI constructors into scope." }
+
+            if topic == "GUI Widgets" { content.text = "GUI WIDGETS\n\nWindow\nFrame\nButton\nLabel\nTextField\nPasswordField\nTextArea\nCheckbox\nRadioButton\nToggleSwitch\nSlider\nSpinner\nProgressBar\nComboBox\nListBox\nTable\nImage\nHyperlink\nMenuBar\nMenu\nMenuItem\nMenuSeparator\nTabView\nTab\nStatusBar\nCanvas" }
+
+            if topic == "GUI Properties" { content.text = "GUI PROPERTIES\n\nProperty assignment is the normal style:\n\nbutton.text = \"Stop\"\nbutton.enabled = false\nbutton.font_size = 16\nbutton.bold = true\nbutton.color = \"white\"\nbutton.background = \"royalblue\"\nbutton.visible = true\n\nOther common properties:\nwidth\nheight\ntooltip\nplaceholder\nreadonly\nmax_length\nitems\nselected\nmultiple\n\nWindow properties:\nwin.resizable = false\nwin.maximized = true\nwin.always_on_top = true\nwin.fullscreen = true\nwin.closable(false)\nwin.close()" }
+
+            if topic == "GUI Events" { content.text = "GUI EVENTS\n\nbutton.on_click { print(\"clicked\") }\ninput.on_change { print(input.text) }\nlist.on_select { print(list.selected) }\nwindow.on_key_down { print(event.key) }\nwindow.on_mouse_move { print(event.x, event.y) }\nwindow.on_close { print(\"closing\") }\n\nEvents include:\non_click\non_double_click\non_change\non_select\non_key_down\non_key_up\non_mouse_move\non_mouse_enter\non_mouse_leave\non_mouse_wheel\non_focus\non_blur\non_load\non_close\n\nEvent data can contain x, y, key, and state." }
+
+            if topic == "Dialogs Clipboard" { content.text = "DIALOGS AND CLIPBOARD\n\ngui.alert(\"Hello!\")\ngui.toast(\"Saved\", 2.0)\nvar ok = gui.confirm(\"Are you sure?\")\nvar name = gui.input_box(\"Name?\", \"Ask\")\nvar path = gui.open_file(\"Open\")\nvar save = gui.save_file(\"Save\")\nvar dir = gui.choose_folder(\"Pick\")\nvar color = gui.choose_color()\nvar font = gui.choose_font()\n\ngui.clipboard.copy(\"text\")\nvar text = gui.clipboard.paste()" }
+
+            if topic == "Canvas" { content.text = "CANVAS DRAWING\n\nvar c = Canvas(600, 400, \"#ffffff\")\n\nc.draw_rect(20, 20, 80, 80, \"#e74c3c\")\nc.draw_oval(120, 20, 80, 80, \"#2ecc71\")\nc.draw_line(20, 150, 580, 150, \"#3498db\", 3)\nc.draw_polygon([300,250,350,180,400,250], \"#f1c40f\")\nc.draw_text(300, 320, \"Hi\", \"#34495e\", 20, true)\nc.draw_arc(460, 20, 80, 80, 0, 120, \"#9b59b6\", 4)\n\nc.clear()\nc.screenshot(\"out.ps\")" }
+
+            if topic == "GUI Runtime" { content.text = "GUI RUNTIME\n\ngui.run()\ngui.update()\ngui.set_theme(\"Dark\")\ngui.window(name)\ngui.get_window(name)\ngui.quit()\n\nVelice's GUI is Tk-backed.\n\nIn headless mode the runtime can record calls instead of displaying windows." }
+
+            if topic == "GUI DSL" { content.text = "DECLARATIVE GUI DSL\n\nimport gui\n\nwindow Main {\n    title = \"Declarative DSL\"\n    width = 640\n\n    Label header {\n        text = \"Velice GUI\"\n        font_size = 18\n        bold = true\n    }\n\n    Button greet {\n        text = \"Greet\"\n        onClick { print(\"Hello!\") }\n    }\n}\n\nrun Main\n\nNamed widgets become variables inside handlers." }
+
+            if topic == "Toolchain" { content.text = "TOOLCHAIN\n\nRun file:\nvelice run file.velice\n\nREPL:\nvelice repl\n\nEvaluate expression:\nvelice eval \"1 + 2 * 3\"\n\nVersion:\nvelice version\n\nPython module:\npython3 -m velice\n\nThe project includes a lexer, parser, AST, interpreter, REPL, GUI library, tests, examples, package tools, and a VS Code extension." }
+
+            if topic == "Examples" { content.text = "EXAMPLE PROGRAMS\n\nhello_world.velice\nvariables.velice\nfunctions.velice\nloops.velice\narrays_collections.velice\nclasses.velice\ninheritance.velice\ngenerics.velice\nmatch.velice\nerror_handling.velice\nasync.velice\nfunctional.velice\ngui.velice\ngui_events.velice\ngui_canvas.velice\ngui_dialogs.velice\ngui_dsl.velice" }
+
+            if topic == "Future Work" { content.text = "FUTURE / RESERVED FEATURES\n\nSome keywords are reserved even when parts are not fully executed yet.\n\nReserved or planned areas include:\nasync\nawait\nspawn\nyield\npub\nmod\nuse\ntype\nwhere\nnone\nsome\nok\nerr\nunsafe\nextern\ninline\nis\nguard\nnew\n\nWhen documenting Velice, separate currently working behavior from reserved or future syntax." }
+        }
+
+        topics.on_select {
+            showTopic(topics.selected)
+        }
+
+        var closeButton = Button("Close")
+        closeButton.background = "darkred"
+        closeButton.color = "white"
+        closeButton.bold = true
+
+        closeButton.on_click {
+            win.close()
+        }
+
+        win.on_close {
+            win.close()
+        }
+
+        win.add(title)
+        win.add(subtitle)
+        win.add(topics)
+        win.add(sectionTitle)
+        win.add(content)
+        win.add(closeButton)
+
+        showTopic("Home")
+    }
+}
+
+var docs = DocsApp()
+
+gui.run()

@@ -1,0 +1,17 @@
+.vscode/**
+.vscode-test/**
+src/**
+**/*.ts.map
+**/*.tsbuildinfo
+.gitignore
+.git/**
+yarn.lock
+package-lock.json
+node_modules/**
+out/**
+dist/**
+webpack.config.js
+*.vsix
+**/.DS_Store
+**/Thumbs.db
+tests/** 

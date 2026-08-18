@@ -1,0 +1,32 @@
+# templates.velice — widget metadata: labels and palette entries.
+import util
+
+fn type_label(wtype) {
+    var labels = {
+        "frame": "Frame", "label": "Label", "button": "Button",
+        "textfield": "TextField", "textarea": "TextArea", "password": "Password",
+        "checkbox": "Checkbox", "radio": "Radio", "combobox": "ComboBox",
+        "listbox": "ListBox", "slider": "Slider", "progressbar": "ProgressBar",
+        "image": "Image", "hyperlink": "Link",
+    }
+    return util.map_get(labels, wtype, wtype)
+}
+
+fn palette() {
+    return [
+        {"type": "frame", "label": "Frame", "desc": "Container"},
+        {"type": "label", "label": "Label", "desc": "Text label"},
+        {"type": "button", "label": "Button", "desc": "Clickable button"},
+        {"type": "textfield", "label": "TextField", "desc": "Single-line input"},
+        {"type": "textarea", "label": "TextArea", "desc": "Multi-line input"},
+        {"type": "password", "label": "Password", "desc": "Hidden input"},
+        {"type": "checkbox", "label": "Checkbox", "desc": "Boolean toggle"},
+        {"type": "radio", "label": "Radio", "desc": "Choice"},
+        {"type": "combobox", "label": "ComboBox", "desc": "Dropdown"},
+        {"type": "listbox", "label": "ListBox", "desc": "Item list"},
+        {"type": "slider", "label": "Slider", "desc": "Numeric slider"},
+        {"type": "progressbar", "label": "ProgressBar", "desc": "Progress"},
+        {"type": "image", "label": "Image", "desc": "Picture"},
+        {"type": "hyperlink", "label": "Hyperlink", "desc": "Clickable link"},
+    ]
+}

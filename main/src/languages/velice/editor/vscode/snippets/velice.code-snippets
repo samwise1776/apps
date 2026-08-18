@@ -1,0 +1,177 @@
+{
+  "Hello World": {
+    "prefix": "hello",
+    "body": "print(\"Hello, ${1:World}!\")",
+    "description": "Print to standard output"
+  },
+  "let binding": {
+    "prefix": "let",
+    "body": "let ${1:name} = ${2:value}",
+    "description": "Immutable variable binding"
+  },
+  "let mut binding": {
+    "prefix": "letmut",
+    "body": "let mut ${1:name} = ${2:value}",
+    "description": "Mutable variable binding"
+  },
+  "const": {
+    "prefix": "const",
+    "body": "const ${1:NAME} = ${2:value}",
+    "description": "Compile-time constant"
+  },
+  "function": {
+    "prefix": "fn",
+    "body": "fn ${1:name}(${2:params}) {\n\t${3}\n}",
+    "description": "Function definition"
+  },
+  "if expression": {
+    "prefix": "if",
+    "body": "if ${1:condition} {\n\t${2}\n} else {\n\t${3}\n}",
+    "description": "Conditional"
+  },
+  "for loop": {
+    "prefix": "for",
+    "body": "for ${1:item} in ${2:iterable} {\n\t${3}\n}",
+    "description": "Iterate over a collection"
+  },
+  "for range": {
+    "prefix": "forrange",
+    "body": "for ${1:i} in ${2:0}..${3:10} {\n\t${4}\n}",
+    "description": "Iterate over a numeric range"
+  },
+  "while loop": {
+    "prefix": "while",
+    "body": "while ${1:condition} {\n\t${2}\n}",
+    "description": "Conditional loop"
+  },
+  "match": {
+    "prefix": "match",
+    "body": "match ${1:expr} {\n\t${2:pattern} => ${3:value},\n\t_ => ${4:default},\n}",
+    "description": "Pattern matching"
+  },
+  "class": {
+    "prefix": "class",
+    "body": "class ${1:Name} {\n\tfn init(${2}) {\n\t\t${3}\n\t}\n}",
+    "description": "Class definition"
+  },
+  "class extends": {
+    "prefix": "classext",
+    "body": "class ${1:Name} extends ${2:Base} {\n\tfn init(${3}) {\n\t\t${4}\n\t}\n}",
+    "description": "Class with inheritance"
+  },
+  "struct": {
+    "prefix": "struct",
+    "body": "struct ${1:Name} {\n\t${2:field}: ${3:type},\n}",
+    "description": "Data structure definition"
+  },
+  "trait": {
+    "prefix": "trait",
+    "body": "trait ${1:Name} {\n\tfn ${2:method}()\n}",
+    "description": "Interface/trait definition"
+  },
+  "try/catch": {
+    "prefix": "try",
+    "body": "try {\n\t${1}\n} catch ${2:e} {\n\t${3}\n} finally {\n\t${4}\n}",
+    "description": "Error handling"
+  },
+  "throw": {
+    "prefix": "throw",
+    "body": "throw \"${1:error message}\"",
+    "description": "Raise an error"
+  },
+  "pipe": {
+    "prefix": "pipe",
+    "body": "${1:value} |> ${2:fn}",
+    "description": "Pipe operator"
+  },
+  "array literal": {
+    "prefix": "arr",
+    "body": "[${1:item1}, ${2:item2}]",
+    "description": "Array literal"
+  },
+  "map literal": {
+    "prefix": "map",
+    "body": "{\"${1:key}\": ${2:value}}",
+    "description": "Map literal"
+  },
+  "import": {
+    "prefix": "import",
+    "body": "import \"${1:module}.velice\"",
+    "description": "Import a module"
+  },
+  "command line args": {
+    "prefix": "argu",
+    "body": "argu.${1:0}",
+    "description": "Access a command-line argument"
+  },
+  "string contains": {
+    "prefix": "contains",
+    "body": "${1:str}.contains(\"${2:substring}\")",
+    "description": "Check if a string contains a substring"
+  },
+  "string starts with": {
+    "prefix": "starts",
+    "body": "${1:str}.starts(\"${2:prefix}\")",
+    "description": "Check if a string starts with a prefix"
+  },
+  "string ends with": {
+    "prefix": "ends",
+    "body": "${1:str}.ends(\"${2:suffix}\")",
+    "description": "Check if a string ends with a suffix"
+  },
+  "string inbetween": {
+    "prefix": "inbetween",
+    "body": "${1:str}.inbetween(\"${2:()}\")",
+    "description": "Extract text between the first and last delimiter"
+  },
+  "read file lines": {
+    "prefix": "readfilelines",
+    "body": "lines = readFileLines(\"${1:file.txt}\")\nwhile lines.hasMore() {\n\tline = lines.currentLine()\n\t${2}\n}",
+    "description": "Read a file line by line"
+  },
+  "import gui": {
+    "prefix": "importgui",
+    "body": "import gui",
+    "description": "Import the native GUI library"
+  },
+  "gui window": {
+    "prefix": "guiwindow",
+    "body": "import gui\n\nwindow = Window(\"${1:My Application}\", ${2:800}, ${3:600})\n${4}\ngui.run()",
+    "description": "Create a window and start the event loop"
+  },
+  "gui button": {
+    "prefix": "guibutton",
+    "body": "var ${1:button} = Button(\"${2:Click Me}\")\n${1}.on_click {\n\t${3:print(\"Clicked\")}\n}\nwindow.add(${1})",
+    "description": "Create a button with a click handler"
+  },
+  "gui event": {
+    "prefix": "guiton",
+    "body": "${1:widget}.on_${2:click} {\n\t${3}\n}",
+    "description": "Bind a GUI event handler"
+  },
+  "gui label": {
+    "prefix": "guilabel",
+    "body": "var ${1:label} = Label(\"${2:text}\")\nwindow.add(${1})",
+    "description": "Create a label"
+  },
+  "gui textfield": {
+    "prefix": "guitext",
+    "body": "var ${1:input} = TextField(\"${2:}\")\n${1}.on_change {\n\t${3:print(${1}.text)}\n}\nwindow.add(${1})",
+    "description": "Create a text input with change handler"
+  },
+  "gui canvas": {
+    "prefix": "guicanvas",
+    "body": "var ${1:canvas} = Canvas(${2:600}, ${3:400})\n${1}.draw_rect(${4:0}, ${5:0}, ${6:50}, ${7:50}, \"#ff0000\")\nwindow.add(${1})",
+    "description": "Create a 2D drawing canvas"
+  },
+  "gui dialog": {
+    "prefix": "guidialog",
+    "body": "var ${1:res} = gui.confirm(\"${2:Are you sure?}\")\n${3}",
+    "description": "Show a confirm dialog"
+  },
+  "gui declarative window": {
+    "prefix": "guiwindowdecl",
+    "body": "import gui\n\nwindow ${1:Main} {\n\t${2:Button ${3:go} {\n\t\ttext = \"${4:Go}\"\n\t\tonClick {\n\t\t\t${5}\n\t\t}\n\t}}\n}\n\nrun ${1}",
+    "description": "Declarative GUI window"
+  }
+}

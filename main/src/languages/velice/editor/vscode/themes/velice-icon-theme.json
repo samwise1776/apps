@@ -1,0 +1,16 @@
+{
+  "information_for_contributors": [
+    "This is a file icon theme for the Velice language. To use it,",
+    "open Settings and set Workbench > Icon Theme to \"Velice Icons\".",
+    "It adds a custom icon for .velice files while falling back to",
+    "your other icon theme defaults for everything else."
+  ],
+  "iconDefinitions": {
+    "_velice_file": {
+      "iconPath": "../icons/velice-icon.svg"
+    }
+  },
+  "fileExtensions": {
+    "velice": "_velice_file"
+  }
+}

@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f1e9"><title>Trestrio — Your daily utility</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/theme.css"><link rel="stylesheet" href="/utilities.css">
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <a class="brand" href="#"><span class="mark">T</span><span>Trestrio</span></a>
+      <nav><button class="nav active" data-view="today"><i>⌂</i><span>Today</span></button><button class="nav" data-view="focus"><i>◷</i><span>Focus</span></button><button class="nav" data-view="tools"><i>◇</i><span>Tools</span></button></nav>
+      <div class="aside-bottom"><div class="quote">“Small progress is still progress.”</div><div class="profile"><span>AR</span><div><b>My workspace</b><small>Saved locally</small></div></div></div>
+    </aside>
+    <main>
+      <header><div><p id="eyebrow">YOUR DAILY SPACE</p><h1 id="greeting">Good morning.</h1></div><div class="header-actions"><div class="date" id="date"></div><button class="theme-toggle" id="theme-toggle" aria-label="Toggle color theme"><span>☀</span></button></div></header>
+
+      <section class="view active" id="today-view">
+        <div class="stats">
+          <article class="stat lime"><span>Tasks done</span><strong id="done-stat">0 / 0</strong><div class="progress"><i id="task-progress"></i></div></article>
+          <article class="stat"><span>Focus time</span><strong id="focus-stat">0m</strong><small id="session-stat">No sessions yet</small></article>
+          <article class="stat"><span>Today</span><strong id="day-stat">—</strong><small id="month-stat">—</small></article>
+        </div>
+        <div class="grid">
+          <article class="panel tasks-panel"><div class="panel-title"><div><p>TODAY'S LIST</p><h2>Make it count</h2></div><span id="task-count">0 items</span></div>
+            <form id="task-form"><input id="task-input" maxlength="120" placeholder="What needs doing?" autocomplete="off"><button aria-label="Add task">+</button></form>
+            <ul id="task-list"></ul><div class="empty" id="task-empty"><span>✓</span><b>Your list is clear.</b><small>Add something worth doing.</small></div>
+          </article>
+          <article class="panel note-panel"><div class="panel-title"><div><p>QUICK NOTE</p><h2>Catch the thought</h2></div><span id="save-status">Saved</span></div><textarea id="notes" maxlength="10000" placeholder="Write anything here…"></textarea><div class="note-foot"><span id="char-count">0 characters</span><button id="clear-note">Clear note</button></div></article>
+        </div>
+      </section>
+
+      <section class="view" id="focus-view">
+        <div class="focus-layout"><article class="panel timer-card"><p>FOCUS TIMER</p><h2>One thing at a time.</h2><div class="timer" id="timer">25:00</div><div class="timer-presets"><button data-minutes="15">15</button><button class="selected" data-minutes="25">25</button><button data-minutes="45">45</button></div><button class="primary" id="timer-toggle">Start focus</button><button class="text-button" id="timer-reset">Reset</button></article>
+        <article class="panel ritual"><p>BEFORE YOU BEGIN</p><h2>Set the room.</h2><ol><li>Choose one clear outcome.</li><li>Silence the noise around you.</li><li>Start before you feel ready.</li></ol><div class="session-total"><strong id="focus-total">0</strong><span>completed<br>sessions</span></div></article></div>
+      </section>
+
+      <section class="view" id="tools-view">
+        <div class="utility-hero">
+          <div><p>THE TOOLBOX</p><h2>103 utilities. Zero clutter.</h2><small>Search, choose, and get the answer instantly.</small></div>
+          <label class="utility-search"><span>⌕</span><input id="utility-search" type="search" placeholder="Search utilities…" autocomplete="off"></label>
+        </div>
+        <div class="tools-grid">
+          <article class="panel tool"><p>TEXT</p><h2>Case converter</h2><textarea id="case-input" placeholder="Paste text here…"></textarea><div class="tool-actions"><button data-case="upper">UPPERCASE</button><button data-case="lower">lowercase</button><button data-case="title">Title Case</button></div></article>
+          <article class="panel tool"><p>NUMBERS</p><h2>Percentage calculator</h2><label>What is <input id="percent" type="number" value="20"> % of <input id="percent-of" type="number" value="150"> ?</label><div class="result" id="percent-result">30</div></article>
+          <article class="panel tool wide"><p>TIME</p><h2>Unix timestamp</h2><div class="timestamp"><span id="timestamp">—</span><button id="copy-time">Copy</button></div><small>Seconds since January 1, 1970 · updates live</small></article>
+        </div>
+        <div class="utility-meta"><p>100 MORE UTILITIES</p><span id="utility-count">100 tools</span></div>
+        <div class="utility-filters" id="utility-filters"></div>
+        <div class="utility-library" id="utility-library"></div>
+        <div class="empty utility-empty" id="utility-empty"><span>⌕</span><b>No utility found.</b><small>Try a different search.</small></div>
+      </section>
+    </main>
+  </div><div class="toast" id="toast"></div><script src="/utilities.js"></script><script src="/app.js"></script>
+</body></html>

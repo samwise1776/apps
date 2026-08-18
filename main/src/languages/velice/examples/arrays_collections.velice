@@ -1,0 +1,24 @@
+# Arrays, maps, and collection operations
+let arr = [3, 1, 4, 1, 5]
+print("len:", len(arr))
+print("first:", arr[0])
+print("last:", arr[len(arr) - 1])
+
+append(arr, 9)
+print("after append:", arr)
+
+let m = {"name": "Velice", "version": "0.1.0", "released": true}
+print("map keys:", keys(m))
+print("map values:", values(m))
+print("name:", m["name"])
+
+print("sorted:", sorted([3, 1, 2]))
+print("sum:", sum([1, 2, 3]))
+print("min:", min([3, 1, 2]))
+print("max:", max([3, 1, 2]))
+
+let doubled = map([1, 2, 3], fn(x) { return x * 2 })
+print("doubled:", doubled)
+
+let evens = filter([1, 2, 3, 4], fn(x) { return x % 2 == 0 })
+print("evens:", evens)
