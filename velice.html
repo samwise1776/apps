@@ -1,0 +1,898 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The complete Velice programming language guide: syntax, functions, collections, classes, errors, files, tooling, packages, and native GUI applications." />
+  <meta name="theme-color" content="#15152a" />
+  <title>Complete Velice Guide — Datacenter</title>
+  <link rel="icon" type="image/svg+xml" href="assets/velice-logo.svg" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="velice-guide.css" />
+</head>
+<body class="guide-page">
+  <a class="skip-link" href="#guide-content">Skip to the guide</a>
+  <nav class="guide-topbar" aria-label="Guide navigation">
+    <a class="brand" href="index.html" aria-label="Datacenter home">
+      <span class="brand-mark" aria-hidden="true">DC</span><span>Datacenter</span>
+    </a>
+    <div class="guide-top-links">
+      <a href="#guide-content">Guide</a>
+      <a href="#reference">Reference</a>
+      <a href="https://github.com/samwise1776/velice" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </nav>
+
+  <header class="velice-hero" id="top">
+    <div class="velice-hero-copy">
+      <span class="velice-badge">Version 0.1.0 · Complete guide</span>
+      <h1>Learn <span>Velice.</span><br />Build clearly.</h1>
+      <p>Velice is a dependency-free, dynamic programming language with clean C-family syntax, first-class functions, object-oriented tools, pattern matching, project commands, and a native GUI library.</p>
+      <div class="hero-actions">
+        <a class="button velice-primary" href="#lesson-01">Start the guide <span aria-hidden="true">↓</span></a>
+        <a class="button velice-secondary" href="https://raw.githubusercontent.com/samwise1776/apps/main/apps/velice/velice.zip">Download source <span aria-hidden="true">↓</span></a>
+        <a class="button velice-secondary" href="https://github.com/samwise1776/velice" target="_blank" rel="noopener noreferrer">View on GitHub <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <div class="velice-hero-art" aria-label="Velice at a glance">
+      <img src="assets/velice-logo.svg" alt="Velice V logo" />
+      <dl>
+        <div><dt>25</dt><dd>complete chapters</dd></div>
+        <div><dt>130</dt><dd>passing tests</dd></div>
+        <div><dt>0</dt><dd>runtime dependencies</dd></div>
+        <div><dt>3</dt><dd>desktop platforms</dd></div>
+      </dl>
+    </div>
+  </header>
+
+  <div class="guide-shell" id="guide-content">
+    <aside class="guide-sidebar" aria-label="Guide chapters">
+      <div class="guide-search-wrap">
+        <label for="guideSearch">Search all chapters</label>
+        <input id="guideSearch" type="search" placeholder="Try classes, GUI, files…" autocomplete="off" />
+        <p id="guideSearchStatus" role="status" aria-live="polite">25 chapters available</p>
+      </div>
+      <div class="guide-progress" aria-label="Guide progress">
+        <div><span>Progress</span><strong id="guideProgressText">0 / 25</strong></div>
+        <span class="guide-progress-track"><i id="guideProgressBar"></i></span>
+      </div>
+      <ol class="guide-nav-list" id="guideNavList">
+        <li><a href="#lesson-01"><span>01</span>Install and run</a></li>
+        <li><a href="#lesson-02"><span>02</span>Source and comments</a></li>
+        <li><a href="#lesson-03"><span>03</span>Values and types</a></li>
+        <li><a href="#lesson-04"><span>04</span>Variables and thunks</a></li>
+        <li><a href="#lesson-05"><span>05</span>Operators</a></li>
+        <li><a href="#lesson-06"><span>06</span>Control flow</a></li>
+        <li><a href="#lesson-07"><span>07</span>Functions and closures</a></li>
+        <li><a href="#lesson-08"><span>08</span>Arrays and maps</a></li>
+        <li><a href="#lesson-09"><span>09</span>Functional pipelines</a></li>
+        <li><a href="#lesson-10"><span>10</span>Pattern matching</a></li>
+        <li><a href="#lesson-11"><span>11</span>Classes and inheritance</a></li>
+        <li><a href="#lesson-12"><span>12</span>Structs, traits, enums</a></li>
+        <li><a href="#lesson-13"><span>13</span>Error handling</a></li>
+        <li><a href="#lesson-14"><span>14</span>Modules and imports</a></li>
+        <li><a href="#lesson-15"><span>15</span>Standard library</a></li>
+        <li><a href="#lesson-16"><span>16</span>Strings and text</a></li>
+        <li><a href="#lesson-17"><span>17</span>Files and arguments</a></li>
+        <li><a href="#lesson-18"><span>18</span>Your first GUI</a></li>
+        <li><a href="#lesson-19"><span>19</span>Widgets and properties</a></li>
+        <li><a href="#lesson-20"><span>20</span>Events and dialogs</a></li>
+        <li><a href="#lesson-21"><span>21</span>Canvas, DSL, themes</a></li>
+        <li><a href="#lesson-22"><span>22</span>Projects and builds</a></li>
+        <li><a href="#lesson-23"><span>23</span>Packages and VS Code</a></li>
+        <li><a href="#lesson-24"><span>24</span>Complete reference</a></li>
+        <li><a href="#lesson-25"><span>25</span>Modern GUI features</a></li>
+
+      </ol>
+    </aside>
+
+    <main class="guide-main">
+      <section class="guide-intro-card">
+        <p class="guide-kicker">HOW TO USE THIS GUIDE</p>
+        <h2>Read in order or jump directly to what you need.</h2>
+        <p>Every example is copyable. Code is highlighted locally without an external library. Mark chapters complete as you go; progress stays in this browser. The guide distinguishes implemented version 0.1 behavior from reserved future features.</p>
+      </section>
+
+      <article class="guide-lesson" id="lesson-01" data-title="Install and run" data-keywords="setup python pip cli repl eval install windows mac linux">
+        <header><span>Chapter 01</span><h2>Install and run Velice</h2><p>Start from source, install the command, run a file, evaluate an expression, or enter the REPL.</p></header>
+        <div class="lesson-grid two-columns">
+          <div><h3>Requirements</h3><p>Velice needs CPython 3.10 or newer. The interpreter itself has no third-party runtime dependencies. Tk is used only when a GUI opens.</p><ul><li>Linux, macOS, or Windows</li><li>Python 3.10+</li><li>Optional: VS Code for the bundled editor extension</li></ul></div>
+          <div><h3>Install locally</h3><pre data-language="shell"><code>unzip velice.zip
+cd velice
+python3 -m unittest discover -s tests
+python3 -m pip install -e .
+velice version</code></pre></div>
+        </div>
+        <h3>Four ways to run</h3>
+        <pre data-language="shell"><code># Run a source file
+velice run examples/hello_world.velice
+
+# Run without installing
+python3 -m velice run examples/hello_world.velice
+
+# Evaluate and print one expression
+velice eval "1 + 2 * 3"
+
+# Start the interactive REPL
+velice repl</code></pre>
+        <aside class="guide-note"><strong>Expected first output:</strong> <code>Hello, World!</code></aside>
+      </article>
+
+      <article class="guide-lesson" id="lesson-02" data-title="Source and comments" data-keywords="utf-8 identifiers indentation braces comments lexical syntax">
+        <header><span>Chapter 02</span><h2>Source files, blocks, and comments</h2><p>Velice files use the <code>.velice</code> extension and UTF-8 text.</p></header>
+        <p>Identifiers can contain letters, digits, and underscores, but cannot begin with a digit. Braces are the recommended way to make blocks explicit. Indentation is also understood; a tab counts as four spaces.</p>
+        <pre data-language="velice" data-validate="run"><code># A line comment
+let language_name = "Velice"
+
+/* A block comment can
+   continue across lines. */
+if language_name == "Velice" {
+    print("Clear blocks")
+}</code></pre>
+        <div class="guide-rule"><strong>Style:</strong> use four spaces, descriptive snake_case names, braces for multi-line blocks, and one statement per line.</div>
+      </article>
+
+      <article class="guide-lesson" id="lesson-03" data-title="Values and types" data-keywords="int float string bool nil array map literals interpolation raw hex binary type annotations typeof sizeof">
+        <header><span>Chapter 03</span><h2>Values, literals, and types</h2><p>The runtime is dynamic. Optional type annotations are stored but are not statically enforced in version 0.1.</p></header>
+        <div class="lesson-grid two-columns">
+          <div><h3>Core values</h3><table><thead><tr><th>Type</th><th>Example</th></tr></thead><tbody><tr><td>int</td><td><code>42</code>, <code>0xff</code>, <code>1_000</code></td></tr><tr><td>float</td><td><code>3.14</code>, <code>2.5e-3</code></td></tr><tr><td>string / char</td><td><code>"hello"</code>, <code>'x'</code>, <code>r"raw"</code></td></tr><tr><td>bool / nil</td><td><code>true</code>, <code>false</code>, <code>nil</code></td></tr><tr><td>array / map</td><td><code>[1, 2]</code>, <code>{"a": 1}</code></td></tr><tr><td>tuple</td><td><code>(1, "two")</code> — runtime value; limited dedicated APIs</td></tr></tbody></table></div>
+          <div><h3>Inspect values</h3><pre data-language="velice" data-validate="run"><code>let name: string = "Velice"
+let release = 0.1
+let ready = true
+let missing = nil
+
+print("Hello ${name}!")
+print(typeof(release)) # float
+print(len(name))       # 6</code></pre></div>
+        </div>
+        <p>Strings support single quotes, double quotes, triple-quoted multi-line text, raw strings, escapes, and <code>${expression}</code> interpolation. <code>sizeof</code> is recognized by the parser but has no runtime implementation in version 0.1; use <code>len</code> for strings, arrays, maps, arguments, and file-line readers.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-04" data-title="Variables and thunks" data-keywords="let mut var const assignment mutable immutable deferred code thunk">
+        <header><span>Chapter 04</span><h2>Variables, constants, and deferred code</h2><p>Bindings are immutable unless you explicitly make them mutable.</p></header>
+        <pre data-language="velice" data-validate="run"><code>let name = "Velice"       # immutable
+let mut count = 0         # mutable
+var score = 10            # shorthand for mutable
+const MAX_USERS = 1000    # constant
+
+count += 1
+score = score + 5
+print(name, count, score)
+
+# A parenthesized var initializer becomes deferred code.
+var answer = (6 * 7)
+print(answer())           # 42
+
+var greet = (print("hello later"))
+greet()</code></pre>
+        <aside class="guide-warning"><strong>Important:</strong> assigning to a plain <code>let</code> or a <code>const</code> produces a runtime error. Use <code>let mut</code> or <code>var</code> when reassignment is intentional.</aside>
+        <p><code>const</code> is a runtime-immutable binding, not a compile-time substitution. A first bare assignment such as <code>score = 10</code> also creates a mutable global in version 0.1, but explicit <code>let</code>/<code>var</code> declarations are clearer.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-05" data-title="Operators" data-keywords="arithmetic comparison logical bitwise assignment range pipe nil coalescing ternary precedence">
+        <header><span>Chapter 05</span><h2>Operators and precedence</h2><p>Velice includes familiar arithmetic, comparison, Boolean, range, pipe, and fallback operators.</p></header>
+        <pre data-language="velice" data-validate="run"><code>print(2 + 3 * 4)             # 14
+print(2 ** 8)                # 256
+print("ab" * 3)              # ababab
+print([1] + [2, 3])          # [1, 2, 3]
+print(1..5)                  # inclusive range
+print(6 &amp; 3, 6 | 3, 6 ^ 3)   # 2 7 5 (bitwise)
+
+let value = nil
+print(value ?? "fallback")  # fallback
+
+let age = 20
+let label = if age >= 18 { "adult" } else { "minor" }
+print(label)
+
+fn square(x) { return x * x }
+print(5 |> square)</code></pre>
+        <p class="precedence"><strong>Low → high:</strong> <code>|></code> · <code>??</code> · <code>or</code> · <code>and</code> · comparison · bitwise <code>&amp; | ^</code> · range · addition · multiplication · power · unary · calls/access.</p>
+        <aside class="guide-warning"><strong>Ternary status:</strong> although <code>?</code> and <code>:</code> tokens and a ternary parser function exist, postfix parsing consumes <code>?</code> first in version 0.1. Use the working <code>if condition { value } else { value }</code> expression form.</aside>
+        <p>Division between two integers uses floor division; if either operand is a float, <code>/</code> returns a float. The <code>a..b</code> operator is inclusive, while the <code>range(...)</code> library function follows Python-style exclusive stop behavior.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-06" data-title="Control flow" data-keywords="if elif else while for loop range break continue condition expression">
+        <header><span>Chapter 06</span><h2>Conditions and loops</h2><p>Use conditions as statements or expressions, then choose the loop that matches the job.</p></header>
+        <pre data-language="velice" data-validate="run"><code>let temperature = 21
+
+if temperature > 25 {
+    print("warm")
+} elif temperature > 10 {
+    print("comfortable")
+} else {
+    print("cold")
+}
+
+let label = if temperature > 20 { "nice" } else { "cool" }
+
+for i in 0..3 { print(i) }
+
+let mut n = 0
+while n &lt; 3 {
+    n += 1
+}
+
+loop {
+    n += 1
+    if n &lt; 5 { continue }
+    break
+}</code></pre>
+        <p><code>break</code> and <code>continue</code> work inside <code>for</code>, <code>while</code>, and <code>loop</code>.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-07" data-title="Functions and closures" data-keywords="fn parameters defaults return recursion lambda closure first class mutable params">
+        <header><span>Chapter 07</span><h2>Functions, defaults, recursion, and closures</h2><p>Functions are values. They can be passed, returned, stored, and closed over surrounding state.</p></header>
+        <pre data-language="velice" data-validate="run"><code>fn greet(name, greeting = "Hello") {
+    return greeting + ", " + name + "!"
+}
+
+fn fib(n) {
+    if n &lt; 2 { return n }
+    return fib(n - 1) + fib(n - 2)
+}
+
+fn counter() {
+    let mut value = 0
+    return fn() {
+        value += 1
+        return value
+    }
+}
+
+let next = counter()
+print(greet("Ray"))
+print(fib(10))
+print(next(), next(), next())</code></pre>
+        <p>A bare <code>return</code> returns <code>nil</code>. The parser records <code>var</code>/<code>mut</code> parameter markers, but the version 0.1 runtime currently creates every parameter as mutable, so those markers do not yet enforce a difference.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-08" data-title="Arrays and maps" data-keywords="collections list dictionary index slice append push pop insert remove sort keys values items">
+        <header><span>Chapter 08</span><h2>Arrays, maps, indexing, and collection helpers</h2><p>Arrays and maps are mutable reference values. Strings and numbers behave as values.</p></header>
+        <pre data-language="velice" data-validate="run"><code>let numbers = [3, 1, 4]
+append(numbers, 1)
+push(numbers, 5)
+print(numbers[0])
+print(numbers[1:3])
+print(sorted(numbers))
+print(reversed(numbers))
+print(sum(numbers))
+
+let profile = {"name": "Velice", "version": "0.1.0"}
+print(profile["name"])
+print(keys(profile))
+print(values(profile))
+print(items(profile))</code></pre>
+        <p>Other helpers include <code>len</code>, <code>range</code>, <code>pop</code>, <code>insert</code>, <code>remove</code>, <code>min</code>, and <code>max</code>.</p>
+        <p><code>append(array, value)</code> mutates and returns the array; <code>push</code> mutates and returns <code>nil</code>. <code>pop(array)</code> removes the final item, and <code>insert</code>/<code>remove</code> mutate in place.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-09" data-title="Functional pipelines" data-keywords="map filter reduce compose curry lambda pipe higher order pure function">
+        <header><span>Chapter 09</span><h2>Higher-order functions and pipelines</h2><p>Transform data with lambdas and pass values through readable processing stages.</p></header>
+        <pre data-language="velice" data-validate="run"><code>let numbers = [1, 2, 3, 4]
+let doubled = map(numbers, fn(x) { return x * 2 })
+let evens = filter(numbers, fn(x) { return x % 2 == 0 })
+let total = reduce(numbers, fn(sum, x) { return sum + x })
+
+fn square(x) { return x * x }
+fn increment(x) { return x + 1 }
+print(4 |> square |> increment) # 17
+
+fn make_adder(amount) {
+    return fn(value) { return value + amount }
+}
+let add_five = make_adder(5)
+print(add_five(10))</code></pre>
+      </article>
+
+      <article class="guide-lesson" id="lesson-10" data-title="Pattern matching" data-keywords="match arms guard wildcard array tuple or pattern expression">
+        <header><span>Chapter 10</span><h2>Pattern matching</h2><p><code>match</code> selects an arm by value or pattern and can return a value.</p></header>
+        <pre data-language="velice" data-validate="run"><code>fn classify(value) {
+    return match value {
+        0 => "zero",
+        1 => "one",
+        n if n &lt; 0 => "negative",
+        n if n > 100 => "huge",
+        _ => "normal",
+    }
+}
+
+print(classify(0))
+print(classify(42))
+
+match [1, 2] {
+    [a, b] => print(a + b),
+    _ => print("another shape"),
+}</code></pre>
+        <p>Supported pattern forms include literals, identifiers that bind values, wildcard <code>_</code>, fixed-length arrays, alternatives with <code>|</code>, and <code>if</code> guards. Tuple values exist, but tuple-pattern syntax is not implemented in version 0.1.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-11" data-title="Classes and inheritance" data-keywords="oop class extends init constructor self super method instance fields override">
+        <header><span>Chapter 11</span><h2>Classes, instances, and inheritance</h2><p><code>init</code> is the constructor. Instance fields can be created through <code>self</code>.</p></header>
+        <pre data-language="velice" data-validate="run"><code>class Animal {
+    fn init(name) {
+        self.name = name
+    }
+
+    fn speak() {
+        print(self.name + " makes a sound")
+    }
+}
+
+class Dog extends Animal {
+    fn speak() {
+        print(self.name + " barks!")
+    }
+}
+
+let dog = Dog("Rex")
+dog.speak()</code></pre>
+        <p>Velice version 0.1 uses single inheritance. Overridden methods resolve on the child class before searching its parent.</p>
+        <aside class="guide-note"><strong>Superclass access:</strong> inherited methods and constructors are found automatically, but the reserved <code>super</code> keyword cannot be used as an expression in version 0.1. A child constructor must assign the fields it needs directly.</aside>
+      </article>
+
+      <article class="guide-lesson" id="lesson-12" data-title="Structs traits enums and generic patterns" data-keywords="struct trait enum impl records interface generics higher order">
+        <header><span>Chapter 12</span><h2>Structs, traits, enums, and generic patterns</h2><p>Velice parses and represents higher-level modeling constructs while keeping runtime behavior intentionally small.</p></header>
+        <div class="feature-status-row" aria-label="Feature status"><span class="feature-status supported">Supported: structs</span><span class="feature-status partial">Partial: enums</span><span class="feature-status reserved">Parsed only: traits and impl</span><span class="feature-status planned">Planned: static generics</span></div>
+        <pre data-language="velice" data-validate="run"><code>trait Runnable {
+    fn run()
+}
+
+struct Point {
+    x: float
+    y: float
+}
+
+enum Direction {
+    North,
+    East,
+    South,
+    West,
+}
+
+let origin = Point(0.0, 0.0)
+print(origin.x, origin.y)
+
+# Dynamic code usually uses generic-style functions.
+fn identity(value) { return value }
+fn make_pair(left, right) { return [left, right] }</code></pre>
+        <aside class="guide-note"><strong>Version 0.1.0 scope:</strong> structs construct field records and can contain methods. Enum declarations currently create metadata only; variants are not rich runtime values. Trait declarations parse but create no runtime contract, and <code>impl</code> blocks do not currently attach methods. Generic type parameters are not supported. Use ordinary dynamic functions and higher-order functions for reusable behavior today.</aside>
+      </article>
+
+      <article class="guide-lesson" id="lesson-13" data-title="Error handling" data-keywords="try catch finally throw assert defer panic nil fallback runtime error">
+        <header><span>Chapter 13</span><h2>Errors, cleanup, assertions, and fallbacks</h2><p>Catch runtime failures, throw your own values, and keep fallback logic compact.</p></header>
+        <pre data-language="velice" data-validate="run"><code>fn divide(total, count) {
+    if count == 0 { throw "count cannot be zero" }
+    return total / count
+}
+
+try {
+    print(divide(10, 0))
+} catch error {
+    print("caught:", error)
+} finally {
+    print("cleanup always runs")
+}
+
+assert 2 + 2 == 4, "math changed"
+let setting = nil
+print(setting ?? "default")
+
+fn work() {
+    defer { print("leaving work") }
+    print("working")
+}
+work()</code></pre>
+        <p><code>defer</code> runs queued blocks in reverse order when its enclosing block completes normally. <code>catch</code> handles Velice runtime errors raised as <code>VeliceError</code>; arbitrary host-Python exceptions are not converted consistently. The word <code>panic</code> is reserved, but <code>panic(...)</code> is not callable in version 0.1; use <code>throw</code> for an explicit runtime failure.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-14" data-title="Modules and imports" data-keywords="module import from wildcard alias export file namespace">
+        <header><span>Chapter 14</span><h2>Modules and imports</h2><p>Split code into files and import a module namespace, selected top-level names, or every top-level name.</p></header>
+        <div class="lesson-grid two-columns">
+          <div><h3>math.velice</h3><pre data-language="velice" data-validate="module-source"><code>fn square(x) {
+    return x * x
+}
+
+fn cube(x) {
+    return x * x * x
+}</code></pre></div>
+          <div><h3>main.velice</h3><pre data-language="velice" data-validate="module-main"><code>import "math.velice"
+print(math.square(5))
+
+from "math.velice" import cube
+print(cube(3))
+
+from "math.velice" import *
+
+use "math.velice" as formulas
+print(formulas.square(6))</code></pre></div>
+        </div>
+        <p>Imports execute and cache the target in a separate environment. <code>use</code> follows the same parser/runtime path as <code>import</code>. There is no <code>export</code> declaration in version 0.1: selected and wildcard imports expose the module’s top-level environment. Relative file imports resolve from the running source file; project/package lookup also searches <code>src/</code>, <code>packages/</code>, and the local package cache.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-15" data-title="Standard library" data-keywords="builtins io collections numeric json crypto time conversion reflection random">
+        <header><span>Chapter 15</span><h2>Standard library map</h2><p>The core library is available without imports.</p></header>
+        <div class="reference-grid">
+          <div><h3>Input/output</h3><code>print println input readFileLines</code></div>
+          <div><h3>Collections</h3><code>len range sorted reversed append push pop insert remove contains keys values items enumerate zip clone</code></div>
+          <div><h3>Functional</h3><code>map filter reduce</code></div>
+          <div><h3>Numbers</h3><code>min max sum abs floor ceil round rand rand_int random</code></div>
+          <div><h3>Text and conversion</h3><code>str int float bool chr ord hex oct bin join split replace trim lower upper parse_int parse_float</code></div>
+          <div><h3>Data and crypto</h3><code>json_parse json_stringify from_json to_json sha256</code></div>
+          <div><h3>Time</h3><code>now time sleep</code></div>
+          <div><h3>Inspection/control</h3><code>typeof exit</code></div>
+        </div>
+        <pre data-language="velice" data-validate="run"><code>let data = json_parse("{\"ready\": true}")
+print(data["ready"])
+print(json_stringify(data))
+print(sha256("Velice"))
+print(now())
+print(rand(1, 6))</code></pre>
+        <aside class="guide-warning"><strong>Not runtime functions in 0.1:</strong> <code>sqrt</code>, <code>pow</code>, and <code>sizeof</code> appear in older specification text but are absent from the current builtin environment. Use <code>**</code> for powers and <code>len</code> for sized values.</aside>
+      </article>
+
+      <article class="guide-lesson" id="lesson-16" data-title="Strings and text" data-keywords="contains starts ends inbetween len interpolation raw string methods">
+        <header><span>Chapter 16</span><h2>Strings, interpolation, and text methods</h2><p>Use built-in string methods for the most common parsing checks.</p></header>
+        <pre data-language="velice" data-validate="run"><code>let language = "Velice"
+print("Learning ${language}")
+print(language.len)
+print("hello".contains("ell"))
+print("hello".starts("he"))
+print("hello".ends("lo"))
+print("foo(bar)baz".inbetween("()"))
+print("print(\"Hello\")".inbetween("\"\""))
+
+let path = r"C:\projects\velice"
+print(path)</code></pre>
+        <p><code>inbetween(delimiters)</code> returns text between the first opening character and last closing character. It returns an empty string when the pair is not found.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-17" data-title="Files, command-line arguments, and running commands" data-keywords="readfilelines currentline current hasmore reset position argu argv cli file reader cmd write capture command shell user name home terminal">
+        <header><span>Chapter 17</span><h2>Read files and accept command-line arguments</h2><p><code>argu</code> exposes script arguments. <code>readFileLines</code> provides a stateful line reader.</p></header>
+        <pre data-language="velice" data-validate="args"><code># Run with: velice run scan.velice source.velice
+let path = argu.0
+print("argument count:", argu.len)
+
+let lines = readFileLines(path)
+print("line count:", lines.len)
+
+while lines.hasMore() {
+    let line = lines.currentLine()
+    if line.contains("print(") {
+        print("found:", line)
+    }
+}
+
+lines.reset()
+print("first:", lines.current())
+print("cursor:", lines.position())</code></pre>
+        <p>You can also index and iterate both values: <code>argu[0]</code>, <code>lines[0]</code>, <code>for item in argu</code>, and <code>for line in lines</code>. Missing files and out-of-range arguments produce runtime errors.</p>
+        <p>To run terminal commands, import <code>cmd</code>. A standalone <code>cmd.write(...)</code> prints the command’s output; assign the result to a variable to capture it instead. <code>cmd.capture(...)</code> always returns the output silently.</p>
+        <pre data-language="velice" data-validate="cmd"><code>import cmd
+
+# standalone: prints the listing to the console
+cmd.write("echo Hello")
+
+# captured: no printing, `files` holds the output
+files = cmd.capture("ls /home/${User.name}")
+print(files)
+
+# cmd.write also captures when its result is used
+files2 = cmd.write("ls /home/${User.name}")
+print(files2)</code></pre>
+        <p><code>${User.name}</code> interpolates the current user’s login name; <code>User.home</code>, <code>User.id</code>, <code>User.group</code>, <code>User.shell</code>, and <code>User.full</code> are also available.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-18" data-title="First native GUI" data-keywords="gui tkinter window button label run headless desktop app">
+        <header><span>Chapter 18</span><h2>Build your first native GUI</h2><p>The GUI standard library uses Python’s built-in Tk toolkit and automatically records calls when no display is available.</p></header>
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("My Velice App", 640, 420)
+var message = Label("Ready")
+var button = Button("Click me")
+
+button.on_click {
+    message.text = "Hello from Velice!"
+}
+
+window.on_close {
+    gui.quit()
+}
+
+window.add(message)
+window.add(button)
+gui.run()</code></pre>
+        <pre data-language="shell"><code>python3 -m velice run app.velice
+
+# Force headless recording mode for CI or servers
+VELICE_GUI=none python3 -m velice run app.velice</code></pre>
+        <p><code>import gui</code> exposes both the <code>gui</code> module and constructors such as <code>Window</code>, <code>Button</code>, and <code>Canvas</code>. The native X button fires <code>on_close</code> but does not destroy anything automatically. In a single-window app, call <code>gui.quit()</code> as shown so the hidden Tk root and event loop also close. In a multi-window app, <code>window.close()</code> destroys only that window; quit after the final window closes.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-19" data-title="GUI widgets and properties" data-keywords="window frame scrollpane scroll button label textfield password textarea checkbox radio toggle slider spinner progress combobox list table image tabs menu status canvas property">
+        <header><span>Chapter 19</span><h2>GUI widgets, layout containers, and properties</h2><p>Construct a widget, add it to a container, then read or assign its properties.</p></header>
+        <div class="widget-list" aria-label="Available widgets">
+          <code>Window</code><code>Frame</code><code>ScrollPane</code><code>Button</code><code>Label</code><code>TextField</code><code>PasswordField</code><code>TextArea</code><code>Checkbox</code><code>RadioButton</code><code>ToggleSwitch</code><code>Slider</code><code>Spinner</code><code>ProgressBar</code><code>ComboBox</code><code>ListBox</code><code>Table</code><code>Image</code><code>Hyperlink</code><code>MenuBar</code><code>Menu</code><code>MenuItem</code><code>MenuSeparator</code><code>TabView</code><code>Tab</code><code>StatusBar</code><code>Canvas</code>
+        </div>
+        <div class="feature-status-row" aria-label="Widget status"><span class="feature-status supported">Supported: core widgets and Canvas</span><span class="feature-status partial">Partial: text editing hooks, menus, and tabs</span></div>
+        <table><thead><tr><th>Widget group</th><th>Current behavior</th></tr></thead><tbody>
+          <tr><td><code>Window Frame ScrollPane StatusBar</code></td><td>Core creation, containment, text display, and button clicks are supported. ScrollPane wraps its children in a scrollable viewport with scrollbars and mouse-wheel scrolling.</td></tr>
+          <tr><td><code>TextField PasswordField TextArea</code></td><td>Native controls render; programmatic initial text works. Typed-text synchronization and TextField <code>on_change</code> are partial.</td></tr>
+          <tr><td><code>Checkbox ToggleSwitch Slider</code></td><td>Values render and native <code>on_change</code> callbacks are connected. ToggleSwitch currently uses checkbox behavior.</td></tr>
+          <tr><td><code>RadioButton Spinner ProgressBar</code></td><td>Basic controls render. Radio grouping, live spinner reads, and custom ProgressBar maximum behavior are incomplete.</td></tr>
+          <tr><td><code>ComboBox ListBox</code></td><td>Items and native selection callbacks work. Read ComboBox’s current choice through <code>value</code>; ListBox <code>selected</code> returns a list.</td></tr>
+          <tr><td><code>Table Image Hyperlink</code></td><td>Basic display works. Image uses Tk-supported file formats. Hyperlink emits <code>on_click</code> but does not automatically open its stored URL.</td></tr>
+          <tr><td><code>MenuBar Menu MenuItem MenuSeparator TabView Tab</code></td><td>Classes and DSL names exist, but full parent/child realization is partial.</td></tr>
+          <tr><td><code>Canvas</code></td><td>Visible drawing, queued pre-attach drawing, clearing, and PostScript snapshots are supported.</td></tr>
+        </tbody></table>
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("Controls", 720, 520)
+window.resizable = false
+
+var name = TextField("Ray")
+var enabled = Checkbox("Enable notifications", value=true)
+var volume = Slider(50, 0, 100)
+var colors = ComboBox(["Red", "Green", "Blue"], selected="Red")
+var status = StatusBar("Ready")
+
+window.on_close { gui.quit() }
+
+window.add(name)
+window.add(enabled)
+window.add(volume)
+window.add(colors)
+window.add(status)
+
+# These assignments run after realization and update the Tk widgets.
+name.font_size = 16
+name.tooltip = "Enter a display name"
+status.text = "Controls ready"
+gui.run()</code></pre>
+        <p>Core constructor properties such as <code>text</code>, <code>value</code>, <code>items</code>, ranges, and Canvas dimensions work for their matching widgets. After a widget is added, common Tk properties including <code>text</code>, <code>enabled</code>, <code>visible</code>, <code>width</code>, <code>height</code>, <code>background</code>, <code>font_size</code>, and <code>tooltip</code> are applied where the native control accepts them.</p>
+        <aside class="guide-warning"><strong>Partial property layer:</strong> <code>placeholder</code>, <code>readonly</code>, <code>max_length</code>, and generic <code>bold</code>/<code>color</code> setters are stored but are not wired to all native widgets in version 0.1. TextField reads also do not yet synchronize typed Tk text back into <code>field.text</code>. Menu and tab classes exist, but their full parent/child realization path is incomplete.</aside>
+        <p><code>window.closable(false)</code> replaces the native close request with a no-op. It does not remove or gray out the title-bar X. With the default <code>true</code>, clicking X fires <code>on_close</code>; call <code>window.close()</code> when other windows should remain, or <code>gui.quit()</code> to end the whole GUI application.</p>
+        <p>Wrap large content in a <code>ScrollPane</code> viewport instead of adding it straight to the window:</p>
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("File list", 700, 500)
+
+var pane = ScrollPane(660, 420)     # viewport width and height
+var text = TextArea("many\nlines\nof\ncontent")
+text.set_readonly(true)
+pane.add(text)
+pane.scroll_to_bottom()             # also scroll_to_top() and scroll_to(x, y)
+
+window.add(pane)
+window.show()
+gui.run()</code></pre>
+      </article>
+
+      <article class="guide-lesson" id="lesson-20" data-title="GUI events dialogs and clipboard" data-keywords="onclick onchange key mouse focus blur load close alert toast confirm input box open save folder color font clipboard event">
+        <header><span>Chapter 20</span><h2>GUI events, dialogs, file pickers, and clipboard</h2><p>Event handlers use trailing blocks. Native mouse and keyboard events provide pointer and key details.</p></header>
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("Events", 520, 420)
+var enabled = Checkbox("Enable saving", value=true)
+var save = Button("Save")
+
+enabled.on_change {
+    print("enabled:", enabled.value)
+}
+
+window.on_key_down {
+    print("key:", event.key)
+}
+
+window.on_close {
+    gui.quit()
+}
+
+save.on_click {
+    if gui.confirm("Prepare a save path?") {
+        let path = gui.save_file("Save")
+        gui.clipboard.copy(path)
+        gui.toast("Path copied", 2.0)
+    }
+}
+
+window.add(enabled)
+window.add(save)
+gui.run()</code></pre>
+        <p><strong>Events:</strong> click, double-click, select, key down/up, mouse move/enter/leave/wheel, focus, blur, load, and close are connected by the native backend. <code>on_change</code> is connected for checkbox/toggle and slider controls; TextField change notification is not wired in version 0.1. Snake case such as <code>on_key_down</code> and camelCase such as <code>onKeyDown</code> normalize to the same handler.</p>
+        <p>The <code>event</code> map contains <code>x</code>, <code>y</code>, <code>key</code>, and <code>state</code> for Tk mouse/keyboard events. Command-style events such as button clicks, changes, load, and close may receive an empty map.</p>
+        <p><strong>Dialogs:</strong> <code>alert</code>, <code>toast</code>, <code>confirm</code>, <code>input_box</code>, <code>open_file</code>, <code>save_file</code>, <code>choose_folder</code>, <code>choose_color</code>, and <code>choose_font</code>. File/folder/color pickers return an empty value when cancelled. <code>choose_font</code> currently returns the first available Tk font family rather than opening a full font chooser.</p>
+        <p><code>FileChooser</code> is a single entry point for native file/folder dialogs. <code>mode</code> is <code>open</code> (default), <code>save</code>, or <code>folder</code>; the optional third argument sets the starting directory. It returns the chosen path, or <code>nil</code> when cancelled.</p>
+        <pre data-language="velice" data-validate="headless"><code>import gui
+import cmd
+
+var picked = FileChooser("Pick a file", "open", "/home/${User.name}")
+if picked != nil {
+    print("you chose:", picked)
+}
+var folder = FileChooser("Pick a folder", "folder")
+print("folder:", folder)</code></pre>
+      </article>
+
+      <article class="guide-lesson" id="lesson-21" data-title="Canvas declarative GUI DSL and themes" data-keywords="canvas drawing rect oval line polygon text arc screenshot declarative dsl theme dark light material fluent">
+        <header><span>Chapter 21</span><h2>Canvas drawing, declarative UI, and themes</h2><p>Draw directly or describe an interface with named widget blocks.</p></header>
+        <div class="lesson-grid two-columns">
+          <div><h3>Canvas <span class="feature-status supported">Supported</span></h3><pre data-language="velice" data-validate="headless"><code>import gui
+var window = Window("Canvas", 640, 480)
+var canvas = Canvas(600, 400, "#ffffff")
+
+canvas.draw_rect(20, 20, 80, 80, "#e74c3c")
+canvas.draw_oval(120, 20, 80, 80, "#2ecc71")
+canvas.draw_line(20, 150, 580, 150, "#3498db", 3)
+canvas.draw_text(300, 320, "Velice", "#34495e", 20, true)
+window.on_close { gui.quit() }
+window.add(canvas)
+gui.run()</code></pre></div>
+          <div><h3>Declarative DSL <span class="feature-status partial">Partial</span></h3><pre data-language="velice" data-validate="headless"><code>import gui
+gui.set_theme("Midnight")
+
+window Main {
+    title = "Declarative App"
+    Label title { text = "Welcome" }
+    Button greet {
+        text = "Greet"
+        onClick { print("Hello!") }
+    }
+}
+
+Main.on_close { gui.quit() }
+gui.run()</code></pre></div>
+        </div>
+        <p>Canvas supports rectangles, filled rectangles, ovals, lines, polygons, text, arcs, clearing, and PostScript snapshots through <code>screenshot("drawing.ps")</code>. Drawing calls made before <code>window.add(canvas)</code> are queued and replayed when the Canvas attaches to its visible window.</p>
+        <p>Built-in themes include Light, Dark, Midnight, Ocean, Forest, Solarized, Neon, Glass, Material, Fluent, macOS, Windows, and Linux. Theme application covers the common Tk widgets; ttk controls and some specialized controls have partial styling. Runtime helpers are <code>gui.run</code>, <code>gui.update</code>, <code>gui.set_theme</code>, <code>gui.window</code>, and <code>gui.quit</code>.</p>
+        <aside class="guide-note"><strong>DSL runtime detail:</strong> <code>run Main</code> calls <code>show()</code> for a registered DSL window but does not start Tk’s event loop. An interactive DSL program still needs <code>gui.run()</code>. Window-level event blocks and event-payload injection inside DSL handlers are incomplete, so bind <code>Main.on_close</code> imperatively as shown.</aside>
+      </article>
+
+      <article class="guide-lesson" id="lesson-22" data-title="Projects builds tests docs lint format" data-keywords="project new init velice.toml build debug release test clean format lint docs scaffold manifest">
+        <header><span>Chapter 22</span><h2>Create projects and use the toolchain</h2><p>The CLI can scaffold a standard project, validate source, build descriptors, run tests, lint, format, and generate documentation.</p></header>
+        <pre data-language="shell"><code>velice new my-app
+cd my-app
+
+velice run
+velice build
+velice build --release
+velice debug
+velice test
+velice lint
+velice format --check
+velice docs
+velice clean</code></pre>
+        <div class="lesson-grid two-columns">
+          <div><h3>Project layout</h3><pre data-language="text"><code>my-app/
+├── velice.toml
+├── src/main.velice
+├── packages/
+├── tests/
+├── docs/
+├── assets/
+├── build/
+├── README.md
+├── LICENSE
+└── CHANGELOG.md</code></pre></div>
+          <div><h3>velice.toml</h3><pre data-language="toml"><code>name = "my-app"
+version = "0.1.0"
+description = "A Velice application"
+license = "MIT"
+language = "1.0"
+entry = "src/main.velice"
+
+dependencies = []</code></pre></div>
+        </div>
+        <aside class="guide-note"><strong>Tool behavior in 0.1:</strong> <code>build</code> parses source and writes descriptive <code>.vlib</code> files; it does not emit executable bytecode or a native binary. <code>debug</code> runs that debug build. <code>test</code> executes every <code>tests/*.velice</code> file, <code>lint</code> checks tokenization/tabs/trailing whitespace, <code>format</code> normalizes whitespace, and <code>docs</code> writes a Markdown file containing project source. Native compilation is planned.</aside>
+      </article>
+
+      <article class="guide-lesson" id="lesson-23" data-title="Packages publishing and VS Code" data-keywords="package install uninstall update search list publish vpkg cache lock vscode extension snippets highlight repl">
+        <header><span>Chapter 23</span><h2>Packages, publishing, and VS Code</h2><p>Manage local, cached, and Git packages; use the registry client when a compatible service is configured; then enable the bundled editor tools.</p></header>
+        <div class="feature-status-row" aria-label="Package feature status"><span class="feature-status supported">Supported: local, Git, cache, .vpkg</span><span class="feature-status partial">Partial: remote registry and publish</span><span class="feature-status reserved">Reserved: .vsrc workflow</span></div>
+        <pre data-language="shell"><code># Package commands inside a Velice project
+velice install package-name@1.2.0
+velice install ./local-package
+velice install https://github.com/example/package.git
+velice search package-name
+velice list
+velice update
+velice uninstall package-name
+velice package
+velice publish
+
+# Discover the local cache
+velice install-dir</code></pre>
+        <p><code>velice package</code> creates a ZIP-based <code>.vpkg</code>; builds create descriptive <code>.vlib</code> files. The <code>.vsrc</code> extension is defined in code but has no create/install workflow yet. Dependency resolution uses the local cache and writes resolved versions to <code>velice.lock</code>.</p>
+        <aside class="guide-warning"><strong>Registry and publishing status:</strong> the client defaults to <code>https://packages.velice.org</code> or <code>VELICE_REGISTRY</code>, but this repository does not provide or prove a live public registry service. Remote search falls back to the offline cache when unreachable. <code>velice publish</code> currently validates, tests, builds, packages, hashes, and prints the intended registry URL—it does not upload the package.</aside>
+        <h3>VS Code extension</h3>
+        <ol><li>Open <code>editor/vscode</code> in VS Code.</li><li>Press <kbd>F5</kbd> to launch the Extension Development Host, or package it with <code>vsce package</code>.</li><li>Select “Velice Icons” as the file icon theme.</li><li>Use “Velice: Run File” or “Velice: Open REPL”.</li></ol>
+        <p>The extension includes TextMate syntax highlighting, bracket/comment/indent rules, snippets, a file icon theme, Run File and Open REPL commands, and a headless-GUI setting. It does not implement autocomplete, semantic diagnostics, debugging, or an LSP.</p>
+      </article>
+
+      <article class="guide-lesson" id="lesson-24" data-title="Complete language reference" data-keywords="reference keyword operator command platform future roadmap license">
+        <header><span>Chapter 24</span><h2 id="reference">Complete quick reference</h2><p>Keep this chapter nearby while building.</p></header>
+        <h3>Lexer keywords</h3>
+        <p>The lexer recognizes every word below. Recognition does not mean every word has runtime behavior; use the status table immediately below.</p>
+        <p class="keyword-cloud"><code>fn</code><code>let</code><code>mut</code><code>var</code><code>const</code><code>class</code><code>struct</code><code>enum</code><code>trait</code><code>impl</code><code>match</code><code>if</code><code>elif</code><code>else</code><code>while</code><code>for</code><code>in</code><code>loop</code><code>break</code><code>continue</code><code>return</code><code>defer</code><code>yield</code><code>async</code><code>await</code><code>spawn</code><code>pub</code><code>mod</code><code>use</code><code>from</code><code>as</code><code>type</code><code>where</code><code>self</code><code>super</code><code>true</code><code>false</code><code>nil</code><code>none</code><code>some</code><code>ok</code><code>err</code><code>panic</code><code>try</code><code>catch</code><code>finally</code><code>throw</code><code>assert</code><code>unsafe</code><code>extern</code><code>inline</code><code>is</code><code>not</code><code>and</code><code>or</code><code>guard</code><code>new</code><code>sizeof</code><code>typeof</code><code>import</code><code>extends</code><code>with</code><code>argu</code></p>
+        <div class="lesson-grid two-columns">
+          <div><h3>Operators</h3><table><tbody><tr><th>Arithmetic</th><td><code>+ - * / % **</code></td></tr><tr><th>Compare</th><td><code>== != &lt; &lt;= &gt; &gt;=</code></td></tr><tr><th>Logic</th><td><code>and or not !</code></td></tr><tr><th>Bitwise</th><td><code>&amp; | ^</code></td></tr><tr><th>Assignment</th><td><code>= += -= *= /= %=</code></td></tr><tr><th>Special</th><td><code>.. |> ??</code></td></tr></tbody></table></div>
+          <div><h3>CLI commands</h3><table><tbody><tr><th>Code</th><td><code>run repl eval</code></td></tr><tr><th>Project</th><td><code>new/create init build [-r|--release] debug test clean lint format [--check] docs</code></td></tr><tr><th>Packages</th><td><code>install/add uninstall/remove update search list package publish</code></td></tr><tr><th>SDK</th><td><code>version upgrade help install-dir</code></td></tr></tbody></table></div>
+        </div>
+        <h3>Implementation status</h3>
+        <table><thead><tr><th>Status</th><th>Version 0.1.0 behavior</th></tr></thead><tbody>
+          <tr><th><span class="feature-status supported">Supported</span></th><td>Dynamic values; variables; functions, defaults, recursion, lambdas, closures, and thunks; arithmetic/logical/bitwise operators; control flow; array matching; classes and single inheritance; structs; file modules; builtin library; files/arguments; core GUI widgets, dialogs, events, themes, and Canvas; local/Git packages and <code>.vpkg</code>.</td></tr>
+          <tr><th><span class="feature-status partial">Partial</span></th><td>Type annotations are stored but unenforced. Enums are metadata only. <code>mod</code> has no namespace. <code>run Main</code> shows a DSL window without starting the event loop. TextField syncing, menus, tabs, specialized theme coverage, registry access, and publishing are incomplete.</td></tr>
+          <tr><th><span class="feature-status reserved">Reserved</span></th><td><code>async await spawn yield pub type where super none some ok err panic unsafe extern inline is guard new sizeof with</code>; ternary <code>?:</code>; trait/impl enforcement; tuple patterns; static generic parameters; <code>.vsrc</code> handling.</td></tr>
+          <tr><th><span class="feature-status planned">Planned</span></th><td>Native/AOT compiler, static type enforcement, cooperative concurrency, threads, semantic editor services, debugger, and LSP.</td></tr>
+        </tbody></table>
+        <aside class="guide-success"><strong>Reference complete.</strong> Build a CLI tool, data script, or GUI application, then run <code>python3 -m unittest discover -s tests</code> before sharing changes.</aside>
+      </article>
+
+      <section class="guide-empty" id="guideEmpty" hidden>
+        <h2>No chapter matched that search.</h2><p>Try a broader word such as “GUI,” “function,” “file,” or “package.”</p>
+      </section>
+    
+      <article
+        class="guide-lesson"
+        id="lesson-25"
+        data-title="Modern GUI features"
+        data-keywords="windows style html label font size title bar maximize minimize opacity modern gui">
+
+        <header>
+          <span>Chapter 25</span>
+          <h2>Modern GUI features</h2>
+          <p>
+            Build richer Velice desktop applications with Windows-style
+            windows, large fonts, HTML content, window controls, styling,
+            and modern application features.
+          </p>
+        </header>
+
+        <h3>Windows-style applications</h3>
+
+        <pre data-language="velice"><code>import gui
+
+var window = Window("My App", 900, 600)
+
+window.setStyle(App.Windows_Style)
+
+window.center()
+
+gui.run()</code></pre>
+
+        <p>
+          <code>App.Windows_Style</code> gives a Velice application a
+          Windows-inspired title bar with minimize, maximize/restore,
+          and close controls.
+        </p>
+
+        <h3>Dark Windows style</h3>
+
+        <pre data-language="velice"><code>import gui
+
+var window = Window("Dark App", 900, 600)
+
+window.setStyle(App.Windows_Dark_Style)
+
+window.center()
+
+gui.run()</code></pre>
+
+        <h3>Window controls</h3>
+
+        <pre data-language="velice"><code>window.center()
+
+window.minimize()
+
+window.maximize()
+
+window.restore()
+
+window.toggleMaximize()</code></pre>
+
+        <h3>Window size controls</h3>
+
+        <pre data-language="velice"><code>window.setMinSize(500, 400)
+
+window.setMaxSize(1600, 1000)</code></pre>
+
+        <h3>Opacity</h3>
+
+        <pre data-language="velice"><code>window.setOpacity(0.95)</code></pre>
+
+        <h3>Title-bar styling</h3>
+
+        <pre data-language="velice"><code>window.setTitleBarColor("#202020")
+
+window.setTitleBarTextColor("#ffffff")
+
+window.setAccentColor("#0078d4")</code></pre>
+
+        <h3>Large fonts</h3>
+
+        <pre data-language="velice"><code>var title = Label("Portfolio")
+
+title.font_size = 60
+title.bold = true
+title.color = "white"
+
+window.add(title)</code></pre>
+
+        <p>
+          <code>font_size</code> uses a number representing the requested
+          font size. For example, use <code>60</code>, not
+          <code>"60px"</code>.
+        </p>
+
+        <h3>HTML labels</h3>
+
+        <pre data-language="velice"><code>import gui
+
+var window = Window("HTML App", 900, 600)
+
+var page = Label.html "&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;Welcome to Velice!&lt;/p&gt;"
+
+window.add(page)
+
+gui.run()</code></pre>
+
+        <h3>HTML with CSS</h3>
+
+        <pre data-language="velice"><code>var page = Label.html "&lt;style&gt;body { background: #111; color: white; } h1 { font-size: 60px; color: cyan; }&lt;/style&gt;&lt;h1&gt;Portfolio&lt;/h1&gt;&lt;p&gt;My Velice app&lt;/p&gt;"
+
+window.add(page)</code></pre>
+
+        <p>
+          HTML labels can render rich formatted content including
+          headings, paragraphs, lists, links, tables, images,
+          forms, and CSS styling when the HTML renderer is installed.
+        </p>
+
+        <h3>Complete modern application</h3>
+
+        <pre data-language="velice"><code>import gui
+
+var window = Window("Portfolio", 1000, 700)
+
+window.setStyle(App.Windows_Style)
+
+window.center()
+
+window.setMinSize(700, 500)
+
+window.setAccentColor("#0078d4")
+
+var title = Label("Portfolio")
+
+title.font_size = 60
+title.bold = true
+
+window.add(title)
+
+var content = Label.html "&lt;h2&gt;Welcome&lt;/h2&gt;&lt;p&gt;This app was made with Velice.&lt;/p&gt;"
+
+window.add(content)
+
+gui.run()</code></pre>
+
+        <aside class="guide-success">
+          <strong>You reached the end of the course.</strong>
+          You now have the language basics, functions, collections,
+          classes, modules, files, projects, GUI development,
+          Windows styling, and HTML widgets needed to build complete
+          Velice applications.
+        </aside>
+
+      </article>
+
+</main>
+  </div>
+
+  <footer class="guide-footer">
+    <div><img src="assets/velice-logo.svg" alt="" /><span><strong>Velice</strong><small>Built by Datacenter · MIT licensed</small></span></div>
+    <nav aria-label="Footer navigation"><a href="index.html">Datacenter</a><a href="#top">Back to top</a><a href="https://github.com/samwise1776/velice">GitHub</a></nav>
+  </footer>
+  <div class="copy-toast" id="copyToast" role="status" aria-live="polite"></div>
+  <script src="guide.js"></script>
+</body>
+</html>
