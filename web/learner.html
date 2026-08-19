@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learner - Education Platform</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:system-ui,sans-serif;min-height:100vh}
+a.back{position:fixed;top:8px;left:8px;color:#FFCB47;text-decoration:none;font-size:13px;z-index:1000;background:#2E2F5E;padding:3px 8px;border-radius:4px}
+a.back:hover{background:#4449E2}
+.page{display:none;padding:20px;max-width:900px;margin:0 auto}
+.page.active{display:block}
+h1{color:#FFCB47;margin-bottom:16px}
+h2{color:#FFCB47;margin-bottom:12px}
+h3{color:#FFCB47;margin-bottom:8px}
+.card{background:#302F6E;border-radius:8px;padding:14px;margin-bottom:10px}
+.btn{background:#4449E2;color:#F0F0F5;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;margin:4px}
+.btn:hover{background:#FFCB47;color:#23225A}
+.btn-s{background:#4449E2;color:#F0F0F5;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin:2px}
+.btn-s:hover{background:#FFCB47;color:#23225A}
+.btn-g{background:#46B46E;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px}
+.btn-r{background:#E16464;color:#fff;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px}
+input,select{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;padding:6px 10px;border-radius:4px;font-size:14px}
+.progress-bar{background:#23225A;border-radius:4px;height:10px;overflow:hidden;margin:4px 0}
+.progress-bar .fill{height:100%;background:#46B46E;border-radius:4px;transition:width .3s}
+.stats-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.stat-card{background:#302F6E;border-radius:8px;padding:12px 16px;flex:1;min-width:120px;text-align:center}
+.stat-card .label{font-size:11px;color:#aaa}
+.stat-card .value{font-size:22px;font-weight:700;color:#FFCB47}
+.grid-btns{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.grid-btns .btn{min-width:120px;text-align:left}
+.nav-row{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+.tag{display:inline-block;background:#4449E2;color:#F0F0F5;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px}
+.list-item{background:#302F6E;border-radius:6px;padding:10px 14px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:10px}
+.list-item:hover{background:#4449E2}
+.list-item .title{flex:1;font-weight:600}
+.list-item .meta{font-size:12px;color:#aaa}
+.ach{background:#302F6E;border-radius:8px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.ach.locked{opacity:.4}
+.ach .icon{font-size:28px}
+.ach .info{flex:1}
+.ach .info .name{font-weight:700;color:#FFCB47}
+.ach .info .desc{font-size:12px;color:#aaa}
+</style>
+</head>
+<body>
+<a class="back" href="../">← Back</a>
+
+<div id="p-choose" class="page active">
+  <h1>Learner</h1>
+  <div class="card"><h3>Choose Profile</h3><div id="profileList"></div><br><button class="btn" onclick="createProfile()">+ New Profile</button></div>
+</div>
+
+<div id="p-dashboard" class="page">
+  <h1>Dashboard</h1>
+  <div class="stats-row">
+    <div class="stat-card"><div class="label">Level</div><div class="value" id="statLevel">1</div></div>
+    <div class="stat-card"><div class="label">Points</div><div class="value" id="statPoints">0</div></div>
+    <div class="stat-card"><div class="label">Lessons</div><div class="value" id="statLessons">0/10000</div></div>
+    <div class="stat-card"><div class="label">Quiz Avg</div><div class="value" id="statQuiz">0%</div></div>
+  </div>
+  <div class="progress-bar"><div class="fill" id="overallProg" style="width:0%"></div></div>
+  <div id="subjectGrid" class="grid-btns"></div>
+  <div class="nav-row">
+    <button class="btn" onclick="showPage('p-library')">Library</button>
+    <button class="btn" onclick="showPage('p-progress')">Progress</button>
+    <button class="btn" onclick="showPage('p-achieve')">Achievements</button>
+    <button class="btn" onclick="showPage('p-leaderboard')">Leaderboard</button>
+    <button class="btn" onclick="showPage('p-settings')">Settings</button>
+    <button class="btn" onclick="showPage('p-choose')">Switch Profile</button>
+  </div>
+</div>
+
+<div id="p-subject" class="page">
+  <button class="btn-s" onclick="showPage('p-dashboard')">← Dashboard</button>
+  <h2 id="subjectTitle"></h2>
+  <div class="progress-bar"><div class="fill" id="subjectProg" style="width:0%"></div></div>
+  <div id="topicGrid" class="grid-btns"></div>
+  <div class="nav-row">
+    <button class="btn" onclick="openRandomLesson()">Browse Lesson</button>
+    <button class="btn" onclick="startQuiz()">Quiz</button>
+    <button class="btn" onclick="showPage('p-dashboard')">Dashboard</button>
+  </div>
+</div>
+
+<div id="p-library" class="page">
+  <button class="btn-s" onclick="showPage('p-dashboard')">← Dashboard</button>
+  <h2>Lesson Library</h2>
+  <input id="libSearch" placeholder="Search lessons..." style="width:100%;margin-bottom:10px" oninput="renderLibrary()">
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <select id="libSubject" onchange="renderLibrary()"><option value="">All Subjects</option></select>
+    <select id="libDiff" onchange="renderLibrary()"><option value="">All Difficulties</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>
+    <select id="libDone" onchange="renderLibrary()"><option value="">All Status</option><option value="done">Completed</option><option value="undone">Not Completed</option><option value="fav">Favorited</option></select>
+  </div>
+  <div id="libList"></div>
+</div>
+
+<div id="p-lesson" class="page">
+  <button class="btn-s" onclick="showPage('p-subject')">← Subject</button>
+  <h2 id="lessonTitle"></h2>
+  <div id="lessonContent"></div>
+  <div class="nav-row">
+    <button class="btn-s" onclick="navLesson(-1)">Previous</button>
+    <button class="btn-s" onclick="toggleFav()" id="favBtn">★ Favorite</button>
+    <button class="btn-g" onclick="completeLesson()">Complete ✓</button>
+    <button class="btn-s" onclick="navLesson(1)">Next</button>
+    <button class="btn-s" onclick="showPage('p-subject')">Course</button>
+  </div>
+</div>
+
+<div id="p-quiz" class="page">
+  <button class="btn-s" onclick="showPage('p-subject')">← Subject</button>
+  <h2 id="quizTitle"></h2>
+  <div id="quizArea"></div>
+</div>
+
+<div id="p-progress" class="page">
+  <button class="btn-s" onclick="showPage('p-dashboard')">← Dashboard</button>
+  <h2>Progress</h2>
+  <div id="progressBars"></div>
+</div>
+
+<div id="p-achieve" class="page">
+  <button class="btn-s" onclick="showPage('p-dashboard')">← Dashboard</button>
+  <h2>Achievements</h2>
+  <div id="achieveList"></div>
+</div>
+
+<div id="p-leaderboard" class="page">
+  <button class="btn-s" onclick="showPage('p-dashboard')">← Dashboard</button>
+  <h2>Leaderboard</h2>
+  <div id="leaderList"></div>
+</div>
+
+<div id="p-settings" class="page">
+  <button class="btn-s" onclick="showPage('p-dashboard')">← Dashboard</button>
+  <h2>Settings</h2>
+  <div class="card">
+    <label>Display Name: <input id="settName" onchange="saveSettings()"></label><br><br>
+    <label>Font Size: <select id="settFont" onchange="saveSettings()"><option value="14">14px</option><option value="16">16px</option><option value="18">18px</option><option value="20">20px</option></select></label><br><br>
+    <button class="btn-r" onclick="resetProfile()">Reset Profile Data</button>
+  </div>
+</div>
+
+<script>
+const SUBJECTS=['Mathematics','Physics','Chemistry','Biology','Computer Science','History','Geography','Literature','Art','Music'];
+const TOPICS=[
+  ['Algebra','Geometry','Calculus','Statistics','Number Theory','Trigonometry','Linear Algebra','Combinatorics','Logic','Applied Math'],
+  ['Mechanics','Thermodynamics','Optics','Electricity','Magnetism','Waves','Nuclear','Fluids','Relativity','Astrophysics'],
+  ['Organic','Inorganic','Physical','Biochemistry','Analytical','Polymer','Electrochemistry','Thermochemistry','Kinetics','Equilibrium'],
+  ['Genetics','Ecology','Anatomy','Cell Biology','Evolution','Microbiology','Botany','Zoology','Neuroscience','Immunology'],
+  ['Algorithms','Data Structures','OOP','Databases','Networks','OS','Compilers','AI','Graphics','Security'],
+  ['Ancient','Medieval','Renaissance','Industrial','Modern Wars','Cold War','Civil Rights','Globalization','Revolution','Cultural'],
+  ['Climate','Tectonics','Oceans','Biomes','Demographics','Economics','Cartography','Urban','Migration','Resources'],
+  ['Poetry','Novels','Drama','Mythology','Essay','Satire','Romanticism','Realism','Modernism','Postmodern'],
+  ['Painting','Sculpture','Architecture','Photography','Graphic Design','Ceramics','Textiles','Printmaking','Digital Art','Art History'],
+  ['Theory','Instruments','Rhythm','Harmony','Genres','Composition','History','Production','Notation','World Music']
+];
+const ACHIEVEMENTS=[
+  {id:'first_step',name:'First Step',desc:'Complete your first lesson',icon:'🌱'},
+  {id:'math_starter',name:'Math Starter',desc:'Complete 10 math lessons',icon:'🔢'},
+  {id:'coder',name:'Coder',desc:'Complete 10 CS lessons',icon:'💻'},
+  {id:'perfect',name:'Perfect!',desc:'Score 100% on a quiz',icon:'⭐'},
+  {id:'explorer',name:'Explorer',desc:'Try all 10 subjects',icon:'🧭'},
+  {id:'century',name:'Century',desc:'Complete 100 lessons',icon:'💯'},
+  {id:'dedicated',name:'Dedicated Learner',desc:'Complete 500 lessons',icon:'🏆'}
+];
+let profiles=[],currentProfile=null;
+
+function load(){const d=localStorage.getItem('learner');if(d)try{profiles=JSON.parse(d)}catch(e){}}
+function save(){localStorage.setItem('learner',JSON.stringify(profiles))}
+function saveProf(){const i=profiles.findIndex(p=>p.id===currentProfile.id);if(i>=0)profiles[i]=currentProfile;save()}
+
+function createProfile(){
+  const name=prompt('Profile name:');if(!name)return;
+  const p={id:Date.now().toString(),name,points:0,level:1,completedLessons:[],favorites:[],quizScores:{},subjectsTried:[],settings:{fontSize:16},achievements:[]};
+  profiles.push(p);save();openProfile(p.id);
+}
+function openProfile(id){
+  currentProfile=profiles.find(p=>p.id===id);showPage('p-dashboard');renderDashboard();
+}
+function resetProfile(){
+  if(!confirm('Reset all profile data?'))return;
+  currentProfile.points=0;currentProfile.level=1;currentProfile.completedLessons=[];
+  currentProfile.favorites=[];currentProfile.quizScores={};currentProfile.subjectsTried=[];
+  currentProfile.achievements=[];saveProf();renderDashboard();
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='p-choose')renderProfiles();
+  if(id==='p-dashboard')renderDashboard();
+  if(id==='p-library')renderLibrary();
+  if(id==='p-progress')renderProgress();
+  if(id==='p-achieve')renderAchievements();
+  if(id==='p-leaderboard')renderLeaderboard();
+  if(id==='p-settings')renderSettings();
+}
+
+function renderProfiles(){
+  const c=document.getElementById('profileList');
+  c.innerHTML=profiles.map(p=>`<div class="list-item" onclick="openProfile('${p.id}')"><span class="title">${esc(p.name)}</span><span class="meta">Lvl ${p.level} · ${p.points}pts</span></div>`).join('')||'<p style="color:#aaa">No profiles yet</p>';
+}
+
+function renderDashboard(){
+  if(!currentProfile)return;
+  const totalLessons=10000;const done=currentProfile.completedLessons.length;
+  document.getElementById('statLevel').textContent=currentProfile.level;
+  document.getElementById('statPoints').textContent=currentProfile.points;
+  document.getElementById('statLessons').textContent=done+'/'+totalLessons;
+  const quizKeys=Object.keys(currentProfile.quizScores);
+  const avg=quizKeys.length?Math.round(quizKeys.reduce((s,k)=>s+currentProfile.quizScores[k],0)/quizKeys.length):0;
+  document.getElementById('statQuiz').textContent=avg+'%';
+  document.getElementById('overallProg').style.width=Math.min(100,done/totalLessons*100)+'%';
+  const g=document.getElementById('subjectGrid');
+  g.innerHTML=SUBJECTS.map((s,i)=>`<button class="btn" onclick="openSubject(${i})">${s}</button>`).join('');
+}
+
+function openSubject(idx){
+  currentProfile.currentSubject=idx;saveProf();
+  document.getElementById('subjectTitle').textContent=SUBJECTS[idx];
+  const done=TOPICS[idx].filter((_,ti)=>currentProfile.completedLessons.some(l=>l.s===idx&&l.t===ti)).length;
+  document.getElementById('subjectProg').style.width=(done/10*100)+'%';
+  const g=document.getElementById('topicGrid');
+  g.innerHTML=TOPICS[idx].map((t,i)=>`<button class="btn" onclick="openTopic(${idx},${i})">${t}</button>`).join('');
+  showPage('p-subject');
+}
+
+function openTopic(s,t){
+  const lid=s*1000+t*100+0;
+  openLesson(lid);
+}
+
+function getLesson(id){
+  const s=Math.floor(id/1000)%10,t=Math.floor(id/100)%10,l=id%100;
+  const topic=TOPICS[s]?TOPICS[s][t]:'Topic '+t;
+  const subject=SUBJECTS[s]||'Subject';
+  const diff=l<33?'easy':l<66?'medium':'hard';
+  const seed=id*2654435761;
+  const words=['fundamental','advanced','key','essential','critical','core','practical','theoretical','modern','classical'];
+  const verbs=['understand','explore','analyze','master','apply','discover','investigate','examine','learn','practice'];
+  const title=subject+' - '+topic+' #'+(l+1);
+  const explanation=`In this lesson on ${topic}, we ${verbs[l%10]} ${words[(l+3)%10]} concepts. The ${words[(l+7)%10]} principles of ${topic} form the basis for ${words[(l+1)%10]} understanding in ${subject}. This lesson covers the essential theory and practical applications.`;
+  const example=`Example: Consider ${topic.toLowerCase()}. A basic illustration involves applying ${words[l%10]} methods. For instance, if we have a ${topic.toLowerCase()} problem, we can solve it step by step using established principles. The result demonstrates how ${topic.toLowerCase()} works in practice.`;
+  const practice=`Practice: Try solving these ${topic.toLowerCase()} problems on your own. Start with simpler cases and work up to more complex ones. Remember to check your work carefully.`;
+  const challenge=`Challenge: Here is an advanced ${topic.toLowerCase()} problem that combines multiple concepts. Think carefully about which techniques to apply and why.`;
+  const tip=`Tip: When studying ${topic.toLowerCase()}, focus on understanding the core concepts before moving to advanced material. Connect what you learn to real-world applications in ${subject}.`;
+  return {id,s,t,l,title,topic,subject,diff,explanation,example,practice,challenge,tip,goal:'Master '+topic.toLowerCase()+' concepts and applications'};
+}
+
+function openLesson(id){
+  currentProfile.currentLesson=id;
+  const lesson=getLesson(id);
+  document.getElementById('lessonTitle').textContent=lesson.title;
+  document.getElementById('lessonContent').innerHTML=`
+    <div class="card"><h3>Goal</h3><p>${esc(lesson.goal)}</p></div>
+    <div class="card"><h3>Explanation</h3><p>${esc(lesson.explanation)}</p></div>
+    <div class="card"><h3>Example</h3><p>${esc(lesson.example)}</p></div>
+    <div class="card"><h3>Practice</h3><p>${esc(lesson.practice)}</p></div>
+    <div class="card"><h3>Challenge</h3><p>${esc(lesson.challenge)}</p></div>
+    <div class="card"><h3>Tip</h3><p>${esc(lesson.tip)}</p></div>`;
+  const isFav=currentProfile.favorites.includes(id);
+  document.getElementById('favBtn').textContent=isFav?'★ Unfavorite':'☆ Favorite';
+  showPage('p-lesson');
+}
+
+function navLesson(dir){
+  const id=currentProfile.currentLesson+dir;
+  const s=Math.floor(id/1000)%10,t=Math.floor(id/100)%10,l=id%100;
+  if(s<0||s>=10||t<0||t>=10||l<0||l>=100){alert('No more lessons');return}
+  openLesson(id);
+}
+
+function toggleFav(){
+  const id=currentProfile.currentLesson;
+  const i=currentProfile.favorites.indexOf(id);
+  if(i>=0)currentProfile.favorites.splice(i,1);else currentProfile.favorites.push(id);
+  saveProf();
+  const isFav=currentProfile.favorites.includes(id);
+  document.getElementById('favBtn').textContent=isFav?'★ Unfavorite':'☆ Favorite';
+}
+
+function completeLesson(){
+  const id=currentProfile.currentLesson;
+  if(!currentProfile.completedLessons.includes(id)){
+    currentProfile.completedLessons.push(id);
+    currentProfile.points+=10;
+    const s=Math.floor(id/1000)%10;
+    if(!currentProfile.subjectsTried.includes(s))currentProfile.subjectsTried.push(s);
+    currentProfile.level=Math.floor(currentProfile.points/100)+1;
+    checkAchievements();
+    saveProf();
+  }
+  alert('Lesson completed! +10 points');
+}
+
+function openRandomLesson(){
+  const s=currentProfile.currentSubject;
+  const t=Math.floor(Math.random()*10);
+  const l=Math.floor(Math.random()*100);
+  openLesson(s*1000+t*100+l);
+}
+
+let quizState={questions:[],current:0,score:0,subject:-1};
+function startQuiz(){
+  const s=currentProfile.currentSubject;
+  quizState={questions:[],current:0,score:0,subject:s};
+  for(let i=0;i<5;i++){
+    const t=Math.floor(Math.random()*10);
+    const l=Math.floor(Math.random()*100);
+    const lesson=getLesson(s*1000+t*100+l);
+    const correct=Math.floor(Math.random()*4);
+    const opts=['Fundamental concept','Advanced application','Theoretical principle','Practical method'];
+    quizState.questions.push({question:'Q'+(i+1)+': What is key to understanding '+lesson.topic+'?',options:opts,correct});
+  }
+  document.getElementById('quizTitle').textContent=SUBJECTS[s]+' Quiz';
+  showPage('p-quiz');
+  renderQuiz();
+}
+function renderQuiz(){
+  const q=quizState.questions[quizState.current];
+  if(!q){renderQuizResult();return}
+  const c=document.getElementById('quizArea');
+  c.innerHTML=`<div class="card"><p style="margin-bottom:12px">Question ${quizState.current+1}/5</p><p style="margin-bottom:12px">${q.question}</p>${q.options.map((o,i)=>`<button class="btn" onclick="answerQuiz(${i})" style="display:block;width:100%;text-align:left;margin:4px 0">${o}</button>`).join('')}</div>`;
+}
+function answerQuiz(i){
+  const q=quizState.questions[quizState.current];
+  if(i===q.correct)quizState.score++;
+  quizState.current++;
+  renderQuiz();
+}
+function renderQuizResult(){
+  const pct=Math.round(quizState.score/5*100);
+  const key=quizState.subject.toString();
+  if(!currentProfile.quizScores[key])currentProfile.quizScores[key]=pct;
+  else currentProfile.quizScores[key]=Math.round((currentProfile.quizScores[key]+pct)/2);
+  if(pct===100&&!currentProfile.achievements.includes('perfect')){currentProfile.achievements.push('perfect')}
+  saveProf();
+  document.getElementById('quizArea').innerHTML=`<div class="card" style="text-align:center"><h2>Quiz Complete!</h2><p style="font-size:36px;color:#FFCB47;margin:20px 0">${pct}%</p><p>${quizState.score}/5 correct</p><br><button class="btn" onclick="showPage('p-subject')">Back to Subject</button></div>`;
+}
+
+function renderLibrary(){
+  const q=document.getElementById('libSearch').value.toLowerCase();
+  const sf=document.getElementById('libSubject').value;
+  const sd=document.getElementById('libDiff').value;
+  const ss=document.getElementById('libDone').value;
+  const sel=document.getElementById('libSubject');
+  if(sel.options.length<=1)SUBJECTS.forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=s;sel.appendChild(o)});
+  let html='';
+  let count=0;
+  for(let s=0;s<10;s++){
+    if(sf&&sf!=s)continue;
+    for(let t=0;t<10;t++){
+      for(let l=0;l<100;l++){
+        if(count>=200)break;
+        const lid=s*1000+t*100+l;
+        const lesson=getLesson(lid);
+        if(q&&!lesson.title.toLowerCase().includes(q)&&!lesson.topic.toLowerCase().includes(q))continue;
+        if(sd&&lesson.diff!==sd)continue;
+        const done=currentProfile.completedLessons.includes(lid);
+        const fav=currentProfile.favorites.includes(lid);
+        if(ss==='done'&&!done)continue;
+        if(ss==='undone'&&done)continue;
+        if(ss==='fav'&&!fav)continue;
+        html+=`<div class="list-item" onclick="openLesson(${lid})"><span class="title">${lesson.title}</span><span class="meta">${lesson.diff} ${done?'✓':''} ${fav?'★':''}</span></div>`;
+        count++;
+      }
+    }
+  }
+  if(!count)html='<p style="color:#aaa">No lessons found</p>';
+  document.getElementById('libList').innerHTML=html;
+}
+
+function renderProgress(){
+  const c=document.getElementById('progressBars');
+  c.innerHTML=SUBJECTS.map((s,i)=>{
+    const done=TOPICS[i].filter((_,ti)=>currentProfile.completedLessons.some(l=>l.s===i&&l.t===ti)).length;
+    return `<div class="card"><div style="display:flex;justify-content:space-between"><span>${s}</span><span>${done}/10</span></div><div class="progress-bar"><div class="fill" style="width:${done*10}%"></div></div></div>`;
+  }).join('');
+}
+
+function renderAchievements(){
+  const c=document.getElementById('achieveList');
+  c.innerHTML=ACHIEVEMENTS.map(a=>{
+    const unlocked=currentProfile.achievements.includes(a.id);
+    return `<div class="ach${unlocked?'':' locked'}"><span class="icon">${a.icon}</span><div class="info"><div class="name">${a.name}</div><div class="desc">${a.desc}</div></div></div>`;
+  }).join('');
+}
+
+function checkAchievements(){
+  const p=currentProfile;
+  if(p.completedLessons.length>=1&&!p.achievements.includes('first_step'))p.achievements.push('first_step');
+  if(p.completedLessons.filter(l=>Math.floor(l/1000)%10===0).length>=10&&!p.achievements.includes('math_starter'))p.achievements.push('math_starter');
+  if(p.completedLessons.filter(l=>Math.floor(l/1000)%10===4).length>=10&&!p.achievements.includes('coder'))p.achievements.push('coder');
+  if(p.subjectsTried.length>=10&&!p.achievements.includes('explorer'))p.achievements.push('explorer');
+  if(p.completedLessons.length>=100&&!p.achievements.includes('century'))p.achievements.push('century');
+  if(p.completedLessons.length>=500&&!p.achievements.includes('dedicated'))p.achievements.push('dedicated');
+}
+
+function renderLeaderboard(){
+  const sorted=[...profiles].sort((a,b)=>b.points-a.points);
+  const c=document.getElementById('leaderList');
+  c.innerHTML=sorted.map((p,i)=>`<div class="list-item"><span class="title">#${i+1} ${esc(p.name)}</span><span class="meta">Lvl ${p.level} · ${p.points}pts</span></div>`).join('')||'<p style="color:#aaa">No profiles</p>';
+}
+
+function renderSettings(){
+  if(!currentProfile)return;
+  document.getElementById('settName').value=currentProfile.name;
+  document.getElementById('settFont').value=currentProfile.settings.fontSize||16;
+}
+function saveSettings(){
+  currentProfile.name=document.getElementById('settName').value;
+  currentProfile.settings.fontSize=parseInt(document.getElementById('settFont').value);
+  saveProf();
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+load();showPage('p-choose');
+</script>
+</body>
+</html>

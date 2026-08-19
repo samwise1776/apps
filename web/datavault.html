@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataVault - Backup Manager</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#23225A;--panel:#2E2F5E;--accent:#FFCB47;--text:#F0F0F5;--btn:#4449E2;--btn-hover:#5558f0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a.back{position:fixed;top:10px;left:12px;color:var(--accent);text-decoration:none;font-size:13px;z-index:100;opacity:.8}.back:hover{opacity:1}
+.top-bar{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 80px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,.08)}
+.top-bar h1{font-size:18px;font-weight:600}
+.top-bar .spacer{flex:1}
+.btn{padding:6px 14px;border:none;border-radius:6px;background:var(--btn);color:#fff;font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--btn-hover)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-accent{background:var(--accent);color:#23225A}.btn-accent:hover{background:#ffe066}
+.btn-danger{background:#c0392b}.btn-danger:hover{background:#e74c3c}
+.content{max-width:1000px;margin:0 auto;padding:16px 16px 16px 80px}
+.section{background:var(--panel);border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.section h2 .emoji{font-size:20px}
+.stats-row{display:flex;gap:16px;margin-bottom:16px}
+.stat-card{flex:1;background:rgba(0,0,0,.2);border-radius:8px;padding:14px;text-align:center}
+.stat-card .stat-num{font-size:24px;font-weight:700;color:var(--accent)}
+.stat-card .stat-label{font-size:11px;opacity:.5;margin-top:4px}
+.create-form{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:16px}
+.create-form .field{flex:1;min-width:200px}
+.create-form label{display:block;font-size:12px;opacity:.5;margin-bottom:4px}
+.create-form input{width:100%;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);font-size:13px}
+.file-list{max-height:120px;overflow-y:auto;background:rgba(0,0,0,.15);border-radius:6px;padding:8px;margin-bottom:12px}
+.file-list .fl-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;opacity:.7}
+.file-list .fl-item input{accent-color:var(--accent)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:8px 12px;font-size:12px;opacity:.5;border-bottom:1px solid rgba(255,255,255,.08)}
+td{padding:8px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
+tr:hover td{background:rgba(255,255,255,.04)}
+tr.selected td{background:rgba(68,73,226,.2)}
+.status-complete{color:#2ecc71}
+.status-pending{color:#f39c12}
+.detail-panel{background:var(--panel);border-radius:10px;padding:20px;margin-top:16px}
+.detail-panel h2{margin-bottom:12px}
+.detail-panel .d-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+.detail-panel .d-row span:first-child{opacity:.5}
+.detail-panel .files-included{background:rgba(0,0,0,.15);border-radius:6px;padding:10px;margin:10px 0;max-height:150px;overflow-y:auto}
+.detail-panel .files-included div{font-size:12px;padding:3px 0;opacity:.7}
+.detail-panel .actions{display:flex;gap:8px;margin-top:12px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--panel);border-radius:12px;padding:24px;width:380px;text-align:center}
+.modal h3{margin-bottom:12px}
+.modal p{font-size:13px;opacity:.7;margin-bottom:16px}
+.modal .modal-actions{display:flex;gap:8px;justify-content:center}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--btn);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:300;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.empty{padding:30px;text-align:center;opacity:.3;font-size:13px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="top-bar">
+<h1>DataVault</h1>
+<div class="spacer"></div>
+<button class="btn btn-sm" onclick="exportData()">Export JSON</button>
+<button class="btn btn-sm" onclick="document.getElementById('importInput').click()">Import JSON</button>
+<input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+</div>
+<div class="content">
+<div class="stats-row">
+<div class="stat-card"><div class="stat-num" id="totalBackups">0</div><div class="stat-label">Total Backups</div></div>
+<div class="stat-card"><div class="stat-num" id="totalFiles">0</div><div class="stat-label">Total Files</div></div>
+<div class="stat-card"><div class="stat-num" id="totalSize">0 KB</div><div class="stat-label">Est. Total Size</div></div>
+</div>
+<div class="section">
+<h2><span class="emoji">📦</span> Create Backup</h2>
+<div class="create-form">
+<div class="field">
+<label>Backup Name</label>
+<input type="text" id="backupName" placeholder="e.g. production-snapshot-2026">
+</div>
+</div>
+<div class="file-list" id="fileList"></div>
+<button class="btn btn-accent" onclick="createBackup()">📦 Create Backup</button>
+</div>
+<div class="section">
+<h2><span class="emoji">📋</span> Backup History</h2>
+<div id="historyContent"></div>
+</div>
+<div class="detail-panel" id="detailPanel" style="display:none"></div>
+</div>
+<div class="modal-overlay" id="confirmModal">
+<div class="modal">
+<h3 id="confirmTitle">Confirm</h3>
+<p id="confirmMsg">Are you sure?</p>
+<div class="modal-actions">
+<button class="btn btn-sm" onclick="closeConfirm()">Cancel</button>
+<button class="btn btn-danger" id="confirmBtn">Confirm</button>
+</div>
+</div>
+</div>
+<script>
+const LS_KEY='datavault_data';
+const SIMULATED_FILES=[
+{path:'/app/main.js',size:15400},{path:'/app/index.html',size:8200},{path:'/app/styles.css',size:12100},
+{path:'/config/env.json',size:520},{path:'/config/secrets.enc',size:2400},{path:'/data/users.db',size:524000},
+{path:'/data/logs/app.log',size:128000},{path:'/data/logs/error.log',size:34000},
+{path:'/assets/logo.png',size:45000},{path:'/assets/banner.jpg',size:128000},
+{path:'/scripts/deploy.sh',size:3200},{path:'/scripts/backup.sh',size:2100},
+{path:'/docs/readme.md',size:4800},{path:'/docs/api.md',size:12400},
+{path:'/tests/unit.js',size:22000},{path:'/tests/integration.js',size:18000}
+];
+let backups=[];
+let selectedFiles=new Set(SIMULATED_FILES.map((_,i)=>i));
+
+function load(){try{const d=localStorage.getItem(LS_KEY);if(d){const p=JSON.parse(d);backups=p.backups||[]}}catch(e){}}
+function save(){localStorage.setItem(LS_KEY,JSON.stringify({backups}))}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function fakeChecksum(){return Array.from({length:64},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('')}
+function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB'}
+
+load();
+if(!backups.length){
+backups=[
+{id:genId(),name:'initial-deploy',date:'2026-01-20',files:SIMULATED_FILES.slice(0,8).map((f,i)=>({...f})),checksum:fakeChecksum(),status:'Complete'},
+{id:genId(),name:'post-update-v2',date:'2026-03-15',files:SIMULATED_FILES.slice(0,12).map(f=>({...f})),checksum:fakeChecksum(),status:'Complete'},
+{id:genId(),name:'pre-migration',date:'2026-05-10',files:SIMULATED_FILES.map(f=>({...f})),checksum:fakeChecksum(),status:'Pending'},
+];
+}
+
+function renderFileList(){
+const el=document.getElementById('fileList');
+el.innerHTML=SIMULATED_FILES.map((f,i)=>`<div class="fl-item">
+<input type="checkbox" ${selectedFiles.has(i)?'checked':''} onchange="toggleFile(${i})">
+<span>${f.path}</span>
+<span style="margin-left:auto;opacity:.4">${formatSize(f.size)}</span>
+</div>`).join('');
+}
+
+function toggleFile(i){if(selectedFiles.has(i))selectedFiles.delete(i);else selectedFiles.add(i)}
+
+function createBackup(){
+const name=document.getElementById('backupName').value.trim();if(!name){toast('Enter a backup name');return}
+if(!selectedFiles.size){toast('Select at least one file');return}
+const files=[...selectedFiles].map(i=>({...SIMULATED_FILES[i]}));
+backups.unshift({id:genId(),name,date:new Date().toISOString().slice(0,10),files,checksum:fakeChecksum(),status:'Complete'});
+save();document.getElementById('backupName').value='';renderAll();toast('Backup created: '+name);
+}
+
+function renderHistory(){
+const el=document.getElementById('historyContent');
+if(!backups.length){el.innerHTML='<div class="empty">No backups yet</div>';return}
+el.innerHTML=`<table><thead><tr><th>Name</th><th>Date</th><th>Files</th><th>Checksum</th><th>Status</th></tr></thead><tbody>
+${backups.map(b=>`<tr onclick="showDetail('${b.id}')" style="cursor:pointer">
+<td>${esc(b.name)}</td>
+<td>${b.date}</td>
+<td>${b.files.length}</td>
+<td style="font-family:monospace;font-size:11px;opacity:.5">${b.checksum.slice(0,16)}...</td>
+<td class="${b.status==='Complete'?'status-complete':'status-pending'}">${b.status}</td>
+</tr>`).join('')}
+</tbody></table>`;
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function showDetail(id){
+const b=backups.find(x=>x.id===id);if(!b)return;
+const p=document.getElementById('detailPanel');p.style.display='block';
+const totalSize=b.files.reduce((s,f)=>s+f.size,0);
+p.innerHTML=`<h2>📦 Backup: ${esc(b.name)}</h2>
+<div class="d-row"><span>Date</span><span>${b.date}</span></div>
+<div class="d-row"><span>Files</span><span>${b.files.length}</span></div>
+<div class="d-row"><span>Total Size</span><span>${formatSize(totalSize)}</span></div>
+<div class="d-row"><span>Checksum</span><span style="font-family:monospace;font-size:11px">${b.checksum}</span></div>
+<div class="d-row"><span>Status</span><span class="${b.status==='Complete'?'status-complete':'status-pending'}">${b.status}</span></div>
+<div style="font-size:12px;opacity:.5;margin-top:12px">Included Files</div>
+<div class="files-included">${b.files.map(f=>`<div>📄 ${f.path} <span style="opacity:.4">(${formatSize(f.size)})</span></div>`).join('')}</div>
+<div class="actions">
+<button class="btn btn-accent" onclick="restoreBackup('${b.id}')">🔄 Restore</button>
+<button class="btn btn-danger" onclick="deleteBackup('${b.id}')">🗑️ Delete</button>
+</div>`;
+}
+
+function restoreBackup(id){
+const b=backups.find(x=>x.id===id);if(!b)return;
+document.getElementById('confirmTitle').textContent='Restore Backup';
+document.getElementById('confirmMsg').textContent=`Restore "${b.name}"? This will overwrite current files.`;
+document.getElementById('confirmBtn').onclick=()=>{closeConfirm();toast('Backup "'+b.name+'" restored successfully')};
+document.getElementById('confirmModal').classList.add('open');
+}
+
+function deleteBackup(id){
+const b=backups.find(x=>x.id===id);if(!b)return;
+document.getElementById('confirmTitle').textContent='Delete Backup';
+document.getElementById('confirmMsg').textContent=`Delete "${b.name}"? This cannot be undone.`;
+document.getElementById('confirmBtn').onclick=()=>{backups=backups.filter(x=>x.id!==id);save();document.getElementById('detailPanel').style.display='none';renderAll();closeConfirm();toast('Backup deleted')};
+document.getElementById('confirmModal').classList.add('open');
+}
+
+function closeConfirm(){document.getElementById('confirmModal').classList.remove('open')}
+
+function renderStats(){
+document.getElementById('totalBackups').textContent=backups.length;
+const totalF=backups.reduce((s,b)=>s+b.files.length,0);
+document.getElementById('totalFiles').textContent=totalF;
+const totalS=backups.reduce((s,b)=>s+b.files.reduce((fs,f)=>fs+f.size,0),0);
+document.getElementById('totalSize').textContent=formatSize(totalS);
+}
+
+function exportData(){
+const blob=new Blob([JSON.stringify({backups},null,2)],{type:'application/json'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='datavault_export.json';a.click();
+}
+
+function importData(e){
+const file=e.target.files[0];if(!file)return;
+const reader=new FileReader();
+reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.backups)backups=d.backups;save();renderAll();toast('Imported')}catch(err){toast('Import failed')}};reader.readAsText(file);e.target.value='';
+}
+
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
+
+function renderAll(){renderStats();renderFileList();renderHistory()}
+renderAll();
+</script>
+</body>
+</html>

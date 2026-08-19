@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataNotes - Note-Taking App</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:system-ui,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+a.back{position:fixed;top:8px;left:8px;color:#FFCB47;text-decoration:none;font-size:13px;z-index:100;background:#2E2F5E;padding:3px 8px;border-radius:4px}
+a.back:hover{background:#4449E2}
+#app{display:flex;height:100vh;margin-top:0}
+#sidebar{width:260px;background:#2E2F5E;display:flex;flex-direction:column;border-right:2px solid #4449E2;flex-shrink:0}
+#sidebar-header{padding:12px;border-bottom:1px solid #4449E2;display:flex;flex-direction:column;gap:8px}
+#sidebar-header h2{color:#FFCB47;font-size:16px;text-align:center;margin-bottom:4px}
+#searchInput{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;padding:6px 8px;border-radius:4px;font-size:13px;width:100%}
+.btn-row{display:flex;gap:6px}
+.btn-sm{flex:1;background:#4449E2;color:#F0F0F5;border:none;padding:5px 6px;border-radius:4px;cursor:pointer;font-size:12px}
+.btn-sm:hover{background:#FFCB47;color:#23225A}
+#notebooks{flex:1;overflow-y:auto;padding:8px}
+.nb-item{margin-bottom:4px}
+.nb-header{display:flex;align-items:center;gap:4px;padding:5px 8px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:600}
+.nb-header:hover{background:#4449E2}
+.nb-header .arrow{font-size:10px;width:14px;text-align:center}
+.nb-header .nb-name{flex:1}
+.nb-header .nb-actions{display:none;gap:2px}
+.nb-header:hover .nb-actions{display:flex}
+.nb-actions button{background:none;border:none;color:#aaa;cursor:pointer;font-size:12px;padding:1px 3px;border-radius:2px}
+.nb-actions button:hover{color:#FFCB47}
+.note-list{padding-left:16px}
+.note-item{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:12px}
+.note-item:hover{background:#4449E2}
+.note-item.active{background:#4449E2;color:#FFCB47}
+.note-item .note-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note-item .note-actions{display:none;gap:2px}
+.note-item:hover .note-actions{display:flex}
+#sidebar-bottom{padding:8px;border-top:1px solid #4449E2;display:flex;gap:4px}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#toolbar{background:#2E2F5E;padding:6px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #4449E2;flex-wrap:wrap}
+.tbtn{background:#4449E2;color:#F0F0F5;border:none;padding:4px 10px;border-radius:3px;cursor:pointer;font-size:13px}
+.tbtn:hover{background:#FFCB47;color:#23225A}
+#toolbar .spacer{flex:1}
+#tagArea{background:#2E2F5E;padding:6px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #4449E2}
+#tagInput{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;padding:4px 8px;border-radius:4px;font-size:12px;flex:1}
+#tagPills{display:flex;gap:4px;flex-wrap:wrap}
+.tag-pill{background:#4449E2;color:#F0F0F5;padding:2px 8px;border-radius:10px;font-size:11px;cursor:pointer}
+.tag-pill:hover{background:#E16464}
+#editor{flex:1;padding:12px;overflow:hidden;display:flex;flex-direction:column}
+#editor textarea{flex:1;background:#1a1a3e;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:14px;font-size:14px;font-family:'Consolas',monospace;resize:none;outline:none;line-height:1.6}
+#importExport{display:flex;gap:4px}
+</style>
+</head>
+<body>
+<a class="back" href="../">← Back</a>
+<div id="app">
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h2>DataNotes</h2>
+      <input id="searchInput" type="text" placeholder="Search notes..." oninput="searchNotes()">
+      <div class="btn-row">
+        <button class="btn-sm" onclick="createNotebook()">+ Notebook</button>
+        <button class="btn-sm" onclick="createNote()">+ Note</button>
+      </div>
+      <div id="importExport">
+        <button class="btn-sm" onclick="exportData()">Export</button>
+        <button class="btn-sm" onclick="document.getElementById('importFile').click()">Import</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+      </div>
+    </div>
+    <div id="notebooks"></div>
+  </div>
+  <div id="main">
+    <div id="toolbar">
+      <button class="tbtn" onclick="insertMd('**','**')">Bold</button>
+      <button class="tbtn" onclick="insertMd('*','*')">Italic</button>
+      <button class="tbtn" onclick="insertMd('\n## ','')">Heading</button>
+      <button class="tbtn" onclick="insertMd('\n```\n','\n```\n')">Code Block</button>
+      <button class="tbtn" onclick="insertMd('\n- ','')">Bullet List</button>
+      <span class="spacer"></span>
+      <span id="noteTitle" style="color:#FFCB47;font-size:14px;font-weight:600">Select or create a note</span>
+    </div>
+    <div id="tagArea">
+      <input id="tagInput" type="text" placeholder="Tags (comma-separated)" oninput="saveTags()">
+      <div id="tagPills"></div>
+    </div>
+    <div id="editor">
+      <textarea id="editorArea" placeholder="Start writing..." oninput="saveNoteContent()"></textarea>
+    </div>
+  </div>
+</div>
+<script>
+const LS_KEY='datanotes';
+let data={notebooks:[],notes:[],activeNote:null};
+function load(){const d=localStorage.getItem(LS_KEY);if(d)try{data=JSON.parse(d)}catch(e){}}
+function save(){localStorage.setItem(LS_KEY,JSON.stringify(data))}
+function createNotebook(){
+  const name=prompt('Notebook name:');
+  if(!name)return;
+  data.notebooks.push({id:Date.now().toString(),name});
+  save();render();
+}
+function renameNotebook(id){
+  const nb=data.notebooks.find(n=>n.id===id);
+  const name=prompt('Rename notebook:',nb.name);
+  if(!name)return;
+  nb.name=name;save();render();
+}
+function deleteNotebook(id){
+  if(!confirm('Delete notebook and its notes?'))return;
+  data.notebooks=data.notebooks.filter(n=>n.id!==id);
+  data.notes=data.notes.filter(n=>n.notebookId!==id);
+  save();render();
+}
+function createNote(){
+  if(!data.notebooks.length){alert('Create a notebook first');return}
+  const nbId=data.notebooks[0].id;
+  const note={id:Date.now().toString(),notebookId:nbId,title:'Untitled',content:'',tags:[]};
+  data.notes.push(note);data.activeNote=note.id;save();render();
+}
+function renameNote(id){
+  const n=data.notes.find(x=>x.id===id);
+  const name=prompt('Note title:',n.title);
+  if(!name)return;
+  n.title=name;save();render();
+}
+function deleteNote(id){
+  data.notes=data.notes.filter(n=>n.id!==id);
+  if(data.activeNote===id)data.activeNote=null;
+  save();render();
+}
+function selectNote(id){
+  data.activeNote=id;save();render();
+}
+function saveNoteContent(){
+  if(!data.activeNote)return;
+  const n=data.notes.find(x=>x.id===data.activeNote);
+  n.content=document.getElementById('editorArea').value;
+  save();
+}
+function saveTags(){
+  if(!data.activeNote)return;
+  const n=data.notes.find(x=>x.id===data.activeNote);
+  const raw=document.getElementById('tagInput').value;
+  n.tags=raw.split(',').map(t=>t.trim()).filter(Boolean);
+  save();renderTags();
+}
+function insertMd(before,after){
+  const ta=document.getElementById('editorArea');
+  const s=ta.selectionStart,e=ta.selectionEnd;
+  const sel=ta.value.substring(s,e)||'text';
+  ta.value=ta.value.substring(0,s)+before+sel+after+ta.value.substring(e);
+  ta.focus();ta.selectionStart=s+before.length;ta.selectionEnd=s+before.length+sel.length;
+  saveNoteContent();
+}
+function renderTags(){
+  const n=data.notes.find(x=>x.id===data.activeNote);
+  const c=document.getElementById('tagPills');
+  c.innerHTML=(n?n.tags:[]).map(t=>`<span class="tag-pill" onclick="removeTag('${t}')">${t}</span>`).join('');
+}
+function removeTag(tag){
+  const n=data.notes.find(x=>x.id===data.activeNote);
+  n.tags=n.tags.filter(t=>t!==tag);save();renderTags();
+}
+function searchNotes(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  render(q);
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='datanotes-export.json';a.click();
+}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{data=JSON.parse(ev.target.result);save();render()}catch(err){alert('Invalid JSON')}
+  };reader.readAsText(file);e.target.value='';
+}
+function render(searchQuery){
+  const nbC=document.getElementById('notebooks');
+  const q=(searchQuery||'').toLowerCase();
+  let html='';
+  data.notebooks.forEach(nb=>{
+    let notes=data.notes.filter(n=>n.notebookId===nb.id);
+    if(q)notes=notes.filter(n=>n.title.toLowerCase().includes(q)||n.content.toLowerCase().includes(q)||n.tags.some(t=>t.toLowerCase().includes(q)));
+    html+=`<div class="nb-item"><div class="nb-header" onclick="toggleNb(this)"><span class="arrow">▶</span><span class="nb-name" ondblclick="event.stopPropagation();renameNotebook('${nb.id}')">${esc(nb.name)}</span><span class="nb-actions"><button onclick="event.stopPropagation();renameNotebook('${nb.id}')">✏</button><button onclick="event.stopPropagation();deleteNotebook('${nb.id}')">🗑</button></span></div><div class="note-list" style="display:none">`;
+    notes.forEach(n=>{
+      html+=`<div class="note-item${n.id===data.activeNote?' active':''}" onclick="selectNote('${n.id}')"><span class="note-name" ondblclick="event.stopPropagation();renameNote('${n.id}')">${esc(n.title)}</span><span class="note-actions"><button onclick="event.stopPropagation();renameNote('${n.id}')">✏</button><button onclick="event.stopPropagation();deleteNote('${n.id}')">🗑</button></span></div>`;
+    });
+    html+=`</div></div>`;
+  });
+  nbC.innerHTML=html;
+  if(data.activeNote){
+    const n=data.notes.find(x=>x.id===data.activeNote);
+    if(n){
+      document.getElementById('noteTitle').textContent=n.title;
+      document.getElementById('editorArea').value=n.content;
+      document.getElementById('tagInput').value=n.tags.join(', ');
+      renderTags();
+      document.querySelectorAll('.nb-item').forEach(el=>{
+        const notes=el.querySelector('.note-list');
+        if(notes&&notes.querySelector('.active')){notes.style.display='block';el.querySelector('.arrow').textContent='▼'}
+      });
+    }
+  } else {
+    document.getElementById('noteTitle').textContent='Select or create a note';
+    document.getElementById('editorArea').value='';
+    document.getElementById('tagInput').value='';
+    document.getElementById('tagPills').innerHTML='';
+  }
+}
+function toggleNb(el){
+  const list=el.nextElementSibling;
+  const arrow=el.querySelector('.arrow');
+  if(list.style.display==='none'){list.style.display='block';arrow.textContent='▼'}
+  else{list.style.display='none';arrow.textContent='▶'}
+}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+load();render();
+</script>
+</body>
+</html>

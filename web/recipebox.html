@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RecipeBox - Recipe Book</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;z-index:100;background:rgba(35,34,90,.9);padding:4px 10px;border-radius:6px}
+a.back:hover{text-decoration:underline}
+.container{max-width:1000px;margin:0 auto;padding:50px 20px 20px}
+h1{color:#FFCB47;font-size:28px;margin-bottom:16px}
+h2{color:#FFCB47;font-size:18px;margin-bottom:10px}
+h3{color:#F0F0F5;font-size:15px;margin-bottom:8px}
+.panel{background:#2E2F5E;border:1px solid #4449E2;border-radius:10px;padding:18px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1.5fr;gap:16px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+input,textarea,select{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:8px 12px;font-size:14px;width:100%;margin-bottom:8px}
+textarea{min-height:80px;resize:vertical;font-family:inherit}
+.btn{background:#4449E2;color:#F0F0F5;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn:hover{background:#5555FF}
+.btn.danger{background:#e74c3c}
+.btn.secondary{background:transparent;border:1px solid #4449E2}
+.recipe-card{background:#23225A;border:1px solid #4449E2;border-radius:8px;padding:14px;margin-bottom:8px;cursor:pointer}
+.recipe-card:hover{border-color:#FFCB47}
+.recipe-card h4{margin-bottom:2px}
+.recipe-card .meta{font-size:11px;color:#8888bb}
+.recipe-card .emoji{font-size:20px;float:right;margin-top:-4px}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-right:4px;margin-bottom:4px}
+.search-bar{display:flex;gap:8px;margin-bottom:12px}
+.search-bar input{flex:1;margin-bottom:0}
+.recipe-view{line-height:1.7}
+.recipe-view h2{margin-bottom:4px}
+.recipe-view .meta{color:#8888bb;font-size:13px;margin-bottom:16px}
+.recipe-view .section{margin-bottom:16px}
+.recipe-view .section h3{color:#FFCB47;margin-bottom:6px}
+.recipe-view ul,.recipe-view ol{padding-left:20px}
+.recipe-view li{margin-bottom:4px;font-size:14px}
+.recipe-view .steps li{margin-bottom:8px}
+.rating{font-size:20px;cursor:pointer;letter-spacing:2px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>RecipeBox</h1>
+<div id="addForm" class="panel hidden">
+<h3 id="formTitle">New Recipe</h3>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<input id="rName" placeholder="Recipe name" style="flex:2">
+<input id="rEmoji" placeholder="Emoji (e.g. 🍝)" style="flex:0;width:80px" maxlength="2">
+<input id="rTime" placeholder="Prep time (e.g. 30 min)" style="flex:1">
+<input id="rServings" placeholder="Servings" type="number" style="flex:1">
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<select id="rCategory" style="flex:1"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Dessert</option><option>Snack</option><option>Drink</option></select>
+<input id="rDifficulty" placeholder="Easy/Medium/Hard" style="flex:1">
+</div>
+<textarea id="rIngredients" placeholder="Ingredients (one per line)"></textarea>
+<textarea id="rSteps" placeholder="Steps (one per line)"></textarea>
+<input id="rTags" placeholder="Tags (comma separated)">
+<div style="display:flex;gap:8px">
+<button class="btn" onclick="saveRecipe()">Save</button>
+<button class="btn secondary" onclick="cancelEdit()">Cancel</button>
+</div>
+</div>
+<div id="detailView" class="hidden"></div>
+<div id="listView">
+<div class="panel">
+<h3>Recipes</h3>
+<div class="search-bar">
+<input id="searchInput" placeholder="Search recipes..." oninput="render()">
+<select id="filterCat" onchange="render()" style="width:140px;margin-bottom:0"><option value="">All Categories</option><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Dessert</option><option>Snack</option><option>Drink</option></select>
+</div>
+<div id="recipeList"></div>
+</div>
+<div class="panel" style="display:flex;gap:8px">
+<button class="btn" onclick="openAddForm()">+ New Recipe</button>
+<button class="btn secondary" onclick="exportData()">Export JSON</button>
+<button class="btn secondary" onclick="document.getElementById('importFile').click()">Import JSON</button>
+<input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
+</div>
+</div>
+</div>
+<script>
+const DB='rb_data';
+let recipes=[];
+let editingId=null;
+const FOOD_EMOJIS=['🍝','🍕','🥗','🍔','🌮','🍜','🍰','☕','🥞','🍛','🍲','🥧','🧁','🥪','🍣','🥟','🍩','🥐','🍳','🍗'];
+
+function loadData(){try{const d=JSON.parse(localStorage.getItem(DB));if(d)recipes=d.recipes||[];}catch(e){}}
+function saveData(){localStorage.setItem(DB,JSON.stringify({recipes}))}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function openAddForm(){
+    editingId=null;
+    document.getElementById('formTitle').textContent='New Recipe';
+    ['rName','rEmoji','rTime','rServings','rIngredients','rSteps','rTags'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('rCategory').value='Dinner';
+    document.getElementById('rDifficulty').value='Easy';
+    document.getElementById('addForm').classList.remove('hidden');
+    document.getElementById('listView').classList.add('hidden');
+    document.getElementById('detailView').classList.add('hidden');
+}
+
+function cancelEdit(){
+    document.getElementById('addForm').classList.add('hidden');
+    document.getElementById('listView').classList.remove('hidden');
+}
+
+function saveRecipe(){
+    const name=document.getElementById('rName').value.trim();if(!name)return;
+    const data={
+        name,
+        emoji:document.getElementById('rEmoji').value.trim()||FOOD_EMOJIS[Math.floor(Math.random()*FOOD_EMOJIS.length)],
+        time:document.getElementById('rTime').value.trim(),
+        servings:document.getElementById('rServings').value,
+        category:document.getElementById('rCategory').value,
+        difficulty:document.getElementById('rDifficulty').value.trim()||'Easy',
+        ingredients:document.getElementById('rIngredients').value.split('\n').filter(l=>l.trim()),
+        steps:document.getElementById('rSteps').value.split('\n').filter(l=>l.trim()),
+        tags:document.getElementById('rTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+        rating:0
+    };
+    if(editingId){
+        const r=recipes.find(r=>r.id===editingId);if(r)Object.assign(r,data);
+    } else {
+        recipes.push({id:Date.now(),...data,created:Date.now()});
+    }
+    saveData();cancelEdit();render();
+}
+
+function editRecipe(id){
+    const r=recipes.find(x=>x.id===id);if(!r)return;
+    editingId=id;
+    document.getElementById('formTitle').textContent='Edit Recipe';
+    document.getElementById('rName').value=r.name;
+    document.getElementById('rEmoji').value=r.emoji;
+    document.getElementById('rTime').value=r.time||'';
+    document.getElementById('rServings').value=r.servings||'';
+    document.getElementById('rCategory').value=r.category;
+    document.getElementById('rDifficulty').value=r.difficulty||'Easy';
+    document.getElementById('rIngredients').value=(r.ingredients||[]).join('\n');
+    document.getElementById('rSteps').value=(r.steps||[]).join('\n');
+    document.getElementById('rTags').value=(r.tags||[]).join(', ');
+    document.getElementById('addForm').classList.remove('hidden');
+    document.getElementById('listView').classList.add('hidden');
+    document.getElementById('detailView').classList.add('hidden');
+}
+
+function deleteRecipe(id){recipes=recipes.filter(r=>r.id!==id);saveData();cancelEdit();render()}
+
+function setRating(id,rating){
+    const r=recipes.find(x=>x.id===id);if(r){r.rating=rating;saveData();showDetail(id);}
+}
+
+function showDetail(id){
+    const r=recipes.find(x=>x.id===id);if(!r)return;
+    document.getElementById('listView').classList.add('hidden');
+    document.getElementById('addForm').classList.add('hidden');
+    const dv=document.getElementById('detailView');dv.classList.remove('hidden');
+    const catColors={Breakfast:'#FFCB47',Lunch:'#2ecc71',Dinner:'#4449E2',Dessert:'#e91e63',Snack:'#e67e22',Drink:'#1abc9c'};
+    dv.innerHTML='<button class="btn secondary" onclick="cancelEdit()" style="margin-bottom:12px">← Back</button>'+
+        '<div class="panel recipe-view"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div>'+
+        '<h2>'+esc(r.emoji)+' '+esc(r.name)+'</h2>'+
+        '<div class="meta">'+(r.time?r.time+' &middot; ':'')+(r.servings?'Serves '+r.servings+' &middot; ':'')+
+        '<span class="tag" style="background:'+(catColors[r.category]||'#8888bb')+'30;color:'+(catColors[r.category]||'#8888bb')+'">'+r.category+'</span> '+
+        '<span class="tag" style="background:#4449E230;color:#4449E2">'+esc(r.difficulty)+'</span></div></div>'+
+        '<div class="rating">'+[1,2,3,4,5].map(s=>'<span onclick="setRating('+id+','+s+')" style="cursor:pointer">'+(s<=r.rating?'★':'☆')+'</span>').join('')+'</div></div>'+
+        (r.tags&&r.tags.length?'<div style="margin-bottom:12px">'+r.tags.map(t=>'<span class="tag" style="background:#4449E230;color:#FFCB47">#'+esc(t)+'</span>').join('')+'</div>':'')+
+        '<div class="section"><h3>Ingredients</h3><ul>'+(r.ingredients||[]).map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul></div>'+
+        '<div class="section"><h3>Steps</h3><ol class="steps">'+(r.steps||[]).map(s=>'<li>'+esc(s)+'</li>').join('')+'</ol></div>'+
+        '<div style="display:flex;gap:8px"><button class="btn secondary" onclick="editRecipe('+id+')">Edit</button>'+
+        '<button class="btn danger" onclick="deleteRecipe('+id+')">Delete</button></div></div>';
+}
+
+function render(){
+    const q=document.getElementById('searchInput')?.value.toLowerCase()||'';
+    const fc=document.getElementById('filterCat')?.value||'';
+    const filtered=recipes.filter(r=>{
+        if(fc&&r.category!==fc)return false;
+        if(q&&!r.name.toLowerCase().includes(q)&&!(r.tags||[]).some(t=>t.toLowerCase().includes(q)))return false;
+        return true;
+    });
+
+    document.getElementById('recipeList').innerHTML=filtered.map(r=>{
+        const catColors={Breakfast:'#FFCB47',Lunch:'#2ecc71',Dinner:'#4449E2',Dessert:'#e91e63',Snack:'#e67e22',Drink:'#1abc9c'};
+        return '<div class="recipe-card" onclick="showDetail('+r.id+')">'+
+        '<span class="emoji">'+esc(r.emoji)+'</span>'+
+        '<h4>'+esc(r.name)+'</h4>'+
+        '<div class="meta">'+(r.time?r.time+' &middot; ':'')+
+        '<span class="tag" style="background:'+(catColors[r.category]||'#8888bb')+'30;color:'+(catColors[r.category]||'#8888bb')+'">'+r.category+'</span>'+
+        (r.rating?' <span style="color:#FFCB47">'+('★'.repeat(r.rating))+'</span>':'')+'</div>'+
+        (r.tags&&r.tags.length?'<div style="margin-top:4px">'+r.tags.map(t=>'<span class="tag" style="background:#4449E220;color:#8888bb">'+esc(t)+'</span>').join('')+'</div>':'')+'</div>';
+    }).join('')||'<p style="color:#8888bb;text-align:center;padding:20px">No recipes yet. Add one!</p>';
+}
+
+function exportData(){
+    const blob=new Blob([JSON.stringify({recipes},null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='recipebox.json';a.click();
+}
+
+function importData(e){
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.recipes)recipes=d.recipes;saveData();render();}catch(e){alert('Invalid JSON');}};
+    reader.readAsText(file);
+}
+
+loadData();render();
+</script>
+</body>
+</html>

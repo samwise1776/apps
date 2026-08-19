@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeShelf - Code Snippet Manager</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:system-ui,sans-serif;height:100vh;display:flex;overflow:hidden}
+a.back{position:fixed;top:8px;left:8px;color:#FFCB47;text-decoration:none;font-size:13px;z-index:100;background:#2E2F5E;padding:3px 8px;border-radius:4px}
+a.back:hover{background:#4449E2}
+#sidebar{width:220px;background:#2E2F5E;display:flex;flex-direction:column;flex-shrink:0;border-right:2px solid #4449E2;padding-top:36px}
+.sidebar-top{padding:12px 16px;border-bottom:1px solid #4449E2}
+.sidebar-top h2{color:#FFCB47;font-size:18px}
+.sidebar-top p{font-size:11px;color:#aaa;margin-top:2px}
+#catList{flex:1;overflow-y:auto;padding:8px 0}
+.cat-item{padding:8px 16px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid transparent}
+.cat-item:hover{background:rgba(68,73,226,.3)}
+.cat-item.active{border-left-color:#FFCB47;color:#FFCB47;background:rgba(255,203,71,.1)}
+.cat-item .count{background:#4449E2;padding:1px 7px;border-radius:10px;font-size:11px}
+#sidebar-bottom{padding:10px 16px;border-top:1px solid #4449E2;display:flex;gap:4px}
+#sidebar-bottom button{flex:1;background:#4449E2;color:#F0F0F5;border:none;padding:5px;border-radius:4px;cursor:pointer;font-size:11px}
+#sidebar-bottom button:hover{background:#FFCB47;color:#23225A}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#topBar{background:#2E2F5E;padding:10px 16px;display:flex;gap:8px;align-items:center;border-bottom:2px solid #4449E2}
+#topBar input{flex:1;background:#23225A;color:#F0F0F5;border:1px solid #4449E2;padding:7px 12px;border-radius:4px;font-size:13px}
+#topBar .btn{background:#4449E2;color:#F0F0F5;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:13px}
+#topBar .btn:hover{background:#FFCB47;color:#23225A}
+#content{flex:1;overflow-y:auto;padding:16px}
+.snippet-card{background:#302F6E;border-radius:8px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:background .15s}
+.snippet-card:hover{background:#4449E2}
+.snippet-card .title{flex:1;font-weight:600}
+.snippet-card .lang-badge{background:#4449E2;padding:2px 8px;border-radius:10px;font-size:11px}
+.snippet-card .star{color:#FFCB47;font-size:16px}
+.detail-view{background:#302F6E;border-radius:10px;padding:18px}
+.detail-view h2{color:#FFCB47;margin-bottom:6px}
+.detail-view .meta{font-size:12px;color:#aaa;margin-bottom:8px}
+.detail-view .tags{margin-bottom:10px}
+.detail-view .tag{display:inline-block;background:#4449E2;padding:2px 8px;border-radius:10px;font-size:11px;margin:2px}
+.detail-view pre{background:#1a1a3e;padding:14px;border-radius:6px;overflow-x:auto;font-family:'Consolas',monospace;font-size:13px;line-height:1.5;white-space:pre-wrap}
+.btn{background:#4449E2;color:#F0F0F5;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:13px;margin:3px}
+.btn:hover{background:#FFCB47;color:#23225A}
+.btn-r{background:#E16464;color:#fff;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:13px}
+.btn-r:hover{background:#ff8080}
+.form-view{background:#302F6E;border-radius:10px;padding:18px}
+.form-view label{display:block;font-size:12px;color:#aaa;margin:8px 0 3px}
+.form-view input,.form-view select,.form-view textarea{width:100%;background:#23225A;color:#F0F0F5;border:1px solid #4449E2;padding:7px 10px;border-radius:4px;font-size:13px}
+.form-view textarea{font-family:'Consolas',monospace;min-height:200px;resize:vertical}
+.form-actions{margin-top:12px;display:flex;gap:6px}
+</style>
+</head>
+<body>
+<a class="back" href="../">← Back</a>
+<div id="sidebar">
+  <div class="sidebar-top">
+    <h2>CodeShelf</h2>
+    <p id="totalCount">0 snippets</p>
+  </div>
+  <div id="catList"></div>
+  <div id="sidebar-bottom">
+    <button onclick="exportAll()">Export</button>
+    <button onclick="document.getElementById('importFile').click()">Import</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importAll(event)">
+  </div>
+</div>
+<div id="main">
+  <div id="topBar">
+    <input id="searchInput" placeholder="Search snippets..." oninput="renderList()">
+    <button class="btn" onclick="showForm()">+ Add Snippet</button>
+  </div>
+  <div id="content"></div>
+</div>
+<script>
+const LS='codeshelf';
+let snippets=[],activeCat='all',activeSnippet=null,editingId=null;
+const CATS=['all','JavaScript','Python','Java','HTML/CSS','Other'];
+
+function load(){const d=localStorage.getItem(LS);if(d)try{snippets=JSON.parse(d)}catch(e){}}
+function save(){localStorage.setItem(LS,JSON.stringify(snippets))}
+
+function renderSidebar(){
+  const c=document.getElementById('catList');
+  c.innerHTML=CATS.map(cat=>{
+    const count=cat==='all'?snippets.length:snippets.filter(s=>s.lang===cat).length;
+    return `<div class="cat-item${activeCat===cat?' active':''}" onclick="setCat('${cat}')">${cat}<span class="count">${count}</span></div>`;
+  }).join('');
+  document.getElementById('totalCount').textContent=snippets.length+' snippets';
+}
+
+function setCat(cat){activeCat=cat;activeSnippet=null;renderSidebar();renderList()}
+
+function renderList(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  let list=snippets;
+  if(activeCat!=='all')list=list.filter(s=>s.lang===activeCat);
+  if(q)list=list.filter(s=>s.title.toLowerCase().includes(q)||s.description.toLowerCase().includes(q)||s.tags.some(t=>t.toLowerCase().includes(q))||s.code.toLowerCase().includes(q));
+
+  if(activeSnippet){
+    const s=snippets.find(x=>x.id===activeSnippet);
+    if(s){
+      document.getElementById('content').innerHTML=`<div class="detail-view">
+        <div style="display:flex;justify-content:space-between;align-items:start"><h2>${esc(s.title)}</h2><div><button class="btn" onclick="showForm(${s.id})">Edit</button> <button class="btn-r" onclick="deleteSnippet(${s.id})">Delete</button></div></div>
+        <div class="meta"><span class="lang-badge" style="background:#4449E2;display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px">${esc(s.lang)}</span> ${s.star?'★ Starred':''}</div>
+        ${s.description?'<p style="margin:8px 0;color:#ccc;font-size:13px">'+esc(s.description)+'</p>':''}
+        ${s.tags.length?'<div class="tags">'+s.tags.map(t=>'<span class="tag">'+esc(t)+'</span>').join('')+'</div>':''}
+        <pre>${esc(s.code)}</pre>
+      </div>`;
+      return;
+    }
+  }
+
+  if(editingId===null&&!activeSnippet){
+    document.getElementById('content').innerHTML=list.length?list.map(s=>`<div class="snippet-card" onclick="viewSnippet(${s.id})"><span class="title">${esc(s.title)}</span><span class="lang-badge">${esc(s.lang)}</span><span class="star">${s.star?'★':''}</span></div>`).join(''):'<p style="color:#aaa;text-align:center;margin-top:40px">No snippets yet. Click "+ Add Snippet" to create one.</p>';
+  }
+}
+
+function viewSnippet(id){activeSnippet=id;renderList()}
+
+function showForm(id){
+  editingId=id||null;
+  const s=id?snippets.find(x=>x.id===id):null;
+  document.getElementById('content').innerHTML=`<div class="form-view">
+    <h2 style="color:#FFCB47;margin-bottom:4px">${s?'Edit Snippet':'New Snippet'}</h2>
+    <label>Title</label><input id="fTitle" value="${s?esc(s.title):''}">
+    <label>Language</label><select id="fLang"><option${s&&s.lang==='JavaScript'?' selected':''}>JavaScript</option><option${s&&s.lang==='Python'?' selected':''}>Python</option><option${s&&s.lang==='Java'?' selected':''}>Java</option><option${s&&s.lang==='HTML/CSS'?' selected':''}>HTML/CSS</option><option${s&&s.lang==='Other'?' selected':''}>Other</option></select>
+    <label>Description</label><input id="fDesc" value="${s?esc(s.description):''}">
+    <label>Tags (comma-separated)</label><input id="fTags" value="${s?s.tags.join(', '):''}">
+    <label>Code</label><textarea id="fCode">${s?esc(s.code):''}</textarea>
+    <label><input type="checkbox" id="fStar" ${s&&s.star?'checked':''}> Star this snippet</label>
+    <div class="form-actions">
+      <button class="btn" onclick="saveSnippet()">Save</button>
+      <button class="btn" onclick="cancelForm()">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function saveSnippet(){
+  const title=document.getElementById('fTitle').value.trim();
+  if(!title){alert('Title required');return}
+  const data={
+    title,
+    lang:document.getElementById('fLang').value,
+    description:document.getElementById('fDesc').value.trim(),
+    tags:document.getElementById('fTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    code:document.getElementById('fCode').value,
+    star:document.getElementById('fStar').checked
+  };
+  if(editingId){
+    const s=snippets.find(x=>x.id===editingId);
+    Object.assign(s,data);
+  } else {
+    snippets.push({id:Date.now(),...data});
+  }
+  editingId=null;save();activeSnippet=null;renderSidebar();renderList();
+}
+
+function cancelForm(){editingId=null;activeSnippet=null;renderList()}
+
+function deleteSnippet(id){
+  if(!confirm('Delete this snippet?'))return;
+  snippets=snippets.filter(s=>s.id!==id);
+  activeSnippet=null;save();renderSidebar();renderList();
+}
+
+function exportAll(){
+  const blob=new Blob([JSON.stringify(snippets,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='codeshelf-export.json';a.click();
+}
+function importAll(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{snippets=JSON.parse(ev.target.result);save();renderSidebar();renderList()}catch(err){alert('Invalid JSON')}
+  };reader.readAsText(file);e.target.value='';
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+load();renderSidebar();renderList();
+</script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pomofocus - Pomodoro Timer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:600px;width:100%;padding:40px 20px;text-align:center}
+h1{font-size:28px;margin-bottom:24px;color:#FFCB47}
+.tabs{display:flex;gap:8px;justify-content:center;margin-bottom:32px}
+.tabs button{padding:8px 20px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;background:#2E2F6E;color:#F0F0F5;transition:.2s}
+.tabs button.active{background:#4449E2}
+.tabs button:hover{background:#4449E2}
+.timer-ring{position:relative;width:280px;height:280px;margin:0 auto 32px}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-ring circle{fill:none;stroke-width:6}
+.timer-ring .bg{stroke:#2E2F6E}
+.timer-ring .progress{stroke:#4449E2;stroke-linecap:round;transition:stroke-dashoffset 1s linear}
+.timer-ring .progress.break{stroke:#2ecc71}
+.timer-ring .progress.work{stroke:#e74c3c}
+.timer-display{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:64px;font-weight:700;letter-spacing:2px}
+.timer-label{position:absolute;top:50%;left:50%;transform:translate(-50%,20px);font-size:14px;color:rgba(240,240,245,.6)}
+.controls{display:flex;gap:12px;justify-content:center;margin-bottom:24px}
+.btn{padding:12px 32px;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:600;transition:.2s}
+.btn-primary{background:#4449E2;color:#F0F0F5}
+.btn-primary:hover{background:#5559F2}
+.btn-secondary{background:#2E2F6E;color:#F0F0F5}
+.btn-secondary:hover{background:#3E3F7E}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-accent:hover{background:#FFD560}
+.session-count{font-size:16px;color:rgba(240,240,245,.7);margin-bottom:24px}
+.session-count span{color:#FFCB47;font-weight:700}
+.section{background:#2E2F6E;border-radius:12px;padding:20px;margin-bottom:16px;text-align:left}
+.section h3{font-size:16px;margin-bottom:12px;color:#FFCB47}
+.history-list{max-height:200px;overflow-y:auto}
+.history-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(240,240,245,.1);font-size:13px}
+.history-item:last-child{border:none}
+.history-item .type{font-weight:600}
+.history-item .type.work{color:#e74c3c}
+.history-item .type.break{color:#2ecc71}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.settings-grid label{font-size:12px;color:rgba(240,240,245,.6);display:block;margin-bottom:4px}
+.settings-grid input{width:100%;padding:8px;border:1px solid rgba(240,240,245,.2);border-radius:6px;background:#23225A;color:#F0F0F5;font-size:14px;text-align:center}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#2E2F6E;border-radius:16px;padding:28px;max-width:420px;width:90%}
+.modal h2{margin-bottom:16px;color:#FFCB47}
+.modal .btn{margin-top:12px;width:100%}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>🍅 Pomofocus</h1>
+<div class="tabs">
+<button class="active" onclick="setMode('work')">Work</button>
+<button onclick="setMode('shortBreak')">Short Break</button>
+<button onclick="setMode('longBreak')">Long Break</button>
+</div>
+<div class="timer-ring">
+<svg width="280" height="280">
+<circle class="bg" cx="140" cy="140" r="130"/>
+<circle class="progress work" id="progress" cx="140" cy="140" r="130" stroke-dasharray="816.81" stroke-dashoffset="0"/>
+</svg>
+<div class="timer-display" id="timerDisplay">25:00</div>
+<div class="timer-label" id="timerLabel">Focus Time</div>
+</div>
+<div class="controls">
+<button class="btn btn-primary" id="startBtn" onclick="toggleTimer()">Start</button>
+<button class="btn btn-secondary" onclick="resetTimer()">Reset</button>
+<button class="btn btn-accent" onclick="showSettings()">⚙ Settings</button>
+</div>
+<div class="session-count">Sessions: <span id="sessionCount">0</span> / 4 until long break</div>
+<div class="section">
+<h3>History</h3>
+<div class="history-list" id="historyList"><p style="color:rgba(240,240,245,.4);font-size:13px">No sessions yet</p></div>
+</div>
+</div>
+<div class="modal-overlay" id="settingsModal">
+<div class="modal">
+<h2>Settings</h2>
+<div class="settings-grid">
+<div><label>Work (min)</label><input type="number" id="setWork" min="1" max="120" value="25"></div>
+<div><label>Short Break (min)</label><input type="number" id="setShort" min="1" max="30" value="5"></div>
+<div><label>Long Break (min)</label><input type="number" id="setLong" min="1" max="60" value="15"></div>
+</div>
+<button class="btn btn-primary" onclick="saveSettings()">Save</button>
+<button class="btn btn-secondary" onclick="hideSettings()" style="margin-top:8px">Cancel</button>
+</div>
+</div>
+<script>
+let mode='work',running=false,interval=null,timeLeft=25*60,totalTime=25*60,sessions=0;
+let settings=JSON.parse(localStorage.getItem('pomoSettings'))||{work:25,short:5,long:15};
+let history=JSON.parse(localStorage.getItem('pomoHistory'))||[];
+const C=2*Math.PI*130;
+const progress=document.getElementById('progress');
+const display=document.getElementById('timerDisplay');
+const label=document.getElementById('timerLabel');
+const startBtn=document.getElementById('startBtn');
+const circumference=C;
+
+function setMode(m){
+  if(running)return;
+  mode=m;updateTimerDisplay();
+  document.querySelectorAll('.tabs button').forEach((b,i)=>{
+    b.classList.toggle('active',(m==='work'&&i===0)||(m==='shortBreak'&&i===1)||(m==='longBreak'&&i===2));
+  });
+}
+
+function updateTimerDisplay(){
+  if(mode==='work'){totalTime=settings.work*60;label.textContent='Focus Time'}
+  else if(mode==='shortBreak'){totalTime=settings.short*60;label.textContent='Short Break'}
+  else{totalTime=settings.long*60;label.textContent='Long Break'}
+  if(!running)timeLeft=totalTime;
+  render();
+}
+
+function render(){
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  display.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  const offset=circumference-(timeLeft/totalTime)*circumference;
+  progress.style.strokeDashoffset=offset;
+  progress.className='progress '+(mode==='work'?'work':'break');
+}
+
+function toggleTimer(){
+  if(running){running=false;clearInterval(interval);startBtn.textContent='Resume'}
+  else{running=true;startBtn.textContent='Pause';interval=setInterval(tick,1000)}
+}
+
+function tick(){
+  timeLeft--;
+  if(timeLeft<=0){clearInterval(interval);running=false;startBtn.textContent='Start';onTimerEnd();return}
+  render();
+}
+
+function onTimerEnd(){
+  playBeep();
+  const now=new Date();
+  history.unshift({type:mode==='work'?'Work':'Break',time:now.toLocaleTimeString(),date:now.toLocaleDateString(),duration:totalTime/60});
+  if(history.length>50)history.pop();
+  localStorage.setItem('pomoHistory',JSON.stringify(history));
+  renderHistory();
+  if(mode==='work'){
+    sessions++;
+    document.getElementById('sessionCount').textContent=sessions;
+    if(sessions>=4){sessions=0;document.getElementById('sessionCount').textContent='0';setMode('longBreak')}
+    else{setMode('shortBreak')}
+  }else{setMode('work')}
+}
+
+function playBeep(){
+  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  [0,.15,.3].forEach((d,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=800;o.type='sine';g.gain.value=.3;o.start(ctx.currentTime+d);o.stop(ctx.currentTime+d+.12)})}
+  catch(e){}
+}
+
+function resetTimer(){running=false;clearInterval(interval);startBtn.textContent='Start';timeLeft=totalTime;render()}
+
+function renderHistory(){
+  const el=document.getElementById('historyList');
+  if(!history.length){el.innerHTML='<p style="color:rgba(240,240,245,.4);font-size:13px">No sessions yet</p>';return}
+  el.innerHTML=history.slice(0,20).map(h=>`<div class="history-item"><span class="type ${h.type.toLowerCase()}">${h.type}</span><span>${h.duration}min</span><span>${h.date} ${h.time}</span></div>`).join('');
+}
+
+function showSettings(){document.getElementById('setWork').value=settings.work;document.getElementById('setShort').value=settings.short;document.getElementById('setLong').value=settings.long;document.getElementById('settingsModal').classList.add('show')}
+function hideSettings(){document.getElementById('settingsModal').classList.remove('show')}
+function saveSettings(){
+  settings.work=parseInt(document.getElementById('setWork').value)||25;
+  settings.short=parseInt(document.getElementById('setShort').value)||5;
+  settings.long=parseInt(document.getElementById('setLong').value)||15;
+  localStorage.setItem('pomoSettings',JSON.stringify(settings));hideSettings();updateTimerDisplay();
+}
+
+updateTimerDisplay();renderHistory();
+</script>
+</body>
+</html>

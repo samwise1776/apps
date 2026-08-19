@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Utilor - Multi-Utility App</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#22235A;color:#F0F0F5;font-family:'Segoe UI',system-ui,sans-serif;display:flex;height:100vh;overflow:hidden}
+a.back{position:fixed;top:12px;left:12px;z-index:1000;color:#FFCB47;text-decoration:none;font-size:13px;background:rgba(46,47,94,.85);padding:4px 10px;border-radius:6px}
+a.back:hover{background:rgba(68,73,226,.6)}
+.sidebar{width:200px;background:#1a1a45;border-right:2px solid #4449E2;display:flex;flex-direction:column;padding-top:50px}
+.sidebar button{padding:16px 20px;background:none;border:none;color:#aaa;font-size:15px;text-align:left;cursor:pointer;transition:all .15s;border-left:3px solid transparent}
+.sidebar button:hover{background:rgba(68,73,226,.2);color:#F0F0F5}
+.sidebar button.active{color:#FFCB47;border-left-color:#FFCB47;background:rgba(68,73,226,.15)}
+.main{flex:1;overflow-y:auto;padding:30px}
+.page{display:none}.page.active{display:block}
+
+.card{background:#2E2F5E;border-radius:14px;padding:28px;max-width:700px;margin:0 auto}
+.card h2{color:#FFCB47;margin-bottom:20px;font-size:22px}
+
+.calc-display{background:#1a1a45;border-radius:10px;padding:16px 20px;margin-bottom:16px;text-align:right;min-height:70px}
+.calc-expr{font-size:14px;color:#888;min-height:20px;word-break:break-all}
+.calc-result{font-size:32px;font-weight:bold;color:#F0F0F5}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.calc-btn{padding:16px;border:none;border-radius:8px;background:#1a1a45;color:#F0F0F5;font-size:18px;cursor:pointer;transition:background .1s}
+.calc-btn:hover{background:#4449E2}
+.calc-btn.op{color:#FFCB47}.calc-btn.eq{background:#4449E2;color:#fff}.calc-btn.clear{color:#e24444}
+
+.pw-section{margin-bottom:20px}
+.pw-section label{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:14px}
+.pw-section input[type=checkbox]{accent-color:#FFCB47}
+.pw-result{background:#1a1a45;border-radius:8px;padding:14px;margin-top:12px;font-family:monospace;font-size:16px;word-break:break-all;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pw-result code{flex:1}
+.pw-strength{height:6px;border-radius:3px;margin-top:8px;transition:width .3s}
+.pw-weak{width:25%;background:#e24444}.pw-medium{width:50%;background:#e2a844}.pw-strong{width:75%;background:#44e26e}.pw-very{width:100%;background:#44e2b0}
+
+input[type=range]{width:100%;accent-color:#FFCB47;margin:6px 0}
+input[type=text],input[type=number],textarea,select{width:100%;padding:10px 14px;border:none;border-radius:8px;background:#1a1a45;color:#F0F0F5;font-size:14px;margin:4px 0 12px;font-family:inherit}
+textarea{resize:vertical;min-height:120px;font-family:monospace;font-size:12px}
+.btn{padding:10px 20px;border:none;border-radius:8px;background:#4449E2;color:#F0F0F5;cursor:pointer;font-size:14px;transition:background .15s}
+.btn:hover{background:#5a5ff0}
+.btn-sm{padding:6px 12px;font-size:12px}
+</style>
+</head>
+<body>
+<a class="back" href="../">&larr; Back</a>
+<div class="sidebar">
+  <button class="active" data-page="calc">🧮 Calculator</button>
+  <button data-page="pwgen">🔑 Password Gen</button>
+  <button data-page="appgen">📦 App Generator</button>
+</div>
+<div class="main">
+  <!-- Calculator -->
+  <div class="page active" id="page-calc">
+    <div class="card">
+      <h2>Calculator</h2>
+      <div class="calc-display">
+        <div class="calc-expr" id="calcExpr">&nbsp;</div>
+        <div class="calc-result" id="calcResult">0</div>
+      </div>
+      <div class="calc-grid">
+        <button class="calc-btn clear" data-v="C">C</button>
+        <button class="calc-btn op" data-v="(">(</button>
+        <button class="calc-btn op" data-v=")">)</button>
+        <button class="calc-btn op" data-v="/">÷</button>
+        <button class="calc-btn" data-v="7">7</button>
+        <button class="calc-btn" data-v="8">8</button>
+        <button class="calc-btn" data-v="9">9</button>
+        <button class="calc-btn op" data-v="*">×</button>
+        <button class="calc-btn" data-v="4">4</button>
+        <button class="calc-btn" data-v="5">5</button>
+        <button class="calc-btn" data-v="6">6</button>
+        <button class="calc-btn op" data-v="-">−</button>
+        <button class="calc-btn" data-v="1">1</button>
+        <button class="calc-btn" data-v="2">2</button>
+        <button class="calc-btn" data-v="3">3</button>
+        <button class="calc-btn op" data-v="+">+</button>
+        <button class="calc-btn" data-v="%">%</button>
+        <button class="calc-btn" data-v="0">0</button>
+        <button class="calc-btn" data-v=".">.</button>
+        <button class="calc-btn eq" data-v="=">=</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Generator -->
+  <div class="page" id="page-pwgen">
+    <div class="card">
+      <h2>Password Generator</h2>
+      <div class="pw-section">
+        <label>Length: <strong id="pwLenVal">16</strong></label>
+        <input type="range" id="pwLen" min="8" max="64" value="16">
+      </div>
+      <div class="pw-section">
+        <label><input type="checkbox" id="pwUpper" checked> Uppercase (A-Z)</label>
+        <label><input type="checkbox" id="pwLower" checked> Lowercase (a-z)</label>
+        <label><input type="checkbox" id="pwNum" checked> Numbers (0-9)</label>
+        <label><input type="checkbox" id="pwSym" checked> Symbols (!@#$...)</label>
+      </div>
+      <button class="btn" id="pwGenBtn">Generate Password</button>
+      <div class="pw-result" id="pwResult"><code id="pwOutput"></code><button class="btn btn-sm" id="pwCopyBtn">Copy</button></div>
+      <div class="pw-strength" id="pwStrength"></div>
+    </div>
+  </div>
+
+  <!-- App Generator -->
+  <div class="page" id="page-appgen">
+    <div class="card">
+      <h2>App Generator</h2>
+      <label>App Name</label><input type="text" id="agName" placeholder="MyCoolApp">
+      <label>Description</label><input type="text" id="agDesc" placeholder="A useful utility app">
+      <label>Type</label>
+      <select id="agType">
+        <option>Calculator</option><option>Timer</option><option>Note</option><option>Tracker</option><option>Converter</option><option>Weather</option><option>Quiz</option>
+      </select>
+      <button class="btn" id="agGenBtn">Generate</button>
+      <textarea id="agOutput" placeholder="Generated HTML will appear here..." readonly></textarea>
+      <button class="btn btn-sm" id="agCopyBtn" style="margin-top:8px">Copy Code</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.sidebar button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.sidebar button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-'+b.dataset.page).classList.add('active');
+  });
+});
+
+// Calculator
+let calcExpr='', calcDisplay='0', calcNew=true;
+document.querySelectorAll('.calc-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const v=b.dataset.v;
+    if(v==='C'){calcExpr='';calcDisplay='0';calcNew=true;}
+    else if(v==='='){
+      try{let r=Function('"use strict";return ('+calcExpr+')')();calcDisplay=String(Math.round(r*1e10)/1e10);calcExpr=calcDisplay;calcNew=true;}
+      catch(e){calcDisplay='Error';calcNew=true;}
+    }
+    else{
+      if(calcNew&&'0123456789'.includes(v)){calcExpr='';calcNew=false;}
+      if(calcNew&&'+-*/%('.includes(v)){calcNew=false;}
+      if(calcDisplay==='Error')calcExpr='';
+      calcExpr+=v;calcDisplay=calcExpr;
+    }
+    document.getElementById('calcExpr').textContent=calcExpr||'\u00A0';
+    document.getElementById('calcResult').textContent=calcDisplay;
+  });
+});
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('page-calc').classList.contains('active')){
+    const k=e.key;
+    if('0123456789+-*/.%()'.includes(k)){
+      const btn=document.querySelector(`.calc-btn[data-v="${k}"]`);if(btn)btn.click();
+    }else if(k==='Enter'){
+      const btn=document.querySelector('.calc-btn[data-v="="]');if(btn)btn.click();
+    }else if(k==='Backspace'){
+      calcExpr=calcExpr.slice(0,-1);calcDisplay=calcExpr||'0';
+      document.getElementById('calcExpr').textContent=calcExpr||'\u00A0';
+      document.getElementById('calcResult').textContent=calcDisplay;
+    }else if(k==='Escape'){
+      document.querySelector('.calc-btn[data-v="C"]').click();
+    }
+  }
+});
+
+// Password Generator
+document.getElementById('pwLen').addEventListener('input',e=>{document.getElementById('pwLenVal').textContent=e.target.value;});
+document.getElementById('pwGenBtn').addEventListener('click',()=>{
+  const len=+document.getElementById('pwLen').value;
+  let chars='';
+  if(document.getElementById('pwUpper').checked)chars+='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  if(document.getElementById('pwLower').checked)chars+='abcdefghijklmnopqrstuvwxyz';
+  if(document.getElementById('pwNum').checked)chars+='0123456789';
+  if(document.getElementById('pwSym').checked)chars+='!@#$%^&*()_+-=[]{}|;:,.<>?';
+  if(!chars){chars='abcdefghijklmnopqrstuvwxyz';}
+  let pw='';
+  for(let i=0;i<len;i++)pw+=chars[Math.floor(Math.random()*chars.length)];
+  document.getElementById('pwOutput').textContent=pw;
+  const s=document.getElementById('pwStrength');
+  s.className='pw-strength';
+  let score=0;
+  if(len>=12)score++;if(len>=20)score++;
+  if(/[A-Z]/.test(pw))score++;if(/[0-9]/.test(pw))score++;if(/[^a-zA-Z0-9]/.test(pw))score++;
+  if(score<=2)s.classList.add('pw-weak');
+  else if(score===3)s.classList.add('pw-medium');
+  else if(score===4)s.classList.add('pw-strong');
+  else s.classList.add('pw-very');
+});
+document.getElementById('pwCopyBtn').addEventListener('click',()=>{
+  const t=document.getElementById('pwOutput').textContent;
+  if(t)navigator.clipboard.writeText(t).then(()=>{document.getElementById('pwCopyBtn').textContent='Copied!';setTimeout(()=>document.getElementById('pwCopyBtn').textContent='Copy',1500);});
+});
+
+// App Generator
+const templates={
+  Calculator:`<!DOCTYPE html><html><head><title>{{NAME}}</title></head><body><h1>{{NAME}}</h1><input id="d" readonly><br><script>function v(n){d.value+=n}function c(){d.value=''}function e(){try{d.value=Function('return '+d.value)()}catch(ex){d.value='Error'}}<\/script><button onclick="c()">C</button><button onclick="v('1')">1</button><button onclick="v('2')">2</button><button onclick="v('3')">3</button><button onclick="v('+')">+</button><button onclick="v('4')">4</button><button onclick="v('5')">5</button><button onclick="v('6')">6</button><button onclick="v('-')">-</button><button onclick="e()">=</button></body></html>`,
+  Timer:`<!DOCTYPE html><html><head><title>{{NAME}}</title></head><body><h1>{{NAME}}</h1><h2 id="t">00:00:00</h2><button onclick="start()">Start</button><button onclick="stop()">Stop</button><button onclick="reset()">Reset</button><script>let s=0,i;function u(){const h=String(Math.floor(s/3600)).padStart(2,'0'),m=String(Math.floor(s%3600/60)).padStart(2,'0'),sec=String(s%60).padStart(2,'0');t.textContent=h+':'+m+':'+sec}function start(){if(!i)i=setInterval(()=>{s++;u()},1000)}function stop(){clearInterval(i);i=null}function reset(){stop();s=0;u()}<\/script></body></html>`,
+  Note:`<!DOCTYPE html><html><head><title>{{NAME}}</title></head><body><h1>{{NAME}}</h1><textarea id="n" style="width:100%;height:400px"></textarea><br><button onclick="localStorage.setItem('note',n.value);alert('Saved!')">Save</button><script>n.value=localStorage.getItem('note')||'';<\/script></body></html>`,
+  Tracker:`<!DOCTYPE html><html><head><title>{{NAME}}</title></head><body><h1>{{NAME}}</h1><input id="i" placeholder="Task"><button onclick="add()">Add</button><ul id="l"></ul><script>let d=JSON.parse(localStorage.getItem('tr')||'[]');function r(){l.innerHTML=d.map((x,i)=>'<li>'+x+' <button onclick="d.splice('+i+',1);r();localStorage.setItem(\\'tr\\',JSON.stringify(d))">X</button></li>').join('')}function add(){if(i.value){d.push(i.value);i.value='';localStorage.setItem('tr',JSON.stringify(d));r()}}r()<\/script></body></html>`,
+  Converter:`<!DOCTYPE html><html><head><title>{{NAME}}</title></head><body><h1>{{NAME}}</h1><input id="v" type="number" placeholder="Value"><select id="t"><option value="c2f">C to F</option><option value="f2c">F to C</option><option value="km2mi">km to mi</option><option value="mi2km">mi to km</option></select><button onclick="convert()">Convert</button><p id="r"></p><script>function convert(){const n=+v.value,t2=t.value;let r;if(t2==='c2f')r=n*9/5+32;else if(t2==='f2c')r=(n-32)*5/9;else if(t2==='km2mi')r=n*0.621371;else r=n*1.60934;r.textContent=Result: '+r.toFixed(2)}<\/script></body></html>`,
+  Weather:`<!DOCTYPE html><html><head><title>{{NAME}}</title></head><body><h1>{{NAME}}</h1><p>Enter city:</p><input id="c" placeholder="City"><button onclick="r()">Check</button><div id="o"></div><script>function r(){o.innerHTML='<p>Weather for '+c.value+': ☀️ 72°F (Simulated)</p>'}<\/script></body></html>`,
+  Quiz:`<!DOCTYPE html><html><head><title>{{NAME}}</title></head><body><h1>{{NAME}}</h1><div id="q"></div><script>const qs=[{q:'2+2?',a:['3','4','5'],c:1},{q:'Capital of France?',a:['London','Paris','Berlin'],c:1}];let i=0,s=0;function r(){if(i>=qs.length){q.innerHTML='<p>Score: '+s+'/'+qs.length+'</p>';return}const x=qs[i];q.innerHTML='<p>'+x.q+'</p>'+x.a.map((a,j)=>'<button onclick="check('+j+')">'+a+'</button>').join('<br>')}function check(j){if(j===qs[i].c)s++;i++;r()}r()<\/script></body></html>`
+};
+document.getElementById('agGenBtn').addEventListener('click',()=>{
+  const name=document.getElementById('agName').value||'MyApp';
+  const desc=document.getElementById('agDesc').value||'A generated app';
+  const type=document.getElementById('agType').value;
+  let html=(templates[type]||templates.Calculator).replace(/\{\{NAME\}\}/g,name);
+  document.getElementById('agOutput').value=html;
+});
+document.getElementById('agCopyBtn').addEventListener('click',()=>{
+  const t=document.getElementById('agOutput').value;
+  if(t)navigator.clipboard.writeText(t).then(()=>{document.getElementById('agCopyBtn').textContent='Copied!';setTimeout(()=>document.getElementById('agCopyBtn').textContent='Copy Code',1500);});
+});
+</script>
+</body>
+</html>

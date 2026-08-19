@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitnessLog</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:900px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;margin-bottom:24px;color:#FFCB47;text-align:center}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-danger{background:#e74c3c}
+.btn-sm{padding:4px 10px;font-size:12px}
+input,select{padding:8px 12px;border:1px solid rgba(240,240,245,.2);border-radius:6px;background:#1a1a4a;color:#F0F0F5;font-size:14px;width:100%}
+.section{background:#2E2F6E;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h3{color:#FFCB47;margin-bottom:12px;font-size:16px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#2E2F6E;color:#F0F0F5;transition:.2s}
+.tabs button.active{background:#4449E2}
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:#1a1a4a;border-radius:10px;padding:14px;text-align:center}
+.stat-card .val{font-size:24px;font-weight:700;color:#FFCB47}
+.stat-card .lbl{font-size:11px;color:rgba(240,240,245,.5);margin-top:2px}
+.form-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.form-row>div{flex:1;min-width:100px;display:flex;flex-direction:column;gap:2px}
+.form-row label{font-size:11px;color:rgba(240,240,245,.5)}
+.exercise-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.exercise-row select,.exercise-row input{width:auto;flex:1;min-width:80px}
+.set-row{display:flex;gap:4px;align-items:center}
+.set-row span{font-size:12px;color:rgba(240,240,245,.5)}
+.pr-table{width:100%;border-collapse:collapse;font-size:13px}
+.pr-table th{text-align:left;padding:8px;border-bottom:2px solid #4449E2;color:#FFCB47;font-size:12px}
+.pr-table td{padding:8px;border-bottom:1px solid rgba(240,240,245,.1)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:12px;text-align:center}
+.cal-day{padding:6px;border-radius:4px}
+.cal-day.has-workout{background:#4449E2}
+.cal-day.today{border:2px solid #FFCB47}
+.cal-header{color:rgba(240,240,245,.4);font-weight:600;padding:4px}
+.history-item{padding:10px;border-bottom:1px solid rgba(240,240,245,.05);font-size:13px}
+.history-item .date{color:#FFCB47;font-weight:600}
+.history-item .exercises{color:rgba(240,240,245,.6);margin-top:4px}
+.history-item .volume{color:rgba(240,240,245,.4);font-size:11px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>🏋️ FitnessLog</h1>
+<div class="tabs">
+<button class="active" onclick="showTab('log',this)">Log Workout</button>
+<button onclick="showTab('history',this)">History</button>
+<button onclick="showTab('records',this)">PRs</button>
+<button onclick="showTab('calendar',this)">Calendar</button>
+</div>
+<div id="tabLog">
+<div class="section">
+<h3>Today's Workout</h3>
+<div class="form-row"><div style="flex:2"><label>Exercise</label><select id="exerciseSelect"></select></div>
+<div><label>Sets</label><input type="number" id="exSets" value="3" min="1"></div>
+<div><label>Reps</label><input type="number" id="exReps" value="10" min="1"></div>
+<div><label>Weight (lbs)</label><input type="number" id="exWeight" value="0" min="0"></div>
+<button class="btn btn-accent" onclick="addExercise()">Add</button></div>
+<div id="currentExercises"></div>
+<button class="btn btn-accent" onclick="saveWorkout()" style="margin-top:12px;width:100%">Save Workout</button>
+</div>
+</div>
+<div id="tabHistory" style="display:none"><div class="section"><h3>Workout History</h3><div id="historyList"></div></div></div>
+<div id="tabRecords" style="display:none"><div class="section"><h3>Personal Records</h3><table class="pr-table" id="prTable"><thead><tr><th>Exercise</th><th>Best Weight</th><th>Date</th></tr></thead><tbody></tbody></table></div></div>
+<div id="tabCalendar" style="display:none">
+<div class="stat-cards" id="statsCards"></div>
+<div class="section"><h3>Calendar</h3><div id="calendar"></div></div>
+</div>
+</div>
+<script>
+const exercises=['Bench Press','Squat','Deadlift','Overhead Press','Row','Curl','Tricep Pushdown','Pull-up','Plank'];
+let workouts=JSON.parse(localStorage.getItem('fitnessWorkouts'))||[];
+let currentExercises=[];
+
+function save(){localStorage.setItem('fitnessWorkouts',JSON.stringify(workouts))}
+
+function showTab(name,btn){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  ['Log','History','Records','Calendar'].forEach(t=>document.getElementById('tab'+t).style.display='none');
+  document.getElementById('tab'+name.charAt(0).toUpperCase()+name.slice(1)).style.display='';
+  if(name==='history')renderHistory();if(name==='records')renderPRs();if(name==='calendar')renderCalendar();
+}
+
+function initSelect(){
+  const sel=document.getElementById('exerciseSelect');
+  sel.innerHTML=exercises.map(e=>`<option>${e}</option>`).join('');
+}
+
+function addExercise(){
+  const ex=document.getElementById('exerciseSelect').value;
+  const sets=parseInt(document.getElementById('exSets').value)||3;
+  const reps=parseInt(document.getElementById('exReps').value)||10;
+  const weight=parseInt(document.getElementById('exWeight').value)||0;
+  currentExercises.push({name:ex,sets,reps,weight});renderCurrent();
+}
+
+function removeExercise(i){currentExercises.splice(i,1);renderCurrent()}
+
+function renderCurrent(){
+  document.getElementById('currentExercises').innerHTML=currentExercises.map((e,i)=>`<div class="exercise-row"><span style="font-weight:600;min-width:120px">${e.name}</span><span style="color:rgba(240,200,245,.5)">${e.sets}×${e.reps} @ ${e.weight}lbs</span><span style="color:rgba(240,240,245,.4)">Vol: ${e.sets*e.reps*e.weight}</span><button class="btn btn-danger btn-sm" onclick="removeExercise(${i})">×</button></div>`).join('');
+}
+
+function saveWorkout(){
+  if(!currentExercises.length)return;
+  const volume=currentExercises.reduce((a,e)=>a+e.sets*e.reps*e.weight,0);
+  workouts.push({date:new Date().toISOString(),exercises:[...currentExercises],volume});
+  save();currentExercises=[];renderCurrent();alert('Workout saved!');
+}
+
+function renderHistory(){
+  document.getElementById('historyList').innerHTML=workouts.slice().reverse().map(w=>{
+    const d=new Date(w.date);
+    return`<div class="history-item"><div class="date">${d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div><div class="exercises">${w.exercises.map(e=>`${e.name}: ${e.sets}×${e.reps} @ ${e.weight}lbs`).join(' · ')}</div><div class="volume">Volume: ${w.volume.toLocaleString()} lbs</div></div>`;
+  }).join('')||'<p style="color:rgba(240,240,245,.4)">No workouts yet</p>';
+}
+
+function renderPRs(){
+  const prs={};
+  workouts.forEach(w=>{w.exercises.forEach(e=>{if(!prs[e.name]||e.weight>prs[e.name].weight){prs[e.name]={weight:e.weight,date:w.date}}})});
+  document.querySelector('#prTable tbody').innerHTML=Object.entries(prs).map(([name,pr])=>`<tr><td>${name}</td><td style="color:#FFCB47;font-weight:700">${pr.weight} lbs</td><td>${new Date(pr.date).toLocaleDateString()}</td></tr>`).join('');
+}
+
+function renderCalendar(){
+  const now=new Date();const year=now.getFullYear(),month=now.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=now.getDate();
+  const workoutDates=new Set(workouts.map(w=>new Date(w.date).toISOString().split('T')[0]));
+  const workoutDays=workouts.filter(w=>{const d=new Date(w.date);return d.getMonth()===month&&d.getFullYear()===year}).length;
+  const totalVol=workouts.filter(w=>{const d=new Date(w.date);return d.getMonth()===month&&d.getFullYear()===year}).reduce((a,w)=>a+w.volume,0);
+  const streak=calcStreak();
+
+  document.getElementById('statsCards').innerHTML=`
+    <div class="stat-card"><div class="val">${workouts.length}</div><div class="lbl">Total Workouts</div></div>
+    <div class="stat-card"><div class="val">${totalVol.toLocaleString()}</div><div class="lbl">Monthly Volume</div></div>
+    <div class="stat-card"><div class="val">${streak}</div><div class="lbl">Day Streak</div></div>
+    <div class="stat-card"><div class="val">${workoutDays}</div><div class="lbl">This Month</div></div>`;
+
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html='<div class="cal-grid">'+dayNames.map(d=>`<div class="cal-header">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++)html+='<div class="cal-day"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const has=workoutDates.has(key);const isToday=d===today;
+    html+=`<div class="cal-day ${has?'has-workout':''} ${isToday?'today':''}">${d}</div>`;
+  }
+  html+='</div>';document.getElementById('calendar').innerHTML=html;
+}
+
+function calcStreak(){
+  const dates=[...new Set(workouts.map(w=>new Date(w.date).toISOString().split('T')[0]))].sort().reverse();
+  let streak=0;const today=new Date();
+  for(let i=0;i<365;i++){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    const key=d.toISOString().split('T')[0];
+    if(dates.includes(key))streak++;else if(i>0)break;
+  }
+  return streak;
+}
+
+initSelect();
+</script>
+</body>
+</html>

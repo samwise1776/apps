@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VideoForge - Video Editor Studio</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1B1F27;color:#F0F0F5;font-family:'Segoe UI',sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#00AAFF;text-decoration:none;font-size:14px;z-index:100;background:rgba(27,31,39,.9);padding:4px 10px;border-radius:6px}
+a.back:hover{text-decoration:underline}
+.layout{display:grid;grid-template-columns:250px 1fr 300px;grid-template-rows:auto 1fr auto;height:100vh;padding-top:0}
+.header{grid-column:1/-1;background:#13161D;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2a2d35}
+.header h1{font-size:16px;color:#00AAFF}
+.header .actions{display:flex;gap:8px}
+.panel{background:#13161D;border:1px solid #2a2d35;padding:12px;overflow-y:auto}
+.panel h3{color:#00AAFF;font-size:13px;text-transform:uppercase;margin-bottom:10px;letter-spacing:1px}
+.left-panel{grid-row:2;border-right:1px solid #2a2d35}
+.main-area{grid-row:2;display:flex;flex-direction:column}
+.right-panel{grid-row:2;border-left:1px solid #2a2d35}
+.timeline-area{grid-row:3;border-top:1px solid #2a2d35;height:200px;overflow-x:auto}
+.btn{background:#00AAFF;color:#1B1F27;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600}
+.btn:hover{background:#33bbff}
+.btn.dark{background:#2a2d35;color:#F0F0F5}
+.btn.danger{background:#e04040;color:#fff}
+input,select{background:#1B1F27;color:#F0F0F5;border:1px solid #2a2d35;border-radius:4px;padding:6px 8px;font-size:12px;width:100%;margin-bottom:6px}
+.media-item{display:flex;align-items:center;gap:8px;padding:8px;background:#1B1F27;border:1px solid #2a2d35;border-radius:6px;margin-bottom:6px;cursor:pointer;font-size:12px}
+.media-item:hover{border-color:#00AAFF}
+.media-thumb{width:36px;height:28px;border-radius:3px;flex-shrink:0}
+.media-info{flex:1;overflow:hidden}
+.media-info .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.media-info .meta{color:#666;font-size:11px}
+.preview-area{flex:1;display:flex;align-items:center;justify-content:center;background:#0d0f13;margin:8px;border-radius:6px;position:relative}
+.preview-rect{border:2px solid #00AAFF;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#555}
+.playhead-info{position:absolute;bottom:8px;right:8px;font-size:11px;color:#00AAFF}
+.timeline-tracks{padding:8px}
+.track-row{display:flex;align-items:center;margin-bottom:4px;height:36px}
+.track-label{width:80px;font-size:11px;color:#00AAFF;flex-shrink:0;font-weight:600}
+.track-content{flex:1;background:#1a1d25;border-radius:4px;position:relative;height:32px;overflow:hidden}
+.track-bar{position:absolute;height:28px;top:2px;border-radius:3px;font-size:10px;display:flex;align-items:center;padding:0 6px;color:#fff;font-weight:600;overflow:hidden;white-space:nowrap;cursor:pointer}
+.scrubber{width:100%;padding:4px 8px;background:#13161D}
+.scrubber input[type=range]{width:100%;accent-color:#00AAFF}
+.effect-toggle{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a1d25;font-size:12px}
+.toggle{width:36px;height:20px;background:#2a2d35;border-radius:10px;cursor:pointer;position:relative;transition:.2s}
+.toggle.on{background:#00AAFF}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.2s}
+.toggle.on::after{left:18px}
+.export-section{margin-top:12px}
+.progress-bar{width:100%;height:6px;background:#2a2d35;border-radius:3px;margin-top:8px;overflow:hidden}
+.progress-fill{height:100%;background:#00AAFF;border-radius:3px;transition:width .3s}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="layout">
+<div class="header">
+<h1>VideoForge Studio</h1>
+<div class="actions">
+<button class="btn dark" onclick="saveProject()">Save</button>
+<button class="btn dark" onclick="loadProject()">Load</button>
+<button class="btn" onclick="startExport()">Export</button>
+</div>
+</div>
+<div class="panel left-panel">
+<h3>Media Library</h3>
+<div style="margin-bottom:10px">
+<input id="mediaName" placeholder="Name">
+<select id="mediaType"><option>Video</option><option>Audio</option><option>Image</option></select>
+<input id="mediaDur" placeholder="Duration (s)" type="number" value="5">
+<button class="btn" onclick="addMedia()" style="width:100%">Add Media</button>
+</div>
+<div id="mediaList"></div>
+</div>
+<div class="main-area">
+<div class="preview-area" id="preview">
+<div class="preview-rect" id="previewRect">No media on timeline</div>
+<div class="playhead-info" id="playheadInfo">0.0s</div>
+</div>
+<div class="timeline-area">
+<div class="scrubber">
+<input type="range" id="scrubber" min="0" max="100" value="0" step="0.1" oninput="scrubTimeline(this.value)">
+<span id="scrubTime" style="font-size:11px;color:#00AAFF">0.0s</span>
+</div>
+<div class="timeline-tracks" id="timelineTracks"></div>
+</div>
+</div>
+<div class="panel right-panel">
+<h3>Effects</h3>
+<div id="effectsPanel"></div>
+<div class="export-section">
+<h3>Export Settings</h3>
+<select id="expFormat"><option>MP4</option><option>WebM</option><option>AVI</option></select>
+<select id="expRes"><option>720p</option><option selected>1080p</option><option>4K</option></select>
+<label style="font-size:12px;display:block;margin:6px 0 2px">Quality</label>
+<input type="range" id="expQuality" min="1" max="10" value="8" style="width:100%">
+<div id="exportProgress" class="hidden">
+<div class="progress-bar"><div class="progress-fill" id="exportFill" style="width:0%"></div></div>
+<p style="font-size:11px;color:#00AAFF;margin-top:4px" id="exportStatus">Exporting...</p>
+</div>
+</div>
+</div>
+</div>
+<script>
+const DB='vf_data';
+let mediaItems=[], timeline=[], currentTime=0;
+const tracks=['Video 1','Video 2','Audio 1','Audio 2'];
+const effects={fadeIn:false,fadeOut:false,brightness:false,contrast:false};
+const totalDuration=60;
+
+function randColor(){return '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function addMedia(){
+    const name=document.getElementById('mediaName').value.trim();
+    if(!name)return;
+    const type=document.getElementById('mediaType').value;
+    const dur=parseFloat(document.getElementById('mediaDur').value)||5;
+    mediaItems.push({id:Date.now(),name,type,duration:dur,color:randColor()});
+    document.getElementById('mediaName').value='';
+    renderMedia();renderTimeline();saveState();
+}
+
+function renderMedia(){
+    const el=document.getElementById('mediaList');
+    el.innerHTML=mediaItems.map(m=>
+        '<div class="media-item" onclick="selectMedia('+m.id+')" id="mi-'+m.id+'">'+
+        '<div class="media-thumb" style="background:'+m.color+'"></div>'+
+        '<div class="media-info"><div class="name">'+esc(m.name)+'</div>'+
+        '<div class="meta">'+m.type+' &middot; '+m.duration+'s</div></div></div>'
+    ).join('');
+}
+
+let selectedMedia=null;
+function selectMedia(id){
+    selectedMedia=id;
+    document.querySelectorAll('.media-item').forEach(e=>e.style.borderColor='#2a2d35');
+    const el=document.getElementById('mi-'+id);
+    if(el)el.style.borderColor='#00AAFF';
+}
+
+function addToTimeline(trackIdx,startSec){
+    if(!selectedMedia)return;
+    const m=mediaItems.find(i=>i.id===selectedMedia);
+    if(!m)return;
+    timeline.push({mediaId:m.id,track:trackIdx,start:startSec,duration:m.duration,color:m.color,name:m.name});
+    renderTimeline();saveState();
+}
+
+function renderTimeline(){
+    const el=document.getElementById('timelineTracks');
+    el.innerHTML=tracks.map((t,ti)=>
+        '<div class="track-row"><div class="track-label">'+t+'</div>'+
+        '<div class="track-content" onclick="handleTrackClick(event,'+ti+')" id="tc-'+ti+'">'+
+        timeline.filter(item=>item.track===ti).map(item=>{
+            const left=(item.start/totalDuration*100);
+            const width=(item.duration/totalDuration*100);
+            return '<div class="track-bar" style="left:'+left+'%;width:'+width+'%;background:'+item.color+'" title="'+esc(item.name)+'">'+esc(item.name)+'</div>';
+        }).join('')+'</div></div>'
+    ).join('');
+}
+
+function handleTrackClick(e,trackIdx){
+    if(!selectedMedia)return;
+    const rect=e.currentTarget.getBoundingClientRect();
+    const x=e.clientX-rect.left;
+    const startSec=Math.round(x/rect.width*totalDuration);
+    addToTimeline(trackIdx,startSec);
+}
+
+function scrubTimeline(val){
+    currentTime=parseFloat(val);
+    document.getElementById('scrubTime').textContent=currentTime.toFixed(1)+'s';
+    document.getElementById('playheadInfo').textContent=currentTime.toFixed(1)+'s';
+    updatePreview();
+}
+
+function updatePreview(){
+    const rect=document.getElementById('previewRect');
+    const active=timeline.filter(t=>currentTime>=t.start&&currentTime<t.start+t.duration);
+    if(active.length){
+        const item=active[active.length-1];
+        rect.style.background=item.color;
+        rect.style.width='320px';rect.style.height='180px';
+        rect.textContent=item.name;
+    } else {
+        rect.style.background='transparent';
+        rect.style.width='320px';rect.style.height='180px';
+        rect.textContent='No media on timeline';
+    }
+}
+
+function renderEffects(){
+    const el=document.getElementById('effectsPanel');
+    const effs=['fadeIn','fadeOut','brightness','contrast'];
+    const labels=['Fade In','Fade Out','Brightness','Contrast'];
+    el.innerHTML=effs.map((e,i)=>
+        '<div class="effect-toggle"><span>'+labels[i]+'</span>'+
+        '<div class="toggle'+(effects[e]?' on':'')+'" onclick="toggleEffect(\''+e+'\')"></div></div>'
+    ).join('');
+}
+
+function toggleEffect(name){effects[name]=!effects[name];renderEffects();saveState()}
+
+function startExport(){
+    const prog=document.getElementById('exportProgress');
+    const fill=document.getElementById('exportFill');
+    const status=document.getElementById('exportStatus');
+    prog.classList.remove('hidden');
+    fill.style.width='0%';
+    let pct=0;
+    const fmt=document.getElementById('expFormat').value;
+    const res=document.getElementById('expRes').value;
+    const iv=setInterval(()=>{
+        pct+=Math.random()*8;
+        if(pct>=100){
+            pct=100;clearInterval(iv);
+            status.textContent='Export complete! ('+fmt+' '+res+')';
+        }
+        fill.style.width=pct+'%';
+        status.textContent=pct<100?'Exporting... '+Math.round(pct)+'%':'Export complete! ('+fmt+' '+res+')';
+    },200);
+}
+
+function saveProject(){
+    const data={mediaItems,timeline,effects,currentTime};
+    localStorage.setItem(DB,JSON.stringify(data));
+    alert('Project saved!');
+}
+
+function loadProject(){
+    try{
+        const d=JSON.parse(localStorage.getItem(DB));
+        if(d){mediaItems=d.mediaItems||[];timeline=d.timeline||[];Object.assign(effects,d.effects||{});currentTime=d.currentTime||0;}
+    }catch(e){}
+    renderAll();
+}
+
+function saveState(){
+    const data={mediaItems,timeline,effects,currentTime};
+    localStorage.setItem(DB,JSON.stringify(data));
+}
+
+function renderAll(){renderMedia();renderTimeline();renderEffects();updatePreview()}
+
+loadProject();renderAll();
+</script>
+</body>
+</html>

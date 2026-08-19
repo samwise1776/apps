@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Datacenter — Web Apps</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#23225A;--bg2:#1a1945;--card:#2E2F6E;--card-hover:#3a3b7a;--accent:#FFCB47;--accent2:#4449E2;--text:#F0F0F5;--muted:#9899C5;--success:#46B46E;--error:#E16464;--radius:14px}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;min-height:100vh}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(180deg,#1a1945 0%,var(--bg) 100%)}
+.hero .mark{width:64px;height:64px;background:var(--accent);color:var(--bg);display:inline-grid;place-items:center;border-radius:16px;font-size:28px;font-weight:800;margin-bottom:16px}
+.hero h1{font-size:clamp(28px,5vw,48px);font-weight:800;letter-spacing:-1px;margin-bottom:8px}
+.hero p{color:var(--muted);font-size:16px;max-width:600px;margin:0 auto}
+.hero .stats{display:flex;gap:32px;justify-content:center;margin-top:24px}
+.hero .stat{text-align:center}.hero .stat strong{display:block;font-size:28px;color:var(--accent)}.hero .stat span{font-size:12px;color:var(--muted)}
+.search-bar{max-width:500px;margin:30px auto 0;position:relative}
+.search-bar input{width:100%;padding:14px 20px 14px 48px;border-radius:12px;border:2px solid var(--card);background:var(--card);color:var(--text);font-size:15px;outline:none;transition:border .2s}
+.search-bar input:focus{border-color:var(--accent)}
+.search-bar::before{content:"⌕";position:absolute;left:18px;top:50%;transform:translateY(-50%);font-size:20px;color:var(--muted)}
+.filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:20px 20px 0;max-width:900px;margin:0 auto}
+.filters button{padding:8px 16px;border-radius:20px;border:1px solid var(--card);background:var(--card);color:var(--muted);font:500 12px Inter,system-ui,sans-serif;cursor:pointer;transition:.2s}
+.filters button:hover,.filters button.active{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:30px;max-width:1400px;margin:0 auto}
+.card{background:var(--card);border-radius:var(--radius);padding:24px;border:1px solid rgba(255,255,255,.06);transition:transform .15s,box-shadow .15s,border-color .15s;cursor:pointer;display:block;text-decoration:none;color:inherit}
+.card:hover{transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3);border-color:var(--accent);text-decoration:none}
+.card .icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;margin-bottom:14px}
+.card h3{font-size:16px;font-weight:700;margin-bottom:6px}
+.card p{font-size:13px;color:var(--muted);line-height:1.5}
+.card .badge{display:inline-block;padding:3px 10px;border-radius:10px;font-size:10px;font-weight:600;margin-top:10px;text-transform:uppercase;letter-spacing:.5px}
+.badge.web{background:rgba(70,180,110,.15);color:var(--success)}
+.badge.port{background:rgba(255,203,71,.15);color:var(--accent)}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1}
+footer{text-align:center;padding:40px 20px;color:var(--muted);font-size:12px;border-top:1px solid var(--card);margin-top:40px}
+footer a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="mark">DC</div>
+  <h1>Datacenter Web Apps</h1>
+  <p>50 free web apps — open in any browser, no install required. Data stays on your device.</p>
+  <div class="stats">
+    <div class="stat"><strong>50</strong><span>Web Apps</span></div>
+    <div class="stat"><strong>0</strong><span>Server Required</span></div>
+    <div class="stat"><strong>100%</strong><span>Free</span></div>
+  </div>
+  <div class="search-bar"><input id="search" type="text" placeholder="Search apps..." autocomplete="off"></div>
+</div>
+<div class="filters" id="filters"></div>
+<div class="grid" id="grid"></div>
+<footer>
+  <p>© 2026 Datacenter. Free software for everyone. · <a href="../">Back to Downloads</a></p>
+</footer>
+<script>
+const apps=[
+{n:"DataDocs",f:"datadocs.html",d:"Focused document editor with font picker and save/print",c:"Productivity",t:"port"},
+{n:"DataNotes",f:"datanotes.html",d:"Rich notebook app with tree organization, tags, and search",c:"Productivity",t:"port"},
+{n:"Learner",f:"learner.html",d:"10,000 lessons across 10 subjects with quizzes and achievements",c:"Education",t:"port"},
+{n:"ProjectHub",f:"projecthub.html",d:"Project, task, bug, and release tracker for your workspace",c:"Productivity",t:"port"},
+{n:"Trestrio",f:"trestrio.html",d:"Personal workspace with tasks, notes, focus timer, and 100+ utilities",c:"Productivity",t:"port"},
+{n:"CodeShelf",f:"codeshelf.html",d:"Local code snippet manager with categories and search",c:"Developer",t:"port"},
+{n:"LogScope",f:"logscope.html",d:"Log file viewer and analyzer with level filtering and regex search",c:"Developer",t:"port"},
+{n:"TestBench",f:"testbench.html",d:"Visual test runner with pass/fail reporting and history",c:"Developer",t:"port"},
+{n:"DevPulse",f:"devpulse.html",d:"Developer health dashboard with build status and coverage",c:"Developer",t:"port"},
+{n:"Helper",f:"helper.html",d:"Nova — offline AI chat assistant with math, jokes, and facts",c:"Developer",t:"port"},
+{n:"CanvasAlly",f:"canvasally.html",d:"Drawing and painting app with tools, layers, and PNG export",c:"Creative",t:"port"},
+{n:"AssetForge",f:"assetforge.html",d:"Asset browser with folders, tags, and metadata",c:"Creative",t:"port"},
+{n:"FilePilot",f:"filepilot.html",d:"Virtual file manager with tree, breadcrumbs, and bookmarks",c:"Productivity",t:"port"},
+{n:"DataLaunch",f:"datalaunch.html",d:"App launcher for the Datacenter ecosystem",c:"Infrastructure",t:"port"},
+{n:"DataVault",f:"datavault.html",d:"Backup manager with history, checksums, and restore",c:"Infrastructure",t:"port"},
+{n:"PackForge",f:"packforge.html",d:"Release and packaging manager with versioning",c:"Infrastructure",t:"port"},
+{n:"Utilor",f:"utilor.html",d:"Calculator, password generator, and app generator",c:"Utilities",t:"port"},
+{n:"JavaGPT",f:"javagpt.html",d:"Language model demo with chat, generate, and training viz",c:"Developer",t:"port"},
+{n:"DesktopCraft",f:"desktopcraft.html",d:"Interactive tutor for building desktop apps across 5 frameworks",c:"Education",t:"port"},
+{n:"VideoForge",f:"videoforge.html",d:"Video editor studio with timeline, effects, and export",c:"Creative",t:"port"},
+{n:"ScrapZone",f:"game.html",d:"A Game That Makes No Sense — 5-stage browser game",c:"Games",t:"web"},
+{n:"Weatherly",f:"weatherly.html",d:"Weather dashboard with forecasts, favorites, and city search",c:"Utilities",t:"web"},
+{n:"BudgetFlow",f:"budgetflow.html",d:"Personal finance tracker with categories and monthly charts",c:"Productivity",t:"web"},
+{n:"HabitForge",f:"habitforge.html",d:"Habit tracker with streaks, calendar, and statistics",c:"Productivity",t:"web"},
+{n:"FlashLearn",f:"flashlearn.html",d:"Flashcard study app with spaced repetition",c:"Education",t:"web"},
+{n:"TaskFlow",f:"taskflow.html",d:"Kanban board with drag-and-drop and multi-board support",c:"Productivity",t:"web"},
+{n:"NoteCraft",f:"notecraft.html",d:"Markdown note editor with live preview and split view",c:"Productivity",t:"web"},
+{n:"TimeBlock",f:"timeblock.html",d:"Weekly time blocking planner with drag and templates",c:"Productivity",t:"web"},
+{n:"PomoFocus",f:"pomofocus.html",d:"Pomodoro focus timer with sessions and configurable durations",c:"Productivity",t:"web"},
+{n:"Playlistly",f:"playlistly.html",d:"Music playlist player with controls and queue",c:"Entertainment",t:"web"},
+{n:"RecipeBox",f:"recipebox.html",d:"Recipe manager with ingredients, scaling, and shopping list",c:"Lifestyle",t:"web"},
+{n:"ColorPal",f:"colorpal.html",d:"Color palette generator with harmony modes and export",c:"Creative",t:"web"},
+{n:"MarkdownView",f:"markdownview.html",d:"Full markdown renderer with split preview",c:"Developer",t:"web"},
+{n:"Notepad",f:"notepad.html",d:"Simple notepad with auto-save and word count",c:"Productivity",t:"web"},
+{n:"CalorieCounter",f:"caloriecounter.html",d:"Calorie counter with food database and macro tracking",c:"Lifestyle",t:"web"},
+{n:"PasswordVault",f:"passwordvault.html",d:"Password manager with encryption and generator",c:"Security",t:"web"},
+{n:"Whiteboard",f:"whiteboard.html",d:"Infinite whiteboard with tools, sticky notes, and layers",c:"Creative",t:"web"},
+{n:"JSONBuddy",f:"jsonbuddy.html",d:"JSON editor with tree view, validation, and formatting",c:"Developer",t:"web"},
+{n:"SprintLog",f:"sprintlog.html",d:"Sprint planning with backlog, kanban, and velocity charts",c:"Developer",t:"web"},
+{n:"MindMap",f:"mindmap.html",d:"Mind map builder with nodes, connections, and auto-layout",c:"Productivity",t:"web"},
+{n:"MusicPlayer",f:"musicplayer.html",d:"Music player with playlists, queue, and genre library",c:"Entertainment",t:"web"},
+{n:"Budget",f:"budget.html",d:"Simple budget calculator with income, expenses, and charts",c:"Productivity",t:"web"},
+{n:"FitnessLog",f:"fitnesslog.html",d:"Workout tracker with exercises, PRs, and volume tracking",c:"Lifestyle",t:"web"},
+{n:"BookShelf",f:"bookshelf.html",d:"Reading tracker with progress, ratings, and goals",c:"Lifestyle",t:"web"},
+{n:"ContactBook",f:"contactbook.html",d:"Contact book with groups, search, and vCard export",c:"Productivity",t:"web"},
+{n:"Stopwatch",f:"stopwatch.html",d:"Advanced stopwatch with laps, countdown, and multi-instance",c:"Utilities",t:"web"},
+{n:"Trivia",f:"trivia.html",d:"Trivia quiz game with 50 questions, timer, and high scores",c:"Games",t:"web"},
+{n:"DailyLog",f:"dailylog.html",d:"Daily journal with mood tracking, gratitude, and calendar",c:"Lifestyle",t:"web"},
+{n:"TypeMaster",f:"typemaster.html",d:"Typing speed test with WPM, accuracy, and high scores",c:"Games",t:"web"}
+];
+const cats=["All",...new Set(apps.map(a=>a.c))];
+const filtersEl=document.getElementById("filters"),grid=document.getElementById("grid"),search=document.getElementById("search");
+let activeCat="All";
+function render(){
+  const q=search.value.toLowerCase();
+  const filtered=apps.filter(a=>(activeCat==="All"||a.c===activeCat)&&(a.n.toLowerCase().includes(q)||a.d.toLowerCase().includes(q)||a.c.toLowerCase().includes(q)));
+  grid.innerHTML=filtered.length?filtered.map(a=>`<a class="card" href="${a.f}"><div class="icon" style="background:${a.c==='Creative'?'rgba(255,203,71,.15)':a.c==='Developer'?'rgba(68,73,226,.15)':a.c==='Education'?'rgba(70,180,110,.15)':a.c==='Games'?'rgba(225,100,100,.15)':a.c==='Lifestyle'?'rgba(240,139,91,.15)':a.c==='Security'?'rgba(220,92,88,.15)':a.c==='Entertainment'?'rgba(180,130,255,.15)':'rgba(255,255,255,.08)'}">${a.n.charAt(0)}</div><h3>${a.n}</h3><p>${a.d}</p><span class="badge ${a.t}">${a.t==='port'?'Ported':'New'}</span></a>`).join(""):`<div class="empty">No apps match your search.</div>`;
+}
+filtersEl.innerHTML=cats.map(c=>`<button class="${c==='All'?'active':''}" data-cat="${c}">${c}</button>`).join("");
+filtersEl.onclick=e=>{if(!e.target.dataset.cat)return;activeCat=e.target.dataset.cat;filtersEl.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.cat===activeCat));render()};
+search.oninput=render;
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FilePilot - File Manager</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#23225A;--panel:#2E2F5E;--accent:#FFCB47;--text:#F0F0F5;--btn:#4449E2;--btn-hover:#5558f0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+a.back{position:absolute;top:10px;left:12px;color:var(--accent);text-decoration:none;font-size:13px;z-index:100;opacity:.8}.back:hover{opacity:1}
+.top-bar{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 80px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,.08)}
+.top-bar h1{font-size:18px;font-weight:600;margin-right:16px}
+.top-bar input[type=text]{flex:1;max-width:300px;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);font-size:13px}
+.top-bar input::placeholder{color:rgba(240,240,245,.4)}
+.btn{padding:6px 14px;border:none;border-radius:6px;background:var(--btn);color:#fff;font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--btn-hover)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.breadcrumb{display:flex;align-items:center;gap:4px;padding:8px 16px 8px 80px;background:rgba(0,0,0,.15);font-size:13px;flex-wrap:wrap}
+.breadcrumb span{cursor:pointer;opacity:.6;transition:.15s}
+.breadcrumb span:hover{opacity:1;color:var(--accent)}
+.breadcrumb span:last-child{opacity:1;font-weight:600}
+.breadcrumb .sep{opacity:.3;cursor:default}
+.main{display:flex;flex:1;overflow:hidden}
+.sidebar{width:200px;min-width:160px;background:var(--panel);border-right:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column}
+.sidebar .sb-header{padding:10px 12px;font-size:13px;font-weight:600;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center}
+.tree-item{padding:5px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+.tree-item:hover{background:rgba(255,255,255,.06)}
+.tree-item.selected{background:rgba(68,73,226,.3)}
+.tree-children{display:none}.tree-children.open{display:block}
+.tree-children .tree-item{padding-left:28px}
+.bookmarks-section{border-top:1px solid rgba(255,255,255,.06);margin-top:auto;padding:8px 0}
+.bookmarks-section .bm-header{padding:4px 12px;font-size:11px;text-transform:uppercase;opacity:.4;font-weight:600}
+.bookmarks-section .tree-item{font-size:12px}
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.table-wrap{flex:1;overflow-y:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:8px 16px;font-size:12px;opacity:.5;border-bottom:1px solid rgba(255,255,255,.08);position:sticky;top:0;background:var(--bg)}
+td{padding:8px 16px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
+tr:hover td{background:rgba(255,255,255,.04)}
+tr.selected td{background:rgba(68,73,226,.2)}
+td .icon{margin-right:8px}
+.detail-panel{width:280px;background:var(--panel);border-left:1px solid rgba(255,255,255,.08);padding:16px;overflow-y:auto;display:none}
+.detail-panel.open{display:block}
+.detail-panel h3{font-size:15px;margin-bottom:12px}
+.detail-panel .d-row{font-size:12px;margin-bottom:8px;display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px}
+.detail-panel .d-row span:first-child{opacity:.5}
+.detail-panel .preview{background:rgba(0,0,0,.3);border-radius:6px;padding:10px;font-size:11px;font-family:monospace;margin-top:8px;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--panel);border-radius:12px;padding:24px;width:420px;max-width:90vw}
+.modal h2{font-size:16px;margin-bottom:16px}
+.modal label{display:block;font-size:12px;margin-bottom:4px;opacity:.7}
+.modal input,.modal textarea{width:100%;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);font-size:13px;margin-bottom:12px;font-family:inherit}
+.modal textarea{height:100px;resize:vertical}
+.modal .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.context-menu{position:fixed;background:var(--panel);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:4px 0;z-index:250;min-width:150px;display:none}
+.context-menu.open{display:block}
+.context-menu button{display:block;width:100%;text-align:left;padding:8px 16px;background:none;border:none;color:var(--text);font-size:13px;cursor:pointer}
+.context-menu button:hover{background:rgba(255,255,255,.08)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--btn);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:300;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:none;align-items:center;justify-content:center}
+.confirm-overlay.open{display:flex}
+.confirm-box{background:var(--panel);border-radius:12px;padding:24px;width:350px;text-align:center}
+.confirm-box p{margin-bottom:16px;font-size:14px}
+.confirm-box .actions{display:flex;gap:8px;justify-content:center}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="top-bar">
+<h1>FilePilot</h1>
+<input type="text" id="searchInput" placeholder="Search files...">
+<button class="btn" onclick="openNewFile()">+ File</button>
+<button class="btn" onclick="openNewFolder()">+ Folder</button>
+<button class="btn btn-sm" onclick="exportFS()">Export</button>
+<button class="btn btn-sm" onclick="document.getElementById('importInput').click()">Import</button>
+<input type="file" id="importInput" accept=".json" style="display:none" onchange="importFS(event)">
+</div>
+<div class="breadcrumb" id="breadcrumb"></div>
+<div class="main">
+<div class="sidebar">
+<div class="sb-header"><span>Files</span></div>
+<div id="folderTree"></div>
+<div class="bookmarks-section">
+<div class="bm-header">Bookmarks</div>
+<div id="bookmarksList"></div>
+</div>
+</div>
+<div class="content">
+<div class="table-wrap">
+<table><thead><tr><th>Name</th><th>Type</th><th>Size</th><th>Modified</th></tr></thead>
+<tbody id="fileTable"></tbody></table>
+</div>
+</div>
+<div class="detail-panel" id="detailPanel"></div>
+</div>
+<div class="modal-overlay" id="newFileModal">
+<div class="modal">
+<h2>Create File</h2>
+<label>Name</label>
+<input type="text" id="newFileName" placeholder="filename.txt">
+<label>Content</label>
+<textarea id="newFileContent" placeholder="File content..."></textarea>
+<div class="modal-actions">
+<button class="btn btn-sm" onclick="closeModal('newFileModal')">Cancel</button>
+<button class="btn" onclick="createFile()">Create</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="newFolderModal">
+<div class="modal">
+<h2>Create Folder</h2>
+<label>Name</label>
+<input type="text" id="newFolderName" placeholder="folder name">
+<div class="modal-actions">
+<button class="btn btn-sm" onclick="closeModal('newFolderModal')">Cancel</button>
+<button class="btn" onclick="createFolder()">Create</button>
+</div>
+</div>
+</div>
+<div class="confirm-overlay" id="confirmDialog">
+<div class="confirm-box">
+<p id="confirmMsg">Are you sure?</p>
+<div class="actions">
+<button class="btn btn-sm" onclick="closeConfirm()">Cancel</button>
+<button class="btn" id="confirmBtn" onclick="">Delete</button>
+</div>
+</div>
+</div>
+<div class="context-menu" id="contextMenu">
+<button onclick="ctxRename()">Rename</button>
+<button onclick="ctxBookmark()">Toggle Bookmark</button>
+<button onclick="ctxDelete()">Delete</button>
+</div>
+<script>
+const LS_KEY='filepilot_fs';
+let fs={name:'root',type:'dir',children:[
+{name:'Documents',type:'dir',children:[
+{name:'notes.txt',type:'file',content:'Shopping list:\n- Milk\n- Eggs\n- Bread',created:'2026-01-10',modified:'2026-03-15'},
+{name:'report.md',type:'file',content:'# Q1 Report\n\nRevenue increased by 15%.',created:'2026-02-20',modified:'2026-04-01'}
+],created:'2026-01-01',modified:'2026-04-01'},
+{name:'Projects',type:'dir',children:[
+{name:'app.js',type:'file',content:'const app = require("express")();\napp.listen(3000);',created:'2026-03-10',modified:'2026-06-15'},
+{name:'index.html',type:'file',content:'<!DOCTYPE html>\n<html><body>Hello</body></html>',created:'2026-04-05',modified:'2026-05-20'}
+],created:'2026-03-01',modified:'2026-06-15'},
+{name:'readme.txt',type:'file',content:'Welcome to FilePilot!\nThis is a virtual file manager.',created:'2026-01-01',modified:'2026-01-01'}
+],created:'2026-01-01',modified:'2026-06-15'};
+let currentPath=['root'];
+let bookmarks=[];
+let ctxTarget=null;
+
+function load(){try{const d=localStorage.getItem(LS_KEY);if(d){const p=JSON.parse(d);fs=p.fs||fs;bookmarks=p.bookmarks||[]}}catch(e){}}
+function save(){localStorage.setItem(LS_KEY,JSON.stringify({fs,bookmarks}))}
+
+load();
+
+function getNode(path){let n=fs;for(let i=1;i<path.length;i++){if(!n.children)return null;n=n.children.find(c=>c.name===path[i]);if(!n)return null}return n}
+function getParent(path){return getNode(path.slice(0,-1))}
+function formatDate(d){return d||new Date().toISOString().slice(0,10)}
+
+function renderBreadcrumb(){
+const bc=document.getElementById('breadcrumb');
+bc.innerHTML=currentPath.map((p,i)=>{
+const name=i===0?'🏠 Root':p;
+return i<currentPath.length-1?`<span onclick="navigateTo(${i})">${esc(name)}</span><span class="sep">/</span>`:`<span>${esc(name)}</span>`;
+}).join('');
+}
+
+function navigateTo(idx){currentPath=currentPath.slice(0,idx+1);renderAll()}
+
+function renderTree(){
+const el=document.getElementById('folderTree');
+function build(node,path,depth){
+const isActive=currentPath.join('/')===path.join('/');
+let h=`<div class="tree-item ${isActive?'selected':''}" onclick="treeClick('${path.join('/')}')" style="padding-left:${12+depth*14}px">`;
+h+=node.type==='dir'?'📁 ':'';h+=esc(node.name);h+=`</div>`;
+if(node.type==='dir'&&node.children){
+h+=`<div class="tree-children open">`;
+node.children.filter(c=>c.type==='dir').forEach(c=>{h+=build(c,[...path,c.name],depth+1)});
+h+=`</div>`;
+}
+return h;
+}
+el.innerHTML=build(fs,['root'],0);
+}
+
+function treeClick(pathStr){currentPath=pathStr.split('/');renderAll();closeDetail()}
+
+function renderFiles(){
+const node=getNode(currentPath);
+const tbody=document.getElementById('fileTable');
+if(!node||!node.children){tbody.innerHTML='';return}
+let items=[...node.children];
+const search=document.getElementById('searchInput').value.toLowerCase();
+if(search)items=items.filter(i=>i.name.toLowerCase().includes(search));
+items.sort((a,b)=>{if(a.type!==b.type)return a.type==='dir'?-1:1;return a.name.localeCompare(b.name)});
+tbody.innerHTML=items.map(item=>{
+const isDir=item.type==='dir';
+const icon=isDir?'📁':getFileIcon(item.name);
+const size=isDir?(item.children?item.children.length+' items':'0 items'):formatSize((item.content||'').length);
+const bmPath=currentPath.join('/')+'/'+item.name;
+const isBookmarked=bookmarks.includes(bmPath);
+return `<tr onclick="openItem('${esc(item.name)}')" oncontextmenu="showCtx(event,'${esc(item.name)}')" class="${ctxTarget===item.name?'selected':''}">
+<td>${icon} ${isBookmarked?'⭐ ':''} ${esc(item.name)}</td>
+<td>${isDir?'Folder':getFileType(item.name)}</td>
+<td>${size}</td>
+<td>${formatDate(item.modified)}</td>
+</tr>`;
+}).join('');
+}
+
+function getFileIcon(name){const ext=name.split('.').pop().toLowerCase();const icons={js:'📜',html:'🌐',css:'🎨',md:'📝',txt:'📄',json:'📋',py:'🐍',png:'🖼️',jpg:'🖼️',mp3:'🎵',mp4:'🎬'};return icons[ext]||'📄'}
+function getFileType(name){const ext=name.split('.').pop().toLowerCase();return ext.toUpperCase()+' File'}
+function formatSize(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB'}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function openItem(name){
+const node=getNode(currentPath);if(!node||!node.children)return;
+const item=node.children.find(c=>c.name===name);if(!item)return;
+if(item.type==='dir'){currentPath.push(name);renderAll();closeDetail()}
+else{showDetail(item)}
+}
+
+function showDetail(item){
+const p=document.getElementById('detailPanel');p.classList.add('open');
+const path=currentPath.join('/')+'/'+item.name;
+const isDir=item.type==='dir';
+const size=isDir?(item.children?item.children.length+' items':'0 items'):formatSize((item.content||'').length);
+let h=`<h3>${isDir?'📁':'📄'} ${esc(item.name)}</h3>
+<div class="d-row"><span>Path</span><span style="font-size:11px;word-break:break-all;text-align:right;max-width:160px">${esc(path)}</span></div>
+<div class="d-row"><span>Type</span><span>${isDir?'Folder':getFileType(item.name)}</span></div>
+<div class="d-row"><span>Size</span><span>${size}</span></div>
+<div class="d-row"><span>Created</span><span>${formatDate(item.created)}</span></div>
+<div class="d-row"><span>Modified</span><span>${formatDate(item.modified)}</span></div>`;
+if(!isDir&&item.content)h+=`<div style="font-size:12px;opacity:.5;margin-top:8px">Content Preview</div><div class="preview">${esc(item.content.slice(0,500))}</div>`;
+h+=`<div style="display:flex;gap:6px;margin-top:12px">
+<button class="btn btn-sm" onclick="toggleBookmark('${esc(path)}')">${bookmarks.includes(path)?'Unbookmark':'Bookmark'}</button>
+<button class="btn btn-sm" onclick="renameItem('${esc(item.name)}')">Rename</button>
+<button class="btn btn-sm" style="background:#c0392b" onclick="deleteItem('${esc(item.name)}')">Delete</button>
+</div>`;
+p.innerHTML=h;
+}
+
+function closeDetail(){document.getElementById('detailPanel').classList.remove('open')}
+
+function openNewFile(){document.getElementById('newFileModal').classList.add('open');document.getElementById('newFileName').focus()}
+function openNewFolder(){document.getElementById('newFolderModal').classList.add('open');document.getElementById('newFolderName').focus()}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+
+function createFile(){
+const name=document.getElementById('newFileName').value.trim();if(!name)return;
+const content=document.getElementById('newFileContent').value;
+const node=getNode(currentPath);if(!node||!node.children)return;
+if(node.children.find(c=>c.name===name)){toast('File already exists');return}
+const now=new Date().toISOString().slice(0,10);
+node.children.push({name,type:'file',content,created:now,modified:now});
+save();closeModal('newFileModal');document.getElementById('newFileName').value='';document.getElementById('newFileContent').value='';renderAll();toast('File created');
+}
+
+function createFolder(){
+const name=document.getElementById('newFolderName').value.trim();if(!name)return;
+const node=getNode(currentPath);if(!node||!node.children)return;
+if(node.children.find(c=>c.name===name)){toast('Folder already exists');return}
+const now=new Date().toISOString().slice(0,10);
+node.children.push({name,type:'dir',children:[],created:now,modified:now});
+save();closeModal('newFolderModal');document.getElementById('newFolderName').value='';renderAll();toast('Folder created');
+}
+
+function renameItem(oldName){
+const newName=prompt('New name:',oldName);if(!newName||newName===oldName)return;
+const node=getNode(currentPath);if(!node||!node.children)return;
+const item=node.children.find(c=>c.name===oldName);if(!item)return;
+if(node.children.find(c=>c.name===newName)){toast('Name already exists');return}
+item.name=newName;item.modified=new Date().toISOString().slice(0,10);
+const oldPath=currentPath.join('/')+'/'+oldName;
+const newPath=currentPath.join('/')+'/'+newName;
+bookmarks=bookmarks.map(b=>b===oldPath?newPath:b);
+save();closeDetail();renderAll();toast('Renamed');
+}
+
+function deleteItem(name){
+document.getElementById('confirmMsg').textContent=`Delete "${name}"?`;
+document.getElementById('confirmBtn').onclick=()=>doDelete(name);
+document.getElementById('confirmDialog').classList.add('open');
+}
+
+function doDelete(name){
+const node=getNode(currentPath);if(!node||!node.children)return;
+node.children=node.children.filter(c=>c.name!==name);
+const delPath=currentPath.join('/')+'/'+name;
+bookmarks=bookmarks.filter(b=>!b.startsWith(delPath));
+save();closeConfirm();closeDetail();renderAll();toast('Deleted');
+}
+
+function closeConfirm(){document.getElementById('confirmDialog').classList.remove('open')}
+
+function showCtx(e,name){
+e.preventDefault();ctxTarget=name;
+const menu=document.getElementById('contextMenu');
+menu.style.left=e.clientX+'px';menu.style.top=e.clientY+'px';
+menu.classList.add('open');
+}
+
+document.addEventListener('click',()=>{document.getElementById('contextMenu').classList.remove('open');ctxTarget=null;renderFiles()});
+
+function ctxRename(){if(ctxTarget)renameItem(ctxTarget)}
+function ctxDelete(){if(ctxTarget)deleteItem(ctxTarget)}
+function ctxBookmark(){if(ctxTarget)toggleBookmark(currentPath.join('/')+'/'+ctxTarget)}
+
+function toggleBookmark(path){
+const idx=bookmarks.indexOf(path);
+if(idx>=0)bookmarks.splice(idx,1);else bookmarks.push(path);
+save();renderBookmarks();renderFiles();
+}
+
+function renderBookmarks(){
+const el=document.getElementById('bookmarksList');
+if(!bookmarks.length){el.innerHTML='<div style="padding:4px 12px;font-size:12px;opacity:.3">No bookmarks</div>';return}
+el.innerHTML=bookmarks.map(b=>{
+const name=b.split('/').pop();
+const pathParts=b.split('/');
+const icon=pathParts.length>2?'📄':'📁';
+return `<div class="tree-item" onclick="goBookmark('${esc(b)}')">${icon} ${esc(name)}</div>`;
+}).join('');
+}
+
+function goBookmark(path){currentPath=path.split('/');renderAll();closeDetail()}
+
+function exportFS(){
+const blob=new Blob([JSON.stringify({fs,bookmarks},null,2)],{type:'application/json'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='filepilot_export.json';a.click();
+}
+
+function importFS(e){
+const file=e.target.files[0];if(!file)return;
+const reader=new FileReader();
+reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.fs)fs=d.fs;if(d.bookmarks)bookmarks=d.bookmarks;save();renderAll();toast('Imported')}catch(err){toast('Import failed')}};
+reader.readAsText(file);e.target.value='';
+}
+
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
+
+function renderAll(){renderBreadcrumb();renderTree();renderFiles();renderBookmarks()}
+renderAll();
+</script>
+</body>
+</html>

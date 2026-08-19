@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weatherly - Weather Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;z-index:100;background:rgba(35,34,90,.9);padding:4px 10px;border-radius:6px}
+a.back:hover{text-decoration:underline}
+.container{max-width:1000px;margin:0 auto;padding:50px 20px 20px}
+h1{color:#FFCB47;font-size:28px;margin-bottom:16px}
+.search-bar{display:flex;gap:8px;margin-bottom:16px}
+.search-bar input{flex:1;background:#2E2F5E;color:#F0F0F5;border:1px solid #4449E2;border-radius:8px;padding:10px 14px;font-size:15px}
+.search-bar button{background:#4449E2;color:#F0F0F5;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:600}
+.search-bar button:hover{background:#5555FF}
+.current-card{background:#2E2F5E;border:1px solid #4449E2;border-radius:12px;padding:24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.current-card .left h2{font-size:24px;margin-bottom:4px}
+.current-card .temp{font-size:48px;font-weight:700;color:#FFCB47}
+.current-card .condition{font-size:18px;margin:4px 0}
+.current-card .details{display:flex;gap:16px;flex-wrap:wrap}
+.current-card .detail{text-align:center}
+.current-card .detail .val{font-size:18px;font-weight:600}
+.current-card .detail .lbl{font-size:11px;color:#8888bb}
+.star-btn{background:none;border:none;font-size:24px;cursor:pointer}
+.forecast{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.forecast-card{background:#2E2F5E;border:1px solid #4449E2;border-radius:10px;padding:14px;flex:1;min-width:120px;text-align:center}
+.forecast-card .day{font-size:12px;color:#FFCB47;margin-bottom:4px}
+.forecast-card .icon{font-size:28px}
+.forecast-card .temp{font-size:16px;font-weight:600;margin:4px 0}
+.forecast-card .range{font-size:12px;color:#8888bb}
+.toggle-bar{display:flex;gap:8px;margin-bottom:16px}
+.toggle-btn{background:#2E2F5E;color:#8888bb;border:1px solid #4449E2;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px}
+.toggle-btn.active{background:#4449E2;color:#F0F0F5}
+.sidebar{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.sidebar .col{flex:1;min-width:200px}
+.sidebar h3{color:#FFCB47;font-size:14px;margin-bottom:8px}
+.list-item{background:#2E2F5E;border:1px solid #4449E2;border-radius:6px;padding:8px 12px;margin-bottom:4px;font-size:13px;cursor:pointer;display:flex;justify-content:space-between}
+.list-item:hover{border-color:#FFCB47}
+.list-item .fav{color:#FFCB47}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>Weatherly</h1>
+<div class="search-bar">
+<input id="searchInput" placeholder="Search city..." onkeydown="if(event.key==='Enter')searchCity()">
+<button onclick="searchCity()">Search</button>
+</div>
+<div class="toggle-bar">
+<button class="toggle-btn" id="btnC" onclick="setUnit('C')">°C</button>
+<button class="toggle-btn" id="btnF" onclick="setUnit('F')">°F</button>
+</div>
+<div id="currentWeather"></div>
+<div class="forecast" id="forecast"></div>
+<div class="sidebar">
+<div class="col"><h3>Favorites</h3><div id="favList"></div></div>
+<div class="col"><h3>Recent Searches</h3><div id="recentList"></div></div>
+</div>
+</div>
+<script>
+const DB='wx_data';
+const CITIES={
+'New York':{t:22,cond:'Partly Cloudy',icon:'⛅',hum:65,wind:12,uv:6,f:[{d:'Mon',t:20,hi:24,lo:18,ic:'🌤️'},{d:'Tue',t:18,hi:22,lo:16,ic:'🌧️'},{d:'Wed',t:15,hi:19,lo:12,ic:'🌧️'},{d:'Thu',t:21,hi:25,lo:17,ic:'⛅'},{d:'Fri',t:24,hi:28,lo:20,ic:'☀️'}]},
+'London':{t:15,cond:'Rainy',icon:'🌧️',hum:80,wind:18,uv:3,f:[{d:'Mon',t:14,hi:17,lo:11,ic:'🌧️'},{d:'Tue',t:13,hi:16,lo:10,ic:'🌧️'},{d:'Wed',t:16,hi:19,lo:13,ic:'⛅'},{d:'Thu',t:17,hi:20,lo:14,ic:'🌤️'},{d:'Fri',t:15,hi:18,lo:12,ic:'🌧️'}]},
+'Tokyo':{t:28,cond:'Sunny',icon:'☀️',hum:55,wind:8,uv:8,f:[{d:'Mon',t:29,hi:32,lo:25,ic:'☀️'},{d:'Tue',t:30,hi:33,lo:26,ic:'☀️'},{d:'Wed',t:27,hi:30,lo:24,ic:'⛅'},{d:'Thu',t:25,hi:28,lo:22,ic:'🌧️'},{d:'Fri',t:28,hi:31,lo:25,ic:'☀️'}]},
+'Paris':{t:18,cond:'Cloudy',icon:'⛅',hum:70,wind:14,uv:4,f:[{d:'Mon',t:17,hi:20,lo:14,ic:'⛅'},{d:'Tue',t:19,hi:22,lo:16,ic:'🌤️'},{d:'Wed',t:16,hi:19,lo:13,ic:'🌧️'},{d:'Thu',t:20,hi:23,lo:17,ic:'☀️'},{d:'Fri',t:18,hi:21,lo:15,ic:'⛅'}]},
+'Sydney':{t:12,cond:'Windy',icon:'🌫️',hum:60,wind:25,uv:5,f:[{d:'Mon',t:11,hi:14,lo:9,ic:'🌫️'},{d:'Tue',t:13,hi:16,lo:10,ic:'⛅'},{d:'Wed',t:15,hi:18,lo:12,ic:'☀️'},{d:'Thu',t:14,hi:17,lo:11,ic:'🌤️'},{d:'Fri',t:12,hi:15,lo:9,ic:'🌫️'}]},
+'Dubai':{t:38,cond:'Hot & Sunny',icon:'☀️',hum:30,wind:15,uv:11,f:[{d:'Mon',t:39,hi:42,lo:35,ic:'☀️'},{d:'Tue',t:40,hi:43,lo:36,ic:'☀️'},{d:'Wed',t:37,hi:40,lo:34,ic:'☀️'},{d:'Thu',t:36,hi:39,lo:33,ic:'⛅'},{d:'Fri',t:38,hi:41,lo:35,ic:'☀️'}]},
+'Singapore':{t:31,cond:'Thunderstorm',icon:'⛈️',hum:85,wind:10,uv:7,f:[{d:'Mon',t:30,hi:33,lo:27,ic:'⛈️'},{d:'Tue',t:31,hi:34,lo:28,ic:'🌧️'},{d:'Wed',t:32,hi:35,lo:29,ic:'⛅'},{d:'Thu',t:30,hi:33,lo:27,ic:'⛈️'},{d:'Fri',t:31,hi:34,lo:28,ic:'🌧️'}]},
+'Mumbai':{t:33,cond:'Humid',icon:'🌤️',hum:82,wind:12,uv:9,f:[{d:'Mon',t:32,hi:35,lo:28,ic:'🌤️'},{d:'Tue',t:33,hi:36,lo:29,ic:'☀️'},{d:'Wed',t:31,hi:34,lo:27,ic:'🌧️'},{d:'Thu',t:30,hi:33,lo:26,ic:'🌧️'},{d:'Fri',t:32,hi:35,lo:28,ic:'🌤️'}]},
+'Berlin':{t:16,cond:'Overcast',icon:'☁️',hum:72,wind:16,uv:3,f:[{d:'Mon',t:15,hi:18,lo:12,ic:'☁️'},{d:'Tue',t:17,hi:20,lo:14,ic:'⛅'},{d:'Wed',t:14,hi:17,lo:11,ic:'🌧️'},{d:'Thu',t:18,hi:21,lo:15,ic:'🌤️'},{d:'Fri',t:16,hi:19,lo:13,ic:'☁️'}]},
+'Moscow':{t:5,cond:'Snowy',icon:'❄️',hum:88,wind:20,uv:1,f:[{d:'Mon',t:3,hi:6,lo:1,ic:'❄️'},{d:'Tue',t:1,hi:4,lo:-2,ic:'❄️'},{d:'Wed',t:4,hi:7,lo:2,ic:'☁️'},{d:'Thu',t:6,hi:9,lo:3,ic:'⛅'},{d:'Fri',t:2,hi:5,lo:0,ic:'❄️'}]},
+'Beijing':{t:20,cond:'Hazy',icon:'🌫️',hum:50,wind:10,uv:5,f:[{d:'Mon',t:19,hi:23,lo:16,ic:'🌫️'},{d:'Tue',t:21,hi:25,lo:18,ic:'⛅'},{d:'Wed',t:22,hi:26,lo:19,ic:'☀️'},{d:'Thu',t:18,hi:22,lo:15,ic:'🌫️'},{d:'Fri',t:20,hi:24,lo:17,ic:'⛅'}]},
+'Cairo':{t:35,cond:'Clear',icon:'☀️',hum:25,wind:18,uv:10,f:[{d:'Mon',t:36,hi:39,lo:30,ic:'☀️'},{d:'Tue',t:37,hi:40,lo:31,ic:'☀️'},{d:'Wed',t:34,hi:37,lo:29,ic:'☀️'},{d:'Thu',t:35,hi:38,lo:30,ic:'⛅'},{d:'Fri',t:36,hi:39,lo:31,ic:'☀️'}]},
+'Toronto':{t:14,cond:'Breezy',icon:'🌤️',hum:58,wind:22,uv:4,f:[{d:'Mon',t:13,hi:16,lo:10,ic:'🌤️'},{d:'Tue',t:15,hi:18,lo:12,ic:'⛅'},{d:'Wed',t:12,hi:15,lo:9,ic:'🌧️'},{d:'Thu',t:16,hi:19,lo:13,ic:'☀️'},{d:'Fri',t:14,hi:17,lo:11,ic:'🌤️'}]},
+'Seoul':{t:19,cond:'Clear',icon:'☀️',hum:45,wind:8,uv:6,f:[{d:'Mon',t:20,hi:23,lo:16,ic:'☀️'},{d:'Tue',t:21,hi:24,lo:17,ic:'☀️'},{d:'Wed',t:18,hi:21,lo:15,ic:'⛅'},{d:'Thu',t:17,hi:20,lo:14,ic:'🌧️'},{d:'Fri',t:19,hi:22,lo:16,ic:'☀️'}]},
+'Sao Paulo':{t:24,cond:'Partly Cloudy',icon:'⛅',hum:62,wind:10,uv:7,f:[{d:'Mon',t:23,hi:26,lo:20,ic:'⛅'},{d:'Tue',t:25,hi:28,lo:22,ic:'☀️'},{d:'Wed',t:22,hi:25,lo:19,ic:'🌧️'},{d:'Thu',t:24,hi:27,lo:21,ic:'⛅'},{d:'Fri',t:25,hi:28,lo:22,ic:'☀️'}]},
+'Bangkok':{t:34,cond:'Sunny',icon:'☀️',hum:70,wind:6,uv:10,f:[{d:'Mon',t:35,hi:38,lo:30,ic:'☀️'},{d:'Tue',t:34,hi:37,lo:29,ic:'☀️'},{d:'Wed',t:33,hi:36,lo:28,ic:'⛅'},{d:'Thu',t:34,hi:37,lo:29,ic:'☀️'},{d:'Fri',t:35,hi:38,lo:30,ic:'☀️'}]},
+'Istanbul':{t:17,cond:'Rainy',icon:'🌧️',hum:75,wind:14,uv:3,f:[{d:'Mon',t:16,hi:19,lo:13,ic:'🌧️'},{d:'Tue',t:15,hi:18,lo:12,ic:'🌧️'},{d:'Wed',t:18,hi:21,lo:15,ic:'⛅'},{d:'Thu',t:19,hi:22,lo:16,ic:'🌤️'},{d:'Fri',t:17,hi:20,lo:14,ic:'🌧️'}]},
+'Rome':{t:23,cond:'Sunny',icon:'☀️',hum:48,wind:10,uv:7,f:[{d:'Mon',t:24,hi:27,lo:20,ic:'☀️'},{d:'Tue',t:25,hi:28,lo:21,ic:'☀️'},{d:'Wed',t:22,hi:25,lo:19,ic:'⛅'},{d:'Thu',t:23,hi:26,lo:20,ic:'🌤️'},{d:'Fri',t:24,hi:27,lo:21,ic:'☀️'}]},
+'Lagos':{t:30,cond:'Thunderstorm',icon:'⛈️',hum:80,wind:12,uv:8,f:[{d:'Mon',t:29,hi:32,lo:26,ic:'⛈️'},{d:'Tue',t:31,hi:34,lo:27,ic:'🌤️'},{d:'Wed',t:30,hi:33,lo:26,ic:'🌧️'},{d:'Thu',t:31,hi:34,lo:27,ic:'⛅'},{d:'Fri',t:30,hi:33,lo:26,ic:'⛈️'}]},
+'Los Angeles':{t:26,cond:'Sunny',icon:'☀️',hum:35,wind:8,uv:9,f:[{d:'Mon',t:27,hi:30,lo:22,ic:'☀️'},{d:'Tue',t:28,hi:31,lo:23,ic:'☀️'},{d:'Wed',t:26,hi:29,lo:21,ic:'🌤️'},{d:'Thu',t:25,hi:28,lo:20,ic:'⛅'},{d:'Fri',t:27,hi:30,lo:22,ic:'☀️'}]},
+'Mexico City':{t:21,cond:'Cloudy',icon:'☁️',hum:60,wind:10,uv:6,f:[{d:'Mon',t:20,hi:23,lo:17,ic:'☁️'},{d:'Tue',t:22,hi:25,lo:19,ic:'⛅'},{d:'Wed',t:19,hi:22,lo:16,ic:'🌧️'},{d:'Thu',t:21,hi:24,lo:18,ic:'☁️'},{d:'Fri',t:22,hi:25,lo:19,ic:'⛅'}]}
+};
+
+let unit='C',currentCity='New York',favorites=[],recent=[];
+
+function loadData(){
+    try{const d=JSON.parse(localStorage.getItem(DB));if(d){favorites=d.favorites||[];recent=d.recent||[];}}catch(e){}
+}
+function saveData(){localStorage.setItem(DB,JSON.stringify({favorites,recent}))}
+function toF(c){return Math.round(c*9/5+32)}
+function tempStr(c){return unit==='C'?c+'°C':toF(c)+'°F'}
+
+function searchCity(){
+    const q=document.getElementById('searchInput').value.trim();
+    if(!q)return;
+    const match=Object.keys(CITIES).find(k=>k.toLowerCase()===q.toLowerCase());
+    if(match){currentCity=match;addToRecent(match);render();}else{alert('City not found. Try: '+Object.keys(CITIES).slice(0,5).join(', '));}
+}
+
+function addToRecent(city){
+    recent=recent.filter(c=>c!==city);
+    recent.unshift(city);
+    if(recent.length>10)recent.pop();
+    saveData();
+}
+
+function toggleFav(city){
+    if(favorites.includes(city))favorites=favorites.filter(c=>c!==city);
+    else favorites.push(city);
+    saveData();render();
+}
+
+function setUnit(u){unit=u;render()}
+
+function render(){
+    const c=CITIES[currentCity];
+    if(!c)return;
+    document.getElementById('btnC').className='toggle-btn'+(unit==='C'?' active':'');
+    document.getElementById('btnF').className='toggle-btn'+(unit==='F'?' active':'');
+
+    const isFav=favorites.includes(currentCity);
+    document.getElementById('currentWeather').innerHTML=
+        '<div class="current-card"><div class="left"><h2>'+currentCity+' <button class="star-btn" onclick="toggleFav(\''+currentCity+'\')">'+(isFav?'★':'☆')+'</button></h2>'+
+        '<div class="condition">'+c.icon+' '+c.cond+'</div><div class="temp">'+tempStr(c.t)+'</div></div>'+
+        '<div class="details"><div class="detail"><div class="val">'+c.hum+'%</div><div class="lbl">Humidity</div></div>'+
+        '<div class="detail"><div class="val">'+c.wind+' km/h</div><div class="lbl">Wind</div></div>'+
+        '<div class="detail"><div class="val">'+c.uv+'</div><div class="lbl">UV Index</div></div></div></div>';
+
+    document.getElementById('forecast').innerHTML=c.f.map(day=>
+        '<div class="forecast-card"><div class="day">'+day.d+'</div><div class="icon">'+day.ic+'</div>'+
+        '<div class="temp">'+tempStr(day.t)+'</div><div class="range">'+tempStr(day.hi)+' / '+tempStr(day.lo)+'</div></div>'
+    ).join('');
+
+    document.getElementById('favList').innerHTML=favorites.map(f=>
+        '<div class="list-item" onclick="currentCity=\''+f+'\';addToRecent(\''+f+'\');render()"><span>'+f+'</span><span>'+tempStr(CITIES[f].t)+'</span></div>'
+    ).join('')||'<p style="color:#8888bb;font-size:13px">No favorites yet</p>';
+
+    document.getElementById('recentList').innerHTML=recent.map(r=>
+        '<div class="list-item" onclick="currentCity=\''+r+'\';render()"><span>'+r+'</span><span>'+tempStr(CITIES[r].t)+'</span></div>'
+    ).join('')||'<p style="color:#8888bb;font-size:13px">No recent searches</p>';
+}
+
+loadData();addToRecent('New York');render();
+</script>
+</body>
+</html>

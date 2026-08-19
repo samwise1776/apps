@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DesktopCraft - Desktop App Tutor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#17251F;color:#F0F0F5;font-family:'Segoe UI',sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#2D5A3D;text-decoration:none;font-size:14px;z-index:100;background:rgba(23,37,31,.8);padding:4px 10px;border-radius:6px}
+a.back:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:50px 20px 20px}
+h1{color:#2D5A3D;font-size:28px;margin-bottom:6px}
+h2{color:#2D5A3D;font-size:20px;margin-bottom:10px}
+h3{color:#F0F0F5;font-size:16px;margin-bottom:6px}
+.subtitle{color:#6b8f7a;margin-bottom:20px;font-size:14px}
+.panel{background:#1E2E26;border:1px solid #2D5A3D;border-radius:10px;padding:18px;margin-bottom:16px}
+.stats-bar{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.stat{background:#1E2E26;border:1px solid #2D5A3D;border-radius:8px;padding:12px 18px;flex:1;min-width:120px;text-align:center}
+.stat .val{font-size:24px;font-weight:700;color:#2D5A3D}
+.stat .lbl{font-size:12px;color:#6b8f7a;margin-top:4px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.badge{background:#2D5A3D;color:#F0F0F5;padding:6px 12px;border-radius:20px;font-size:12px;opacity:.4}
+.badge.earned{opacity:1;box-shadow:0 0 8px rgba(45,90,61,.5)}
+.btn{background:#2D5A3D;color:#F0F0F5;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;margin:4px}
+.btn:hover{background:#3a7a4f}
+.btn.secondary{background:transparent;border:1px solid #2D5A3D}
+.nav-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.nav-tab{background:#1E2E26;border:1px solid #2D5A3D;color:#6b8f7a;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:14px}
+.nav-tab.active{background:#2D5A3D;color:#F0F0F5}
+.course-card{background:#1a2a22;border:1px solid #2D5A3D;border-radius:8px;padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s}
+.course-card:hover{border-color:#4449E2}
+.course-card h3{color:#F0F0F5}
+.course-card .prog{margin-top:8px;height:6px;background:#17251F;border-radius:3px}
+.course-card .prog-fill{height:100%;background:#2D5A3D;border-radius:3px;transition:width .3s}
+.lesson-item{background:#1a2a22;border:1px solid #2D5A3D;border-radius:8px;padding:14px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.lesson-item:hover{border-color:#4449E2}
+.lesson-content{background:#1a2a22;border:1px solid #2D5A3D;border-radius:10px;padding:20px}
+.lesson-text{line-height:1.7;margin-bottom:16px;color:#c0d0c8}
+textarea.code{width:100%;background:#0d1a14;color:#2D5A3D;border:1px solid #2D5A3D;border-radius:8px;padding:12px;font-family:'Fira Code',monospace;font-size:13px;resize:vertical;min-height:100px;margin-bottom:16px}
+.quiz{margin-top:16px}
+.quiz-q{margin-bottom:14px}
+.quiz-q p{margin-bottom:6px;font-weight:600}
+.quiz-q label{display:block;padding:6px 10px;margin:3px 0;border-radius:6px;cursor:pointer;background:#17251F;border:1px solid transparent}
+.quiz-q label:hover{border-color:#2D5A3D}
+.quiz-q input[type=radio]{margin-right:8px}
+.quiz-result{margin-top:10px;padding:10px;border-radius:6px;font-weight:600}
+.quiz-result.pass{background:rgba(45,90,61,.3);color:#2D5A3D}
+.quiz-result.fail{background:rgba(200,50,50,.2);color:#e06060}
+.forum-post{background:#1a2a22;border:1px solid #2D5A3D;border-radius:8px;padding:14px;margin-bottom:10px}
+.forum-post h4{color:#F0F0F5;margin-bottom:4px}
+.forum-post p{color:#6b8f7a;font-size:13px}
+.forum-post .meta{font-size:11px;color:#4a6a5a;margin-top:6px}
+.leader-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#1a2a22;border-radius:6px;margin-bottom:4px}
+.leader-row .rank{color:#2D5A3D;font-weight:700;width:30px}
+.leader-row .name{flex:1}
+.leader-row .xp{color:#2D5A3D;font-weight:700}
+input,textarea,select{background:#0d1a14;color:#F0F0F5;border:1px solid #2D5A3D;border-radius:6px;padding:8px 12px;font-size:14px;width:100%;margin-bottom:8px}
+.hidden{display:none}
+.back-btn{background:none;border:none;color:#2D5A3D;cursor:pointer;font-size:14px;margin-bottom:12px}
+.back-btn:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container" id="app"></div>
+<script>
+const DB='dc_data';
+const COURSES=[
+{id:'java-swing',name:'Java Swing',icon:'☕',lessons:[
+{title:'Intro to Swing',text:'Java Swing is a GUI toolkit for Java. It provides lightweight UI components.',code:'import javax.swing.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        JFrame frame = new JFrame("My App");\n        frame.setSize(400, 300);\n        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);\n        frame.setVisible(true);\n    }\n}',quiz:[{q:'What package contains Swing?',opts:['javax.swing','java.awt','javax.awt','org.swing'],a:0},{q:'Which class is the main window?',opts:['JPanel','JFrame','JButton','JDialog'],a:1},{q:'What method shows the frame?',opts:['frame.start()','frame.open()','frame.setVisible(true)','frame.show()'],a:2}]},
+{title:'Buttons & Labels',text:'JButton and JLabel are fundamental Swing components for user interaction.',code:'JButton btn = new JButton("Click Me");\nJLabel label = new JLabel("Hello!");\n\nbtn.addActionListener(e -> {\n    label.setText("Button clicked!");\n});\n\npanel.add(label);\npanel.add(btn);',quiz:[{q:'What listener handles button clicks?',opts:['MouseListener','ActionListener','KeyListener','ChangeListener'],a:1},{q:'Which component displays text?',opts:['JButton','JLabel','JTextField','JTextArea'],a:1},{q:'How to add components to a panel?',opts:['frame.add()','panel.add()','container.put()','window.insert()'],a:1}]},
+{title:'Layout Managers',text:'Layout managers control how components are positioned. Common ones: BorderLayout, FlowLayout, GridLayout.',code:'// FlowLayout - arranges in a row\npanel.setLayout(new FlowLayout());\n\n// GridLayout - grid of cells\npanel.setLayout(new GridLayout(3, 2));\n\n// BorderLayout - NSEW regions\nframe.setLayout(new BorderLayout());\nframe.add(button, BorderLayout.NORTH);',quiz:[{q:'Which layout arranges in a row?',opts:['GridLayout','BorderLayout','FlowLayout','BoxLayout'],a:2},{q:'BorderLayout has how many regions?',opts:['4','5','6','8'],a:1},{q:'GridLayout params are?',opts:['rows, cols','width, height','x, y','size'],a:0}]},
+{title:'Event Handling',text:'Swing uses event listeners to respond to user actions like clicks, key presses, and mouse movements.',code:'// Button click\nbutton.addActionListener(e -> doSomething());\n\n// Key binding\ninput.addKeyListener(new KeyAdapter() {\n    public void keyPressed(KeyEvent e) {\n        if (e.getKeyCode() == KeyEvent.VK_ENTER) {\n            submit();\n        }\n    }\n});\n\n// Mouse click\npanel.addMouseListener(new MouseAdapter() {\n    public void mouseClicked(MouseEvent e) {\n        System.out.println("Clicked at: " + e.getX());\n    }\n});',quiz:[{q:'Which method handles clicks?',opts:['onClick','handleEvent','actionPerformed','onPress'],a:2},{q:'VK_ENTER represents?',opts:['Tab key','Enter key','Escape key','Space key'],a:1},{q:'Which adapter handles mouse?',opts:['KeyAdapter','ActionAdapter','MouseAdapter','FocusAdapter'],a:2}]},
+{title:'JTable & Forms',text:'JTable displays data in rows and columns. Combine with JTextField for form-based input.',code:'String[] cols = {"Name", "Age", "City"};\nObject[][] data = {\n    {"Alice", 25, "NYC"},\n    {"Bob", 30, "LA"}\n};\n\nJTable table = new JTable(data, cols);\nJScrollPane scroll = new JScrollPane(table);\n\nJTextField nameField = new JTextField(20);\nJButton submit = new JButton("Add");\nsubmit.addActionListener(e -> {\n    String name = nameField.getText();\n    // Add to table model...\n});',quiz:[{q:'Which component shows tabular data?',opts:['JPanel','JTable','JList','JTree'],a:1},{q:'Why use JScrollPane?',opts:['For scrolling','For styling','For validation','For events'],a:0},{q:'JTextField returns text via?',opts:['.text','getValue()','.getText()','.content()'],a:2}]}
+]},
+{id:'python-tkinter',name:'Python Tkinter',icon:'🐍',lessons:[
+{title:'Tkinter Basics',text:'Tkinter is Python\'s standard GUI library. It comes bundled with Python.',code:'import tkinter as tk\n\nroot = tk.Tk()\nroot.title("My App")\nroot.geometry("400x300")\nroot.mainloop()',quiz:[{q:'How to import tkinter?',opts:['import tkinter','from gui import *','import tk','import GUI'],a:0},{q:'What starts the event loop?',opts:['root.start()','root.run()','root.mainloop()','root.begin()'],a:2},{q:'How to set window size?',opts:['root.size()','root.geometry()','root.dimensions()','root.resize()'],a:1}]},
+{title:'Widgets',text:'Widgets are UI elements: Label, Button, Entry, Text, Frame.',code:'label = tk.Label(root, text="Hello World")\nlabel.pack()\n\nentry = tk.Entry(root)\nentry.pack()\n\nbutton = tk.Button(root, text="Click", command=on_click)\nbutton.pack()',quiz:[{q:'Which widget shows text?',opts:['Button','Entry','Label','Frame'],a:2},{q:'Entry widget is for?',opts:['Display text','Single line input','Multi-line input','Images'],a:1},{q:'What method places widgets?',opts:['.place()','All of these','.pack()','.grid()'],a:2}]},
+{title:'Geometry Managers',text:'pack(), grid(), and place() position widgets. Don\'t mix them in same parent.',code:'# pack - simple stacking\nlabel.pack(side=tk.TOP, padx=10, pady=5)\n\n# grid - row/column layout\nlabel.grid(row=0, column=0, sticky="w")\nentry.grid(row=0, column=1, padx=5)\nbutton.grid(row=1, column=0, columnspan=2)\n\n# place - absolute positioning\nlabel.place(x=10, y=20)',quiz:[{q:'Can you mix pack and grid?',opts:['Yes','No, causes errors','Only with frames','Depends on version'],a:1},{q:'grid() uses?',opts:['x, y','row, col','side, anchor','row, column'],a:1},{q:'Which is most flexible?',opts:['pack','grid','place','All equal'],a:2}]},
+{title:'Events & Callbacks',text:'Bind functions to events using command= or bind() method.',code:'def on_click():\n    print("Clicked!")\n\ndef on_key(event):\n    print(f"Key: {event.char}")\n\nbutton = tk.Button(root, text="Click", command=on_click)\nbutton.pack()\n\nroot.bind("<Key>", on_key)\nroot.bind("<Return>", lambda e: submit())',quiz:[{q:'command= parameter does?',opts:['Sets text','Binds click handler','Changes color','Adds tooltip'],a:1},{q:'bind() first arg is?',opts:['Function name','Event string','Widget name','Window title'],a:1},{q:'lambda is used for?',opts:['Speed','Anonymous functions','Error handling','Loops'],a:1}]},
+{title:'Canvas & Drawing',text:'Canvas widget supports drawing shapes, lines, and handling mouse events.',code:'canvas = tk.Canvas(root, width=400, height=300, bg="white")\ncanvas.pack()\n\ncanvas.create_rectangle(10, 10, 100, 100, fill="blue")\ncanvas.create_oval(150, 10, 250, 110, fill="red")\ncanvas.create_line(10, 150, 300, 150, fill="green", width=2)\ncanvas.create_text(200, 200, text="Hello Canvas", font=("Arial", 16))\n\ndef on_canvas_click(event):\n    x, y = event.x, event.y\n    canvas.create_oval(x-5, y-5, x+5, y+5, fill="black")\n\ncanvas.bind("<Button-1>", on_canvas_click)',quiz:[{q:'create_rectangle needs?',opts:['4 coords','2 coords','width+height','center+size'],a:0},{q:'How to detect canvas click?',opts:['canvas.click()','bind("<Button-1>")','on_click=','canvas.event()'],a:1},{q:'Canvas bg is set by?',opts:['bg= param','background=','color=','style='],a:0}]}
+]},
+{id:'csharp-wpf',name:'C# WPF',icon:'🔷',lessons:[
+{title:'XAML Basics',text:'WPF uses XAML for UI layout. XAML is a declarative XML-based language.',code:'<Window x:Class="MyApp.MainWindow"\n        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"\n        Title="My App" Height="300" Width="400">\n    <StackPanel Margin="10">\n        <Label Content="Hello WPF" FontSize="20"/>\n        <Button Content="Click Me" Click="OnButtonClicked"/>\n        <TextBox x:Name="InputBox"/>\n    </StackPanel>\n</Window>',quiz:[{q:'What does XAML stand for?',opts:['Extensible Application Markup Language','XML Application Module','Cross-platform Application Maker','None of these'],a:0},{q:'StackPanel arranges items?',opts:['In a grid','Horizontally or vertically','In a circle','Randomly'],a:1},{q:'How to name a control?',opts:['id=','name=','x:Name=','ctrl='],a:2}]},
+{title:'Data Binding',text:'Data binding connects UI elements to data sources. INotifyPropertyChanged updates UI automatically.',code:'public class ViewModel : INotifyPropertyChanged\n{\n    private string _name;\n    public string Name\n    {\n        get => _name;\n        set { _name = value; OnPropertyChanged(); }\n    }\n    public event PropertyChangedEventHandler PropertyChanged;\n    protected void OnPropertyChanged([CallerMemberName] string n = null)\n        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));\n}\n\n// XAML\n<TextBox Text="{Binding Name, Mode=TwoWay}"/>',quiz:[{q:'TwoWay binding means?',opts:['Both read','Both read/write','Two controls','Double speed'],a:1},{q:'INotifyPropertyChanged does?',opts:['Saves data','Notifies UI of changes','Validates input','Creates UI'],a:1},{q:'CallerMemberName does?',opts:['Gets property name automatically','Calls a member','Names the caller','Stores the name'],a:0}]},
+{title:'Commands',text:'ICommand pattern separates UI logic from business logic in MVVM.',code:'public class RelayCommand : ICommand\n{\n    private Action _execute;\n    public RelayCommand(Action execute) => _execute = execute;\n    public bool CanExecute(object p) => true;\n    public void Execute(object p) => _execute();\n    public event EventHandler CanExecuteChanged;\n}\n\n// Usage\npublic ICommand ClickCommand => new RelayCommand(DoClick);\n\n// XAML\n<Button Command="{Binding ClickCommand}"/>',quiz:[{q:'ICommand has?',opts:['2 methods','3 methods + event','1 method','4 properties'],a:1},{q:'CanExecute controls?',opts:['Visibility','Whether command runs','Speed','Error handling'],a:1},{q:'RelayCommand wraps?',opts:['A delegate/action','A string','A database','A view'],a:0}]},
+{title:'Styling',text:'WPF styles control appearance. Resources define reusable styles.',code:'<Window.Resources>\n    <Style TargetType="Button">\n        <Setter Property="Background" Value="#4449E2"/>\n        <Setter Property="Foreground" Value="White"/>\n        <Setter Property="FontSize" Value="14"/>\n        <Setter Property="Padding" Value="10,5"/>\n        <Style.Triggers>\n            <Trigger Property="IsMouseOver" Value="True">\n                <Setter Property="Background" Value="#5555FF"/>\n            </Trigger>\n        </Style.Triggers>\n    </Style>\n</Window.Resources>',quiz:[{q:'Styles are placed in?',opts:['Code behind','Resources','Constructor','Events'],a:1},{q:'Triggers respond to?',opts:['User input only','Property changes','Time','Errors'],a:1},{q:'TargetType specifies?',opts:['Window class','Control type to style','Data type','Event type'],a:1}]},
+{title:'MVVM Pattern',text:'Model-View-ViewModel separates concerns: data, UI, and logic.',code:'// Model\npublic class User { public string Name {get;set;} public int Age {get;set;} }\n\n// ViewModel\npublic class UserVM : INotifyPropertyChanged\n{\n    public ObservableCollection<User> Users { get; } = new();\n    public ICommand AddCommand => new RelayCommand(AddUser);\n    private void AddUser() { Users.Add(new User{Name="New", Age=0}); }\n}\n\n// View (XAML)\n<ListBox ItemsSource="{Binding Users}" DisplayMemberPath="Name"/>',quiz:[{q:'MVVM stands for?',opts:['Model View View Model','Module Variable Method','Many Views Many Variables','Move View Move Variable'],a:0},{q:'ViewModel connects to?',opts:['Database only','View and Model','Just the View','Just the Model'],a:1},{q:'ObservableCollection does?',opts:['Auto-updates UI on collection change','Observes user','Stores XML','Performs calculations'],a:0}]}
+]},
+{id:'cpp-qt',name:'C++ Qt',icon:'⚙️',lessons:[
+{title:'Qt Basics',text:'Qt is a cross-platform C++ framework for GUI and non-GUI applications.',code:'#include <QApplication>\n#include <QLabel>\n\nint main(int argc, char *argv[]) {\n    QApplication app(argc, argv);\n    QLabel label("Hello Qt!");\n    label.show();\n    return app.exec();\n}',quiz:[{q:'Qt requires which function?',opts:['main()','app.run()','qt.start()','init()'],a:0},{q:'app.exec() does?',opts:['Exits app','Starts event loop','Executes command','Compiles code'],a:1},{q:'QLabel displays?',opts:['Images only','Text only','Text or images','Nothing'],a:2}]},
+{title:'Widgets & Layouts',text:'QWidget is the base class. QVBoxLayout, QHBoxLayout arrange children.',code:'#include <QWidget>\n#include <QPushButton>\n#include <QVBoxLayout>\n\nQWidget window;\nQVBoxLayout layout(&window);\n\nQPushButton button("Click Me");\nlayout.addWidget(&button);\n\nQObject::connect(&button, &QPushButton::clicked, [](){\n    qDebug() << "Clicked!";\n});\n\nwindow.show();',quiz:[{q:'Base widget class?',opts:['QObject','QWidget','QBase','QWindow'],a:1},{q:'connect() links?',opts:['Signals to slots','Files to code','Widgets to layouts','Names to objects'],a:0},{q:'QVBoxLayout arranges?',opts:['Horizontally','Vertically','In grid','Randomly'],a:1}]},
+{title:'Signals & Slots',text:'Signals notify when events occur. Slots are functions that respond to signals.',code:'class Counter : public QObject {\n    Q_OBJECT\npublic:\n    int count = 0;\npublic slots:\n    void increment() {\n        count++;\n        emit countChanged(count);\n    }\nsignals:\n    void countChanged(int newCount);\n};\n\nCounter c;\nQObject::connect(&c, &Counter::countChanged,\n    [](int n){ qDebug() << "Count:" << n; });\nc.increment();',quiz:[{q:'Signals are declared with?',opts:['public:','signals:','slots:','events:'],a:1},{q:'emit keyword does?',opts:['Creates signal','Sends signal','Catches signal','Destroys signal'],a:1},{q:'Q_OBJECT macro enables?',opts:['Memory management','Signals & slots','Threading','All of these'],a:2}]},
+{title:'QML Basics',text:'QML is Qt\'s declarative UI language, similar to JSON for interfaces.',code:'import QtQuick 2.15\nimport QtQuick.Window 2.15\n\nWindow {\n    width: 400; height: 300\n    visible: true\n    title: "QML App"\n\n    Column {\n        anchors.centerIn: parent\n        Text { text: "Hello QML"; color: "white"; font.pixelSize: 24 }\n        Rectangle {\n            width: 100; height: 40\n            color: "#4449E2"\n            Text { text: "Button"; anchors.centerIn: parent; color: "white" }\n            MouseArea { anchors.fill: parent; onClicked: console.log("Clicked!") }\n        }\n    }\n}',quiz:[{q:'QML stands for?',opts:['Qt Meta Language','Qt Modeling Language','Qt Markup Language','Qt Module Language'],a:0},{q:'visible property controls?',opts:['Opacity','Whether shown','Z-index','Size'],a:1},{q:'anchors.centerIn does?',opts:['Centers in parent','Makes big','Adds border','Removes widget'],a:0}]},
+{title:'Model/View',text:'Qt uses Model/View architecture for data-driven UIs like lists and tables.',code:'#include <QStandardItemModel>\n#include <QListView>\n\nauto model = new QStandardItemModel();\nmodel->appendRow(new QStandardItem("Item 1"));\nmodel->appendRow(new QStandardItem("Item 2"));\nmodel->appendRow(new QStandardItem("Item 3"));\n\nQListView view;\nview.setModel(model);\nview.show();\n\n// Custom model\nclass MyModel : public QAbstractListModel {\n    int rowCount(const QModelIndex &) const override { return items.size(); }\n    QVariant data(const QModelIndex &i, int role) const override {\n        if (role == Qt::DisplayRole) return items[i.row()];\n        return {};\n    }\n};',quiz:[{q:'QAbstractListModel needs?',opts:['rowCount and data','Just data','Just rowCount','Nothing extra'],a:0},{q:'DisplayRole controls?',opts:['How data looks','How data is stored','How data is deleted','How data is created'],a:0},{q:'setModel links to?',opts:['File','Database','View widget','Signal'],a:2}]}
+]},
+{id:'electron',name:'Electron',icon:'⚡',lessons:[
+{title:'Electron Basics',text:'Electron combines Chromium and Node.js for desktop apps using web technologies.',code:'// main.js\nconst { app, BrowserWindow } = require('electron');\n\nfunction createWindow() {\n    const win = new BrowserWindow({\n        width: 800,\n        height: 600,\n        webPreferences: { nodeIntegration: true }\n    });\n    win.loadFile('index.html');\n}\n\napp.whenReady().then(createWindow);\napp.on('window-all-closed', () => app.quit());',quiz:[{q:'Electron uses which browser engine?',opts:['Gecko','WebKit','Chromium','Edge'],a:2},{q:'loadFile loads?',opts:['A JavaScript file','An HTML file','A database','A config'],a:1},{q:'app.quit() does?',opts:['Pauses app','Closes window','Exits the app','Minimizes'],a:2}]},
+{title:'IPC Communication',text:'Inter-process communication lets main and renderer processes talk.',code:'// main.js\nconst { ipcMain } = require('electron');\nipcMain.handle('do-task', async (event, arg) => {\n    return `Processed: ${arg}`;\n});\n\n// renderer.js\nconst { ipcRenderer } = require('electron');\nconst result = await ipcRenderer.invoke('do-task', 'hello');\nconsole.log(result); // "Processed: hello"',quiz:[{q:'IPC stands for?',opts:['Internal Program Code','Inter-Process Communication','Internet Protocol Config','Integrated PC Control'],a:1},{q:'handle() is for?',opts:['Events only','Async request/response','Sync messages','File loading'],a:1},{q:'invoke() returns?',opts:['Nothing','Promise','String','Boolean'],a:1}]},
+{title:'Native Menus',text:'Create native application menus and context menus for a professional feel.',code:'const { Menu } = require('electron');\n\nconst menuTemplate = [\n    {\n        label: 'File',\n        submenu: [\n            { label: 'New', accelerator: 'CmdOrCtrl+N', click: () => newFile() },\n            { label: 'Open', accelerator: 'CmdOrCtrl+O', click: () => openFile() },\n            { type: 'separator' },\n            { role: 'quit' }\n        ]\n    },\n    {\n        label: 'Edit',\n        submenu: [\n            { role: 'undo' },\n            { role: 'redo' },\n            { role: 'copy' },\n            { role: 'paste' }\n        ]\n    }\n];\n\nMenu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate));',quiz:[{q:'role property provides?',opts:['Custom functions','Built-in actions','User roles','Permissions'],a:1},{q:'accelerator defines?',opts:['Speed','Keyboard shortcut','Animation','Theme'],a:1},{q:'type separator adds?',opts:['Line','Space','Button','Nothing'],a:0}]},
+{title:'Tray & Notifications',text:'System tray icons and native notifications enhance desktop integration.',code:'const { Tray, Menu, Notification } = require('electron');\nlet tray = null;\n\napp.whenReady().then(() => {\n    tray = new Tray('icon.png');\n    const contextMenu = Menu.buildFromTemplate([\n        { label: 'Show', click: () => win.show() },\n        { label: 'Quit', click: () => app.quit() }\n    ]);\n    tray.setToolTip('My App');\n    tray.setContextMenu(contextMenu);\n\n    new Notification({\n        title: 'Hello!',\n        body: 'App is running in the tray.'\n    }).show();\n});',quiz:[{q:'Tray creates?',opts:['Window','Desktop icon','System tray icon','Menu bar'],a:2},{q:'Notification needs?',opts:['title + body','Just body','Just title','Nothing'],a:0},{q:'setToolTip does?',opts:['Sets window title','Shows hover text','Sets tray icon','Creates tooltip'],a:1}]},
+{title:'Packaging',text:'Package your Electron app for distribution using electron-builder.',code:'// package.json\n{\n  "name": "my-app",\n  "version": "1.0.0",\n  "main": "main.js",\n  "scripts": {\n    "start": "electron .",\n    "build": "electron-builder",\n    "build-win": "electron-builder --win",\n    "build-mac": "electron-builder --mac",\n    "build-linux": "electron-builder --linux"\n  },\n  "build": {\n    "appId": "com.example.myapp",\n    "win": { "target": "nsis" },\n    "mac": { "target": "dmg" },\n    "linux": { "target": "AppImage" }\n  }\n}',quiz:[{q:'electron-builder does?',opts:['Compiles code','Packages for distribution','Runs tests','Formats code'],a:1},{q:'NSIS creates?',opts:['DMG file','Windows installer','Linux package','Web app'],a:1},{q:'main.js is the?',opts:['Renderer entry','Main process entry','Config file','Test file'],a:1}]}
+]}
+];
+
+function loadData(){try{return JSON.parse(localStorage.getItem(DB))||{}}catch(e){return{}}}
+function saveData(d){localStorage.setItem(DB,JSON.stringify(d))}
+function getData(){let d=loadData();if(!d.completed)d.completed=[];if(!d.xp)d.xp=0;if(!d.streak)d.streak=0;if(!d.lastStudy)d.lastStudy='';if(!d.badges)d.badges=[];if(!d.forum)d.forum=[];if(!d.profiles)d.profiles=[{name:'Learner',xp:0}];if(!d.quizResults)d.quizResults={};return d}
+
+let currentView='courses', currentCourse=null, currentLesson=null;
+
+function render(){
+    const app=document.getElementById('app');
+    const data=getData();
+    let html='<h1>DesktopCraft</h1><p class="subtitle">Learn Desktop App Development</p>';
+    html+='<div class="stats-bar"><div class="stat"><div class="val">'+data.xp+'</div><div class="lbl">XP</div></div>';
+    html+='<div class="stat"><div class="val">'+data.completed.length+'</div><div class="lbl">Lessons Done</div></div>';
+    html+='<div class="stat"><div class="val">'+data.streak+'</div><div class="lbl">Day Streak</div></div></div>';
+    html+='<div class="badges">';
+    ['First Lesson','Quiz Master','Course Complete','7-Day Streak'].forEach(b=>{
+        html+='<div class="badge'+(data.badges.includes(b)?' earned':'')+'">'+b+'</div>';
+    });
+    html+='</div>';
+    html+='<div class="nav-tabs">';
+    ['courses','forum','leaderboard'].forEach(t=>{
+        html+='<div class="nav-tab'+(currentView===t?' active':'')+'" onclick="switchView(\''+t+'\')">'+t.charAt(0).toUpperCase()+t.slice(1)+'</div>';
+    });
+    html+='</div>';
+
+    if(currentView==='courses'){
+        if(currentCourse===null){
+            COURSES.forEach((c,ci)=>{
+                const done=c.lessons.filter((_,li)=>data.completed.includes(c.id+'_'+li)).length;
+                const pct=Math.round(done/c.lessons.length*100);
+                html+='<div class="course-card" onclick="openCourse('+ci+')">';
+                html+='<h3>'+c.icon+' '+c.name+'</h3><div class="prog"><div class="prog-fill" style="width:'+pct+'%"></div></div>';
+                html+='<p style="font-size:12px;color:#6b8f7a;margin-top:6px">'+done+'/'+c.lessons.length+' lessons</p></div>';
+            });
+        } else if(currentLesson===null){
+            const c=COURSES[currentCourse];
+            html+='<button class="back-btn" onclick="currentCourse=null;render()">&larr; Back to Courses</button>';
+            html+='<h2>'+c.icon+' '+c.name+'</h2>';
+            c.lessons.forEach((l,li)=>{
+                const done=data.completed.includes(c.id+'_'+li);
+                html+='<div class="lesson-item" onclick="openLesson('+currentCourse+','+li+')">';
+                html+='<span>'+(li+1)+'. '+l.title+'</span>';
+                html+='<span style="color:#2D5A3D">'+(done?'✓':'○')+'</span></div>';
+            });
+        } else {
+            const c=COURSES[currentCourse];
+            const l=c.lessons[currentLesson];
+            const key=c.id+'_'+currentLesson;
+            html+='<button class="back-btn" onclick="currentLesson=null;render()">&larr; Back to Lessons</button>';
+            html+='<div class="lesson-content">';
+            html+='<h2>'+l.title+'</h2>';
+            html+='<p class="lesson-text">'+l.text+'</p>';
+            html+='<textarea class="code" readonly>'+l.code+'</textarea>';
+            html+='<h3>Quiz</h3><div class="quiz" id="quiz">';
+            l.quiz.forEach((q,qi)=>{
+                html+='<div class="quiz-q"><p>Q'+(qi+1)+': '+q.q+'</p>';
+                q.opts.forEach((o,oi)=>{
+                    html+='<label><input type="radio" name="q'+qi+'" value="'+oi+'">'+o+'</label>';
+                });
+                html+='</div>';
+            });
+            html+='<button class="btn" onclick="submitQuiz('+currentCourse+','+currentLesson+')">Submit Quiz</button>';
+            html+='<div id="quizResult"></div></div></div>';
+        }
+    } else if(currentView==='forum'){
+        html+='<h2>Forum</h2>';
+        html+='<div class="panel"><h3>New Post</h3>';
+        html+='<input id="postTitle" placeholder="Title"><textarea id="postBody" placeholder="Body..." rows="3"></textarea>';
+        html+='<button class="btn" onclick="addPost()">Post</button></div>';
+        data.forum.slice().reverse().forEach(p=>{
+            html+='<div class="forum-post"><h4>'+esc(p.title)+'</h4><p>'+esc(p.body)+'</p>';
+            html+='<div class="meta">'+new Date(p.ts).toLocaleString()+'</div></div>';
+        });
+        if(!data.forum.length)html+='<p style="color:#6b8f7a">No posts yet.</p>';
+    } else if(currentView==='leaderboard'){
+        html+='<h2>Leaderboard</h2>';
+        const profs=data.profiles.sort((a,b)=>b.xp-a.xp);
+        profs.forEach((p,i)=>{
+            html+='<div class="leader-row"><span class="rank">#'+(i+1)+'</span><span class="name">'+esc(p.name)+'</span><span class="xp">'+p.xp+' XP</span></div>';
+        });
+        html+='<div class="panel" style="margin-top:16px"><h3>Update Profile Name</h3>';
+        html+='<input id="profName" value="'+esc(profs[0]?.name||'')+'" placeholder="Your name">';
+        html+='<button class="btn" onclick="updateProfile()">Save</button></div>';
+    }
+    app.innerHTML=html;
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function switchView(v){currentView=v;currentCourse=null;currentLesson=null;render()}
+function openCourse(i){currentCourse=i;currentLesson=null;render()}
+function openLesson(ci,li){currentCourse=ci;currentLesson=li;render()}
+
+function submitQuiz(ci,li){
+    const c=COURSES[ci],l=c.lessons[li],key=c.id+'_'+li;
+    let correct=0;
+    l.quiz.forEach((q,qi)=>{
+        const sel=document.querySelector('input[name="q'+qi+'"]:checked');
+        if(sel&&parseInt(sel.value)===q.a)correct++;
+    });
+    const pct=Math.round(correct/l.quiz.length*100);
+    const res=document.getElementById('quizResult');
+    const data=getData();
+    if(pct>=60){
+        res.className='quiz-result pass';
+        res.textContent='Score: '+pct+'% ('+correct+'/'+l.quiz.length+')';
+        if(!data.completed.includes(key)){
+            data.completed.push(key);
+            data.xp+=10;
+            if(pct===100)data.xp+=5;
+        }
+        data.quizResults[key]=pct;
+        updateStreak(data);
+        checkBadges(data);
+        data.profiles[0].xp=data.xp;
+        saveData(data);
+    } else {
+        res.className='quiz-result fail';
+        res.textContent='Score: '+pct+'% - Need 60% to pass. Try again!';
+    }
+}
+
+function updateStreak(data){
+    const today=new Date().toDateString();
+    if(data.lastStudy!==today){
+        const yesterday=new Date(Date.now()-86400000).toDateString();
+        data.streak=(data.lastStudy===yesterday)?data.streak+1:1;
+        data.lastStudy=today;
+    }
+}
+
+function checkBadges(data){
+    if(data.completed.length>=1&&!data.badges.includes('First Lesson'))data.badges.push('First Lesson');
+    if(Object.values(data.quizResults).some(v=>v===100)&&!data.badges.includes('Quiz Master'))data.badges.push('Quiz Master');
+    const totalLessons=COURSES.reduce((s,c)=>s+c.lessons.length,0);
+    if(data.completed.length>=totalLessons&&!data.badges.includes('Course Complete'))data.badges.push('Course Complete');
+    if(data.streak>=7&&!data.badges.includes('7-Day Streak'))data.badges.push('7-Day Streak');
+}
+
+function addPost(){
+    const t=document.getElementById('postTitle').value.trim();
+    const b=document.getElementById('postBody').value.trim();
+    if(!t||!b)return;
+    const data=getData();
+    data.forum.push({title:t,body:b,ts:Date.now()});
+    saveData(data);render();
+}
+
+function updateProfile(){
+    const n=document.getElementById('profName').value.trim();
+    if(!n)return;
+    const data=getData();
+    data.profiles[0].name=n;
+    saveData(data);render();
+}
+
+render();
+</script>
+</body>
+</html>

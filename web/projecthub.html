@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProjectHub - Project Manager</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:system-ui,sans-serif;height:100vh;display:flex;overflow:hidden}
+a.back{position:fixed;top:8px;left:8px;color:#FFCB47;text-decoration:none;font-size:13px;z-index:100;background:#2E2F5E;padding:3px 8px;border-radius:4px;z-index:1001}
+a.back:hover{background:#4449E2}
+#sidebar{width:200px;background:#2E2F5E;display:flex;flex-direction:column;flex-shrink:0;padding-top:40px;border-right:2px solid #4449E2}
+.nav-item{padding:10px 16px;cursor:pointer;font-size:14px;border-left:3px solid transparent}
+.nav-item:hover{background:#4449E2}
+.nav-item.active{border-left-color:#FFCB47;color:#FFCB47;background:rgba(255,203,71,.1)}
+#main{flex:1;overflow-y:auto;padding:20px}
+h1{color:#FFCB47;margin-bottom:16px}
+h2{color:#FFCB47;margin-bottom:12px}
+.stat-cards{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.stat-card{background:#302F6E;border-radius:8px;padding:14px 18px;flex:1;min-width:150px;border-left:4px solid #4449E2}
+.stat-card.c2{border-left-color:#FFCB47}
+.stat-card.c3{border-left-color:#E16464}
+.stat-card.c4{border-left-color:#46B46E}
+.stat-card .label{font-size:12px;color:#aaa}
+.stat-card .value{font-size:28px;font-weight:700}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th{text-align:left;padding:8px 10px;background:#302F6E;color:#FFCB47;font-size:13px;border-bottom:2px solid #4449E2}
+td{padding:8px 10px;border-bottom:1px solid #302F6E;font-size:13px}
+tr:hover{background:rgba(68,73,226,.2)}
+tr.selected{background:rgba(68,73,226,.3)}
+.btn{background:#4449E2;color:#F0F0F5;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:13px;margin:4px}
+.btn:hover{background:#FFCB47;color:#23225A}
+.btn-r{background:#E16464;color:#fff;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:13px}
+.btn-r:hover{background:#ff8080}
+.btn-g{background:#46B46E;color:#fff;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:13px}
+input,select{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;padding:6px 10px;border-radius:4px;font-size:13px}
+label{font-size:13px;color:#aaa}
+.form-row{margin-bottom:10px}
+.form-row label{display:block;margin-bottom:3px}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#2E2F5E;border-radius:10px;padding:20px;width:400px;max-width:90vw}
+.modal h3{color:#FFCB47;margin-bottom:12px}
+.recent-item{background:#302F6E;border-radius:6px;padding:8px 12px;margin-bottom:6px;font-size:13px}
+</style>
+</head>
+<body>
+<a class="back" href="../">← Back</a>
+<div id="sidebar">
+  <div class="nav-item active" onclick="nav('dashboard')">Dashboard</div>
+  <div class="nav-item" onclick="nav('projects')">Projects</div>
+  <div class="nav-item" onclick="nav('tasks')">Tasks</div>
+  <div class="nav-item" onclick="nav('bugs')">Bugs</div>
+  <div class="nav-item" onclick="nav('versions')">Versions</div>
+  <div class="nav-item" onclick="nav('settings')">Settings</div>
+</div>
+<div id="main">
+  <div id="page-dashboard">
+    <h1>Dashboard</h1>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="label">Projects</div><div class="value" id="dProjects">0</div></div>
+      <div class="stat-card c2"><div class="label">Open Tasks</div><div class="value" id="dTasks">0</div></div>
+      <div class="stat-card c3"><div class="label">Open Bugs</div><div class="value" id="dBugs">0</div></div>
+      <div class="stat-card c4"><div class="label">Releases</div><div class="value" id="dVersions">0</div></div>
+    </div>
+    <h2>Recent Work</h2>
+    <div id="recentWork"></div>
+  </div>
+  <div id="page-projects" style="display:none">
+    <h1>Projects</h1>
+    <button class="btn" onclick="showModal('projectModal')">+ New project</button>
+    <button class="btn-r" onclick="deleteSelected('project')" style="margin-left:8px">Delete selected</button>
+    <table><thead><tr><th></th><th>Name</th><th>Description</th><th>Status</th><th>Progress%</th></tr></thead><tbody id="projectTable"></tbody></table>
+  </div>
+  <div id="page-tasks" style="display:none">
+    <h1>Tasks</h1>
+    <button class="btn" onclick="showModal('taskModal')">+ New task</button>
+    <button class="btn-r" onclick="deleteSelected('task')" style="margin-left:8px">Delete selected</button>
+    <table><thead><tr><th></th><th>Task</th><th>Project</th><th>Priority</th><th>Status</th><th>Due</th></tr></thead><tbody id="taskTable"></tbody></table>
+  </div>
+  <div id="page-bugs" style="display:none">
+    <h1>Bugs</h1>
+    <button class="btn" onclick="showModal('bugModal')">+ Report bug</button>
+    <button class="btn-r" onclick="deleteSelected('bug')" style="margin-left:8px">Delete selected</button>
+    <table><thead><tr><th></th><th>Issue</th><th>Project</th><th>Severity</th><th>Status</th></tr></thead><tbody id="bugTable"></tbody></table>
+  </div>
+  <div id="page-versions" style="display:none">
+    <h1>Versions</h1>
+    <button class="btn" onclick="showModal('versionModal')">+ New version</button>
+    <button class="btn-r" onclick="deleteSelected('version')" style="margin-left:8px">Delete selected</button>
+    <table><thead><tr><th></th><th>Version</th><th>Project</th><th>Status</th><th>Date</th></tr></thead><tbody id="versionTable"></tbody></table>
+  </div>
+  <div id="page-settings" style="display:none">
+    <h1>Settings</h1>
+    <button class="btn" onclick="loadDemo()">Load Demo Data</button>
+    <button class="btn-r" onclick="clearAll()">Clear All Data</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="projectModal"><div class="modal">
+  <h3>New Project</h3>
+  <div class="form-row"><label>Name</label><input id="pName" style="width:100%"></div>
+  <div class="form-row"><label>Description</label><input id="pDesc" style="width:100%"></div>
+  <div class="form-row"><label>Status</label><select id="pStatus"><option>Planning</option><option>Active</option><option>On hold</option><option>Complete</option></select></div>
+  <button class="btn-g" onclick="addProject()">Add</button> <button class="btn" onclick="hideModal('projectModal')">Cancel</button>
+</div></div>
+
+<div class="modal-overlay" id="taskModal"><div class="modal">
+  <h3>New Task</h3>
+  <div class="form-row"><label>Title</label><input id="tTitle" style="width:100%"></div>
+  <div class="form-row"><label>Project</label><select id="tProject"></select></div>
+  <div class="form-row"><label>Priority</label><select id="tPriority"><option>Low</option><option>Medium</option><option>High</option></select></div>
+  <div class="form-row"><label>Due Date</label><input id="tDue" type="date" style="width:100%"></div>
+  <button class="btn-g" onclick="addTask()">Add</button> <button class="btn" onclick="hideModal('taskModal')">Cancel</button>
+</div></div>
+
+<div class="modal-overlay" id="bugModal"><div class="modal">
+  <h3>Report Bug</h3>
+  <div class="form-row"><label>Title</label><input id="bTitle" style="width:100%"></div>
+  <div class="form-row"><label>Project</label><select id="bProject"></select></div>
+  <div class="form-row"><label>Severity</label><select id="bSeverity"><option>Low</option><option>Medium</option><option>High</option><option>Critical</option></select></div>
+  <button class="btn-g" onclick="addBug()">Add</button> <button class="btn" onclick="hideModal('bugModal')">Cancel</button>
+</div></div>
+
+<div class="modal-overlay" id="versionModal"><div class="modal">
+  <h3>New Version</h3>
+  <div class="form-row"><label>Version</label><input id="vName" style="width:100%"></div>
+  <div class="form-row"><label>Project</label><select id="vProject"></select></div>
+  <div class="form-row"><label>Status</label><select id="vStatus"><option>Planned</option><option>Released</option></select></div>
+  <button class="btn-g" onclick="addVersion()">Add</button> <button class="btn" onclick="hideModal('versionModal')">Cancel</button>
+</div></div>
+
+<script>
+const LS='projecthub';
+let data={projects:[],tasks:[],bugs:[],versions:[]};
+function load(){const d=localStorage.getItem(LS);if(d)try{data=JSON.parse(d)}catch(e){}}
+function save(){localStorage.setItem(LS,JSON.stringify(data))}
+
+function nav(page){
+  document.querySelectorAll('#main > div').forEach(d=>d.style.display='none');
+  document.getElementById('page-'+page).style.display='block';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.textContent.toLowerCase()===page)n.classList.add('active')});
+  renderAll();
+}
+function showModal(id){document.getElementById(id).classList.add('show')}
+function hideModal(id){document.getElementById(id).classList.remove('show')}
+
+function addProject(){
+  data.projects.push({id:Date.now(),name:document.getElementById('pName').value,desc:document.getElementById('pDesc').value,status:document.getElementById('pStatus').value,progress:0,selected:false});
+  save();hideModal('projectModal');renderAll();
+}
+function addTask(){
+  const proj=document.getElementById('tProject').value;
+  data.tasks.push({id:Date.now(),title:document.getElementById('tTitle').value,project:proj,priority:document.getElementById('tPriority').value,status:'To do',due:document.getElementById('tDue').value,selected:false});
+  save();hideModal('taskModal');renderAll();
+}
+function addBug(){
+  data.bugs.push({id:Date.now(),title:document.getElementById('bTitle').value,project:document.getElementById('bProject').value,severity:document.getElementById('bSeverity').value,status:'Open',selected:false});
+  save();hideModal('bugModal');renderAll();
+}
+function addVersion(){
+  data.versions.push({id:Date.now(),name:document.getElementById('vName').value,project:document.getElementById('vProject').value,status:document.getElementById('vStatus').value,date:new Date().toISOString().slice(0,10)});
+  save();hideModal('versionModal');renderAll();
+}
+
+function toggleTaskStatus(id){
+  const t=data.tasks.find(x=>x.id===id);
+  const cycle={'To do':'In progress','In progress':'Done','Done':'To do'};
+  t.status=cycle[t.status]||'To do';
+  if(t.status==='Done'&&data.projects.length){const p=data.projects.find(x=>x.name===t.project);if(p){const total=data.tasks.filter(x=>x.project===p.name).length;const done=data.tasks.filter(x=>x.project===p.name&&x.status==='Done').length;p.progress=total?Math.round(done/total*100):0}}
+  save();renderAll();
+}
+function toggleBugStatus(id){
+  const b=data.bugs.find(x=>x.id===id);
+  b.status=b.status==='Open'?'Resolved':'Open';save();renderAll();
+}
+function toggleSelected(type,id){
+  const list=data[type+'s']||[];
+  const item=list.find(x=>x.id===id);if(item)item.selected=!item.selected;save();renderAll();
+}
+function deleteSelected(type){
+  data[type+'s']=(data[type+'s']||[]).filter(x=>!x.selected);save();renderAll();
+}
+
+function loadDemo(){
+  data={projects:[{id:1,name:'Website Redesign',desc:'Modern redesign',status:'Active',progress:40},{id:2,name:'Mobile App',desc:'iOS/Android app',status:'Planning',progress:0},{id:3,name:'API v2',desc:'REST API upgrade',status:'Complete',progress:100}],
+    tasks:[{id:10,title:'Design mockups',project:'Website Redesign',priority:'High',status:'Done',due:'2026-03-01'},{id:11,title:'Implement auth',project:'API v2',priority:'High',status:'Done',due:'2026-02-15'},{id:12,title:'UI components',project:'Mobile App',priority:'Medium',status:'To do',due:'2026-04-01'},{id:13,title:'Write tests',project:'API v2',priority:'Low',status:'In progress',due:'2026-03-20'}],
+    bugs:[{id:20,title:'Login crash',project:'Website Redesign',severity:'Critical',status:'Open'},{id:21,title:'Slow query',project:'API v2',severity:'Medium',status:'Resolved'}],
+    versions:[{id:30,name:'v1.0',project:'Website Redesign',status:'Released',date:'2026-01-15'},{id:31,name:'v2.0-beta',project:'API v2',status:'Planned',date:'2026-05-01'}]};
+  save();renderAll();
+}
+function clearAll(){if(!confirm('Clear all data?'))return;data={projects:[],tasks:[],bugs:[],versions:[]};save();renderAll()}
+
+function populateProjectSelects(){
+  const lists=document.querySelectorAll('#tProject,#bProject,#vProject');
+  lists.forEach(sel=>{sel.innerHTML='';data.projects.forEach(p=>{const o=document.createElement('option');o.value=p.name;o.textContent=p.name;sel.appendChild(o)})});
+}
+
+function renderAll(){
+  populateProjectSelects();
+  document.getElementById('dProjects').textContent=data.projects.length;
+  document.getElementById('dTasks').textContent=data.tasks.filter(t=>t.status!=='Done').length;
+  document.getElementById('dBugs').textContent=data.bugs.filter(b=>b.status==='Open').length;
+  document.getElementById('dVersions').textContent=data.versions.length;
+
+  const recent=[...data.tasks,...data.bugs].sort((a,b)=>b.id-a.id).slice(0,5);
+  document.getElementById('recentWork').innerHTML=recent.map(x=>`<div class="recent-item">${x.title||x.name||''} — ${x.status||''} ${x.priority?'('+x.priority+')':''}</div>`).join('')||'<p style="color:#aaa">No recent work</p>';
+
+  document.getElementById('projectTable').innerHTML=data.projects.map(p=>`<tr ondblclick="event.preventDefault()"><td><input type="checkbox" ${p.selected?'checked':''} onchange="toggleSelected('project',${p.id})"></td><td>${esc(p.name)}</td><td>${esc(p.desc)}</td><td>${p.status}</td><td>${p.progress}%</td></tr>`).join('');
+  document.getElementById('taskTable').innerHTML=data.tasks.map(t=>`<tr ondblclick="toggleTaskStatus(${t.id})" title="Double-click to cycle status"><td><input type="checkbox" ${t.selected?'checked':''} onchange="toggleSelected('task',${t.id})"></td><td>${esc(t.title)}</td><td>${esc(t.project)}</td><td>${t.priority}</td><td>${t.status}</td><td>${t.due||'-'}</td></tr>`).join('');
+  document.getElementById('bugTable').innerHTML=data.bugs.map(b=>`<tr ondblclick="toggleBugStatus(${b.id})" title="Double-click to toggle"><td><input type="checkbox" ${b.selected?'checked':''} onchange="toggleSelected('bug',${b.id})"></td><td>${esc(b.title)}</td><td>${esc(b.project)}</td><td>${b.severity}</td><td>${b.status}</td></tr>`).join('');
+  document.getElementById('versionTable').innerHTML=data.versions.map(v=>`<tr><td><input type="checkbox" ${v.selected?'checked':''} onchange="toggleSelected('version',${v.id})"></td><td>${esc(v.name)}</td><td>${esc(v.project)}</td><td>${v.status}</td><td>${v.date}</td></tr>`).join('');
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+load();renderAll();
+</script>
+</body>
+</html>

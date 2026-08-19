@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trestrio - Personal Workspace</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:system-ui,sans-serif;height:100vh;display:flex;overflow:hidden}
+body.light{background:#f0f0f5;color:#23225A}
+body.light #sidebar{background:#e8e8f0}
+body.light .panel{background:#fff;color:#23225A}
+body.light input,body.light textarea,body.light select{background:#f0f0f5;color:#23225A;border-color:#ccc}
+a.back{position:fixed;top:8px;left:8px;color:#FFCB47;text-decoration:none;font-size:13px;z-index:100;background:#2E2F5E;padding:3px 8px;border-radius:4px}
+body.light a.back{background:#ddd;color:#4449E2}
+a.back:hover{background:#4449E2}
+#sidebar{width:220px;background:#2E2F5E;display:flex;flex-direction:column;flex-shrink:0;padding:40px 0 12px;border-right:2px solid #4449E2}
+.sidebar-top{padding:12px 16px;margin-bottom:10px}
+.sidebar-top .brand{font-size:28px;font-weight:900;color:#FFCB47}
+.nav-btn{padding:10px 20px;cursor:pointer;font-size:14px;border-left:3px solid transparent}
+.nav-btn:hover{background:rgba(68,73,226,.3)}
+.nav-btn.active{border-left-color:#FFCB47;color:#FFCB47;background:rgba(255,203,71,.1)}
+.sidebar-bottom{margin-top:auto;padding:12px 16px;font-size:11px;color:#aaa;font-style:italic;border-top:1px solid #4449E2}
+#main{flex:1;overflow-y:auto;padding:20px}
+.panel{background:#302F6E;border-radius:8px;padding:14px;margin-bottom:12px}
+body.light .panel{background:#fff}
+h1{color:#FFCB47;margin-bottom:14px;font-size:22px}
+h2{color:#FFCB47;margin-bottom:10px;font-size:16px}
+h3{color:#FFCB47;margin-bottom:6px;font-size:14px}
+.btn{background:#4449E2;color:#F0F0F5;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:13px;margin:3px}
+.btn:hover{background:#FFCB47;color:#23225A}
+.btn-s{background:#4449E2;color:#F0F0F5;border:none;padding:4px 10px;border-radius:4px;cursor:pointer;font-size:12px;margin:2px}
+.btn-s:hover{background:#FFCB47;color:#23225A}
+.btn-g{background:#46B46E;color:#fff;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:13px}
+.btn-r{background:#E16464;color:#fff;border:none;padding:7px 14px;border-radius:5px;cursor:pointer;font-size:13px}
+input,textarea,select{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;padding:6px 10px;border-radius:4px;font-size:13px;width:100%}
+body.light input,body.light textarea,body.light select{background:#f0f0f5;color:#23225A;border-color:#ccc}
+.stats-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.stat-card{background:#302F6E;border-radius:8px;padding:14px;flex:1;min-width:140px}
+body.light .stat-card{background:#fff}
+.stat-card .label{font-size:11px;color:#aaa}
+.stat-card .value{font-size:24px;font-weight:700;color:#FFCB47}
+.progress-bar{background:#23225A;border-radius:4px;height:8px;overflow:hidden;margin:4px 0}
+body.light .progress-bar{background:#ddd}
+.progress-bar .fill{height:100%;background:#46B46E;border-radius:4px;transition:width .3s}
+.task-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.task-item input[type=checkbox]{width:auto}
+.task-item.done span{text-decoration:line-through;color:#aaa}
+.task-item span{flex:1}
+.timer{font-size:64px;font-weight:900;color:#FFCB47;text-align:center;font-family:monospace}
+.timer-controls{display:flex;justify-content:center;gap:8px;margin:12px 0}
+.ritual-item{padding:8px;background:rgba(255,255,255,.05);border-radius:4px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+body.light .ritual-item{background:rgba(0,0,0,.05)}
+.tool-card{background:rgba(255,255,255,.05);border-radius:8px;padding:12px;cursor:pointer;margin-bottom:8px}
+body.light .tool-card{background:rgba(0,0,0,.05)}
+.tool-card:hover{background:rgba(68,73,226,.3)}
+.tool-card h3{margin-bottom:4px}
+.tool-card p{font-size:11px;color:#aaa}
+.tool-expanded{background:#302F6E;border-radius:8px;padding:16px;margin-bottom:10px}
+body.light .tool-expanded{background:#fff}
+.tool-expanded label{display:block;font-size:12px;color:#aaa;margin:6px 0 2px}
+.tool-expanded input,.tool-expanded textarea{margin-bottom:6px}
+.tool-expanded pre{background:#1a1a3e;padding:10px;border-radius:4px;overflow-x:auto;font-size:12px;font-family:monospace;color:#F0F0F5;white-space:pre-wrap}
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.filter-btn{background:rgba(255,255,255,.1);color:#F0F0F5;border:none;padding:4px 10px;border-radius:12px;cursor:pointer;font-size:12px}
+.filter-btn.active{background:#4449E2}
+body.light .filter-btn{background:rgba(0,0,0,.1);color:#23225A}
+body.light .filter-btn.active{background:#4449E2;color:#fff}
+</style>
+</head>
+<body>
+<a class="back" href="../">← Back</a>
+<div id="sidebar">
+  <div class="sidebar-top"><span class="brand">T</span></div>
+  <div class="nav-btn active" onclick="nav('today')">Today</div>
+  <div class="nav-btn" onclick="nav('focus')">Focus</div>
+  <div class="nav-btn" onclick="nav('tools')">Tools</div>
+  <div class="sidebar-bottom" id="quoteArea"></div>
+</div>
+<div id="main">
+  <div id="page-today" style="display:block">
+    <h1>Today</h1>
+    <div class="stats-row">
+      <div class="stat-card"><div class="label">Tasks done</div><div class="value" id="tasksDone">0/0</div><div class="progress-bar"><div class="fill" id="taskProg" style="width:0%"></div></div></div>
+      <div class="stat-card"><div class="label">Focus time</div><div class="value" id="focusTime">0m</div></div>
+      <div class="stat-card"><div class="label">Today</div><div class="value" id="todayDate" style="font-size:16px"></div></div>
+    </div>
+    <div class="panel">
+      <h2>Tasks</h2>
+      <form onsubmit="addTask(event)" style="display:flex;gap:6px;margin-bottom:10px"><input id="taskInput" placeholder="Add a task..." style="flex:1"><button class="btn" type="submit">Add</button></form>
+      <div id="taskList"></div>
+    </div>
+    <div class="panel">
+      <h2>Quick Note</h2>
+      <textarea id="quickNote" rows="4" placeholder="Write something..." oninput="saveQuickNote()"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+        <span id="charCount" style="font-size:11px;color:#aaa">0 chars</span>
+        <button class="btn-s" onclick="clearQuickNote()">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-focus" style="display:none">
+    <h1>Focus</h1>
+    <div class="panel" style="text-align:center">
+      <div class="timer" id="timerDisplay">25:00</div>
+      <div style="display:flex;justify-content:center;gap:6px;margin:10px 0">
+        <button class="btn-s" onclick="setTimer(15)">15 min</button>
+        <button class="btn-s" onclick="setTimer(25)">25 min</button>
+        <button class="btn-s" onclick="setTimer(45)">45 min</button>
+      </div>
+      <div class="timer-controls">
+        <button class="btn-g" id="startBtn" onclick="toggleTimer()">Start</button>
+        <button class="btn-r" onclick="resetTimer()">Reset</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Pre-Session Ritual</h2>
+      <div class="ritual-item"><input type="checkbox" id="r1"><label for="r1"> Clear desk and close distractions</label></div>
+      <div class="ritual-item"><input type="checkbox" id="r2"><label for="r2"> Set a clear goal for this session</label></div>
+      <div class="ritual-item"><input type="checkbox" id="r3"><label for="r3"> Put phone on silent</label></div>
+    </div>
+    <div class="panel">
+      <h2>Sessions Completed: <span id="sessionCount">0</span></h2>
+    </div>
+  </div>
+
+  <div id="page-tools" style="display:none">
+    <h1>Tools</h1>
+    <input id="toolSearch" placeholder="Search tools..." oninput="filterTools()" style="margin-bottom:10px">
+    <div class="filter-row" id="filterRow"></div>
+    <div id="toolGrid"></div>
+    <div id="toolArea"></div>
+  </div>
+</div>
+<script>
+const QUOTES=["The secret of getting ahead is getting started.","Focus on being productive instead busy.","It's not that I'm so smart, it's just that I stay with problems longer.","The way to get started is to quit talking and begin doing.","Productivity is never an accident."];
+let state={tasks:[],note:'',focusSessions:0,timerMin:25,timerSec:0,timerRunning:false,timerInterval:null};
+function load(){const d=localStorage.getItem('trestrio');if(d)try{state=Object.assign(state,JSON.parse(d))}catch(e){}}
+function save(){localStorage.setItem('trestrio',JSON.stringify({tasks:state.tasks,note:state.note,focusSessions:state.focusSessions}))}
+
+function nav(page){
+  document.querySelectorAll('#main>div').forEach(d=>d.style.display='none');
+  document.getElementById('page-'+page).style.display='block';
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>{if(b.textContent.toLowerCase()===page)b.classList.add('active')});
+  if(page==='tools')renderTools();
+}
+
+// TODAY
+function addTask(e){e.preventDefault();const v=document.getElementById('taskInput').value.trim();if(!v)return;state.tasks.push({id:Date.now(),text:v,done:false});document.getElementById('taskInput').value='';save();renderTasks()}
+function toggleTask(id){const t=state.tasks.find(x=>x.id===id);t.done=!t.done;save();renderTasks()}
+function deleteTask(id){state.tasks=state.tasks.filter(x=>x.id!==id);save();renderTasks()}
+function renderTasks(){
+  const c=document.getElementById('taskList');
+  c.innerHTML=state.tasks.map(t=>`<div class="task-item${t.done?' done':''}"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id})"><span>${esc(t.text)}</span><button class="btn-s" onclick="deleteTask(${t.id})">✕</button></div>`).join('');
+  const done=state.tasks.filter(t=>t.done).length;
+  document.getElementById('tasksDone').textContent=done+'/'+state.tasks.length;
+  document.getElementById('taskProg').style.width=(state.tasks.length?done/state.tasks.length*100:0)+'%';
+  document.getElementById('focusTime').textContent=state.focusSessions*25+'m';
+  document.getElementById('todayDate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+}
+function saveQuickNote(){state.note=document.getElementById('quickNote').value;document.getElementById('charCount').textContent=state.note.length+' chars';save()}
+function clearQuickNote(){document.getElementById('quickNote').value='';state.note='';save();document.getElementById('charCount').textContent='0 chars'}
+
+// FOCUS
+function setTimer(m){state.timerMin=m;state.timerSec=0;updateTimerDisplay()}
+function updateTimerDisplay(){const m=Math.floor(state.timerSec/60);const s=state.timerSec%60;document.getElementById('timerDisplay').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function toggleTimer(){
+  if(state.timerRunning){clearInterval(state.timerInterval);state.timerRunning=false;document.getElementById('startBtn').textContent='Start'}
+  else{state.timerRunning=true;document.getElementById('startBtn').textContent='Pause';state.timerInterval=setInterval(()=>{
+    if(state.timerSec>0)state.timerSec--;else{clearInterval(state.timerInterval);state.timerRunning=false;state.focusSessions++;save();document.getElementById('sessionCount').textContent=state.focusSessions;document.getElementById('startBtn').textContent='Start';alert('Focus session complete!')}
+    updateTimerDisplay()},1000)}
+}
+function resetTimer(){clearInterval(state.timerInterval);state.timerRunning=false;state.timerSec=state.timerMin*60;updateTimerDisplay();document.getElementById('startBtn').textContent='Start'}
+document.getElementById('sessionCount').textContent=state.focusSessions;
+
+// TOOLS
+const TOOLS=[
+  {name:'Word Counter',cat:'text',fn:()=>{const t=el('twc');return `<label>Text</label><textarea id="twc" rows="3" oninput="toolRes('twc','twcr')"></textarea><div id="twcr" style="margin-top:6px;font-size:13px"></div>`}},
+  {name:'Char Counter',cat:'text',fn:()=>`<label>Text</label><textarea id="tcc" rows="3" oninput="toolRes('tcc','tccr')"></textarea><div id="tccr" style="margin-top:6px;font-size:13px"></div>`},
+  {name:'Case Converter',cat:'text',fn:()=>`<label>Text</label><textarea id="tcv" rows="3"></textarea><div style="display:flex;gap:4px;margin-top:6px"><button class="btn-s" onclick="caseConv('upper')">UPPER</button><button class="btn-s" onclick="caseConv('lower')">lower</button><button class="btn-s" onclick="caseConv('title')">Title</button></div><div id="tcvr" style="margin-top:6px;font-size:13px"></div>`},
+  {name:'Reverse Text',cat:'text',fn:()=>`<label>Text</label><textarea id="trv" rows="3"></textarea><button class="btn-s" onclick="document.getElementById('trvr').textContent=[...document.getElementById('trv').value].reverse().join('')">Reverse</button><div id="trvr" style="margin-top:6px;font-size:13px;word-break:break-all"></div>`},
+  {name:'Sort Lines',cat:'text',fn:()=>`<label>Text (one per line)</label><textarea id="tsl" rows="4"></textarea><button class="btn-s" onclick="document.getElementById('tslr').textContent=document.getElementById('tsl').value.split('\\n').sort().join('\\n')">Sort</button><div id="tslr" style="margin-top:6px;font-size:13px;white-space:pre"></div>`},
+  {name:'Slug Maker',cat:'text',fn:()=>`<label>Text</label><input id="tsm" oninput="document.getElementById('tsmr').textContent=this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')"><div id="tsmr" style="margin-top:6px;font-size:13px;word-break:break-all"></div>`},
+  {name:'ROT13',cat:'text',fn:()=>`<label>Text</label><textarea id="tr13" rows="3"></textarea><button class="btn-s" onclick="document.getElementById('tr13r').textContent=document.getElementById('tr13').value.replace(/[a-zA-Z]/g,c=>String.fromCharCode(c.charCodeAt(0)+(c.toLowerCase()<'n'?13:-13)))">Encode</button><div id="tr13r" style="margin-top:6px;font-size:13px;word-break:break-all"></div>`},
+  {name:'Square',cat:'numbers',fn:()=>`<label>Number</label><input id="tsq" type="number" oninput="document.getElementById('tsqr').textContent=Math.pow(+this.value,2)"><div id="tsqr" style="margin-top:6px;font-size:20px;color:#FFCB47"></div>`},
+  {name:'Square Root',cat:'numbers',fn:()=>`<label>Number</label><input id="tsr" type="number" oninput="document.getElementById('tsrr').textContent=this.value>=0?Math.sqrt(+this.value).toFixed(4):'Invalid'"><div id="tsrr" style="margin-top:6px;font-size:20px;color:#FFCB47"></div>`},
+  {name:'Factorial',cat:'numbers',fn:()=>`<label>Number (0-20)</label><input id="tfac" type="number" min="0" max="20" oninput="let n=+this.value,r=1;for(let i=2;i<=n;i++)r*=i;document.getElementById('tfacr').textContent=n>=0?r:'-'"><div id="tfacr" style="margin-top:6px;font-size:20px;color:#FFCB47"></div>`},
+  {name:'Percentage',cat:'numbers',fn:()=>`<label>Value</label><input id="tpv" type="number" placeholder="value"><label>Total</label><input id="tpt" type="number" placeholder="total"><button class="btn-s" onclick="document.getElementById('tprr').textContent=(+document.getElementById('tpv').value/+document.getElementById('tpt').value*100).toFixed(2)+'%'">Calculate</button><div id="tprr" style="margin-top:6px;font-size:20px;color:#FFCB47"></div>`},
+  {name:'BMI Calculator',cat:'numbers',fn:()=>`<label>Weight (kg)</label><input id="tbw" type="number"><label>Height (cm)</label><input id="tbh" type="number"><button class="btn-s" onclick="let w=+document.getElementById('tbw').value,h=+document.getElementById('tbh').value/100;document.getElementById('tbmr').textContent=(w/(h*h)).toFixed(1)">Calculate</button><div id="tbmr" style="margin-top:6px;font-size:20px;color:#FFCB47"></div>`},
+  {name:'Temp Converter',cat:'numbers',fn:()=>`<label>Temperature</label><input id="ttv" type="number" oninput="let v=+this.value;document.getElementById('ttvr').textContent='°F: '+(v*9/5+32).toFixed(1)+' | K: '+(v+273.15).toFixed(1)"><div id="ttvr" style="margin-top:6px;font-size:14px"></div>`},
+  {name:'Unit Converter',cat:'numbers',fn:()=>`<label>Value</label><input id="tuv" type="number" oninput="let v=+this.value;document.getElementById('tuvr').textContent='km↔miles: '+(v*0.621371).toFixed(2)+' | kg↔lbs: '+(v*2.20462).toFixed(2)+' | cm↔in: '+(v*0.393701).toFixed(2)"><div id="tuvr" style="margin-top:6px;font-size:13px"></div>`},
+  {name:'JSON Formatter',cat:'dev',fn:()=>`<label>JSON</label><textarea id="tjf" rows="4" placeholder="Paste JSON..."></textarea><div style="display:flex;gap:4px"><button class="btn-s" onclick="try{document.getElementById('tjfr').textContent=JSON.stringify(JSON.parse(document.getElementById('tjf').value),null,2)}catch(e){document.getElementById('tjfr').textContent='Invalid JSON: '+e.message}">Format</button><button class="btn-s" onclick="try{document.getElementById('tjfr').textContent=JSON.stringify(JSON.parse(document.getElementById('tjf').value))}catch(e){document.getElementById('tjfr').textContent=e.message}">Minify</button><button class="btn-s" onclick="try{JSON.parse(document.getElementById('tjf').value);document.getElementById('tjfr').textContent='Valid JSON ✓'}catch(e){document.getElementById('tjfr').textContent='Invalid: '+e.message}">Validate</button></div><pre id="tjfr" style="margin-top:6px;max-height:200px;overflow:auto"></pre>`},
+  {name:'Hex ↔ Decimal',cat:'dev',fn:()=>`<label>Value</label><input id="thd" oninput="let v=this.value;document.getElementById('thdr').textContent=/^[0-9a-f]+$/i.test(v)?'Dec: '+parseInt(v,16):/^\d+$/.test(v)?'Hex: 0x'+(+v).toString(16).toUpperCase():'Enter hex or decimal'"><div id="thdr" style="margin-top:6px;font-size:14px;color:#FFCB47"></div>`},
+  {name:'Binary ↔ Decimal',cat:'dev',fn:()=>`<label>Value</label><input id="tbd" oninput="let v=this.value;document.getElementById('tbdr').textContent=/^[01]+$/.test(v)?'Dec: '+parseInt(v,2):/^\d+$/.test(v)?'Bin: '+(+v).toString(2):'Enter binary or decimal'"><div id="tbdr" style="margin-top:6px;font-size:14px;color:#FFCB47"></div>`},
+  {name:'URL Encoder/Decoder',cat:'dev',fn:()=>`<label>Text</label><textarea id="tue" rows="3"></textarea><div style="display:flex;gap:4px"><button class="btn-s" onclick="document.getElementById('tuer').textContent=encodeURIComponent(document.getElementById('tue').value)">Encode</button><button class="btn-s" onclick="document.getElementById('tuer').textContent=decodeURIComponent(document.getElementById('tue').value)">Decode</button></div><div id="tuer" style="margin-top:6px;font-size:13px;word-break:break-all"></div>`},
+  {name:'UUID Generator',cat:'gen',fn:()=>`<button class="btn" onclick="document.getElementById('tuuid').textContent=crypto.randomUUID()">Generate UUID</button><div id="tuuid" style="margin-top:8px;font-size:14px;color:#FFCB47;font-family:monospace"></div>`},
+  {name:'Password Generator',cat:'gen',fn:()=>`<label>Length</label><input id="tpgl" type="number" value="16" min="4" max="64"><button class="btn" onclick="let l=+document.getElementById('tpgl').value,c='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*',r='';for(let i=0;i<l;i++)r+=c[Math.floor(Math.random()*c.length)];document.getElementById('tpgr').textContent=r">Generate</button><div id="tpgr" style="margin-top:8px;font-size:14px;color:#FFCB47;font-family:monospace;word-break:break-all"></div>`},
+  {name:'Random Number',cat:'gen',fn:()=>`<label>Min</label><input id="trnm" type="number" value="1"><label>Max</label><input id="trnx" type="number" value="100"><button class="btn" onclick="let a=+document.getElementById('trnm').value,b=+document.getElementById('trnx').value;document.getElementById('trnr').textContent=Math.floor(Math.random()*(b-a+1))+a">Roll</button><div id="trnr" style="margin-top:8px;font-size:36px;color:#FFCB47;font-weight:900;text-align:center"></div>`},
+  {name:'Coin Flip',cat:'gen',fn:()=>`<button class="btn" onclick="document.getElementById('tcf').textContent=Math.random()<.5?'Heads':'Tails'">Flip</button><div id="tcf" style="margin-top:8px;font-size:36px;color:#FFCB47;font-weight:900;text-align:center"></div>`},
+  {name:'Dice Roll',cat:'gen',fn:()=>`<button class="btn" onclick="document.getElementById('tdr').textContent=Math.floor(Math.random()*6)+1">Roll</button><div id="tdr" style="margin-top:8px;font-size:48px;color:#FFCB47;font-weight:900;text-align:center"></div>`},
+  {name:'Random Color',cat:'gen',fn:()=>`<button class="btn" onclick="let c='#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');document.getElementById('trc').textContent=c;document.getElementById('trcd').style.background=c">Generate</button><div id="trc" style="margin-top:8px;font-size:14px;color:#FFCB47;font-family:monospace"></div><div id="trcd" style="margin-top:6px;height:40px;border-radius:4px"></div>`},
+  {name:'Age Calculator',cat:'date',fn:()=>`<label>Birth date</label><input id="tab" type="date"><button class="btn-s" onclick="let d=new Date(document.getElementById('tab').value),n=new Date(),y=n.getFullYear()-d.getFullYear(),m=n.getMonth()-d.getMonth();if(m<0||(!m&&n.getDate()<d.getDate()))y--;document.getElementById('tabr').textContent=y+' years old'">Calculate</button><div id="tabr" style="margin-top:6px;font-size:18px;color:#FFCB47"></div>`},
+  {name:'Days Between Dates',cat:'date',fn:()=>`<label>From</label><input id="tdf" type="date"><label>To</label><input id="tdt" type="date"><button class="btn-s" onclick="let a=new Date(document.getElementById('tdf').value),b=new Date(document.getElementById('tdt').value);document.getElementById('tdbr').textContent=Math.round(Math.abs(b-a)/86400000)+' days'">Calculate</button><div id="tdbr" style="margin-top:6px;font-size:18px;color:#FFCB47"></div>`},
+  {name:'Day of Week',cat:'date',fn:()=>`<label>Date</label><input id="tdw" type="date"><button class="btn-s" onclick="document.getElementById('tdwr').textContent=new Date(document.getElementById('tdw').value).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})">Find</button><div id="tdwr" style="margin-top:6px;font-size:16px;color:#FFCB47"></div>`},
+  {name:'Days Until Date',cat:'date',fn:()=>`<label>Target date</label><input id="tdu" type="date"><button class="btn-s" onclick="let d=Math.round((new Date(document.getElementById('tdu').value)-new Date())/86400000);document.getElementById('tdur').textContent=d>=0?d+' days away':'Date has passed'">Calculate</button><div id="tdur" style="margin-top:6px;font-size:18px;color:#FFCB47"></div>`}
+];
+let activeTool=-1,activeCat='all';
+function renderTools(){
+  const cats=['all','text','numbers','dev','gen','date'];
+  const catLabels={all:'All',text:'Text',numbers:'Numbers',dev:'Developer',gen:'Generate',date:'Date & Time'};
+  document.getElementById('filterRow').innerHTML=cats.map(c=>`<button class="filter-btn${c===activeCat?' active':''}" onclick="setCat('${c}')">${catLabels[c]}</button>`).join('');
+  const q=(document.getElementById('toolSearch')?.value||'').toLowerCase();
+  const filtered=TOOLS.filter((t,i)=>(activeCat==='all'||t.cat===activeCat)&&(!q||t.name.toLowerCase().includes(q)));
+  document.getElementById('toolGrid').innerHTML=filtered.map((t,i)=>`<div class="tool-card" onclick="expandTool(${TOOLS.indexOf(t)})"><h3>${t.name}</h3><p>${catLabels[t.cat]}</p></div>`).join('');
+  if(activeTool>=0)expandTool(activeTool);
+}
+function setCat(c){activeCat=c;renderTools()}
+function filterTools(){renderTools()}
+function expandTool(idx){
+  activeTool=idx;
+  const t=TOOLS[idx];
+  document.getElementById('toolArea').innerHTML=`<div class="tool-expanded"><div style="display:flex;justify-content:space-between;align-items:center"><h2>${t.name}</h2><button class="btn-s" onclick="activeTool=-1;document.getElementById('toolArea').innerHTML=''">✕</button></div>${t.fn()}</div>`;
+}
+
+function toolRes(inputId,resId){
+  const text=document.getElementById(inputId).value;
+  const words=text.trim()?text.trim().split(/\s+/).length:0;
+  const chars=text.length;
+  const lines=text?text.split('\n').length:0;
+  document.getElementById(resId).textContent=`Words: ${words} | Characters: ${chars} | Lines: ${lines}`;
+}
+function caseConv(type){
+  const v=document.getElementById('tcv').value;
+  document.getElementById('tcvr').textContent=type==='upper'?v.toUpperCase():type==='lower'?v.toLowerCase():v.replace(/\b\w/g,c=>c.toUpperCase());
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+document.getElementById('quoteArea').textContent=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+document.getElementById('quickNote').value=state.note||'';
+document.getElementById('charCount').textContent=(state.note||'').length+' chars';
+load();renderTasks();
+</script>
+</body>
+</html>

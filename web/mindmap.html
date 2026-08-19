@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MindMap Builder</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#1a1a4a;color:#F0F0F5;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+a.back{position:fixed;top:8px;left:8px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:100;background:rgba(30,30,80,.8);padding:4px 8px;border-radius:4px}
+.toolbar{display:flex;gap:4px;padding:6px 12px;background:#2E2F6E;align-items:center;flex-wrap:wrap;z-index:50}
+.toolbar h1{font-size:16px;color:#FFCB47;margin-right:8px}
+.btn{padding:5px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-danger{background:#e74c3c}
+.toolbar .sep{width:1px;height:20px;background:rgba(240,240,245,.2);margin:0 4px}
+.color-dot{width:20px;height:20px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.15s}
+.color-dot.active{border-color:#F0F0F5;transform:scale(1.2)}
+.canvas-wrap{flex:1;position:relative;overflow:hidden}
+canvas{position:absolute;top:0;left:0;cursor:crosshair}
+.node-input{position:absolute;background:#2E2F6E;color:#F0F0F5;border:2px solid #4449E2;padding:6px 10px;border-radius:8px;font-size:13px;outline:none;z-index:20;min-width:80px;font-family:inherit;text-align:center}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="toolbar">
+<h1>🧠 MindMap</h1>
+<button class="btn" onclick="addNodeAtCenter()">+ Add Node</button>
+<button class="btn" id="connectBtn" onclick="toggleConnect()">Connect</button>
+<button class="btn btn-danger" onclick="deleteSelected()">Delete</button>
+<button class="btn" onclick="autoLayout()">Auto Layout</button>
+<button class="btn btn-accent" onclick="exportJSON()">Export</button>
+<button class="btn btn-accent" onclick="importJSON()">Import</button>
+<span class="sep"></span>
+<div class="color-dot" style="background:#4449E2" data-color="#4449E2" onclick="setNodeColor(this)"></div>
+<div class="color-dot" style="background:#FFCB47" data-color="#FFCB47" onclick="setNodeColor(this)"></div>
+<div class="color-dot" style="background:#e74c3c" data-color="#e74c3c" onclick="setNodeColor(this)"></div>
+<div class="color-dot" style="background:#2ecc71" data-color="#2ecc71" onclick="setNodeColor(this)"></div>
+<div class="color-dot" style="background:#9b59b6" data-color="#9b59b6" onclick="setNodeColor(this)"></div>
+<div class="color-dot" style="background:#1abc9c" data-color="#1abc9c" onclick="setNodeColor(this)"></div>
+<span class="sep"></span>
+<span style="font-size:11px;color:rgba(240,240,245,.4)" id="zoomLabel">100%</span>
+</div>
+<div class="canvas-wrap" id="canvasWrap">
+<canvas id="canvas"></canvas>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const wrap=document.getElementById('canvasWrap');
+
+let W,H;
+function resize(){W=wrap.clientWidth;H=wrap.clientHeight;canvas.width=W*2;canvas.height=H*2;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.scale(2,2);render()}
+resize();window.addEventListener('resize',resize);
+
+let nodes=JSON.parse(localStorage.getItem('mindmap_nodes'))||[];
+let connections=JSON.parse(localStorage.getItem('mindmap_conns'))||[];
+let zoom=1,panX=0,panY=0;
+let selectedNode=null,connecting=false,connectFrom=null;
+let dragging=false,dragNode=null,dragOffX=0,dragOffY=0;
+let panning=false,panStartX=0,panStartY=0;
+let nodeColor='#4449E2';
+let nextId=nodes.length?Math.max(...nodes.map(n=>n.id))+1:1;
+
+function save(){localStorage.setItem('mindmap_nodes',JSON.stringify(nodes));localStorage.setItem('mindmap_conns',JSON.stringify(connections))}
+
+function setNodeColor(el){nodeColor=el.dataset.color;document.querySelectorAll('.color-dot').forEach(d=>d.classList.remove('active'));el.classList.add('active')}
+
+function screenToWorld(x,y){return[(x-panX)/zoom,(y-panY)/zoom]}
+function worldToScreen(x,y){return[x*zoom+panX,y*zoom+panY]}
+
+function getNodeAt(wx,wy){
+  for(let i=nodes.length-1;i>=0;i--){
+    const n=nodes[i];const hw=n.w/2,hh=n.h/2;
+    if(wx>=n.x-hw&&wx<=n.x+hw&&wy>=n.y-hh&&wy<=n.y+hh)return n;
+  }
+  return null;
+}
+
+canvas.addEventListener('mousedown',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  const [wx,wy]=screenToWorld(x,y);
+  const node=getNodeAt(wx,wy);
+  if(e.button===1||e.altKey){panning=true;panStartX=e.clientX;panStartY=e.clientY;return}
+  if(connecting&&node){
+    if(connectFrom&&connectFrom.id!==node.id){
+      const exists=connections.find(c=>(c.from===connectFrom.id&&c.to===node.id)||(c.from===node.id&&c.to===connectFrom.id));
+      if(!exists)connections.push({from:connectFrom.id,to:node.id});
+      connectFrom=null;connecting=false;document.getElementById('connectBtn').style.background='';save();render();
+    }
+    return;
+  }
+  if(node){
+    if(e.detail===2){editNodeText(node);return}
+    selectedNode=node;dragging=true;dragNode=node;dragOffX=wx-node.x;dragOffY=wy-node.y;
+  }else{
+    selectedNode=null;panning=true;panStartX=e.clientX;panStartY=e.clientY;
+  }
+  render();
+});
+
+canvas.addEventListener('mousemove',e=>{
+  if(panning){panX+=e.clientX-panStartX;panY+=e.clientY-panStartY;panStartX=e.clientX;panStartY=e.clientY;render();return}
+  if(dragging&&dragNode){
+    const rect=canvas.getBoundingClientRect();
+    const [wx,wy]=screenToWorld(e.clientX-rect.left,e.clientY-rect.top);
+    dragNode.x=wx-dragOffX;dragNode.y=wy-dragOffY;
+    dragNode.w=Math.max(80,dragNode.text.length*9+30);
+    render();
+  }
+});
+
+canvas.addEventListener('mouseup',()=>{panning=false;if(dragging){dragging=false;save()}});
+
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const delta=e.deltaY>0?0.9:1.1;
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  const wx=(mx-panX)/zoom,wy=(my-panY)/zoom;
+  zoom*=delta;zoom=Math.max(0.2,Math.min(5,zoom));
+  panX=mx-wx*zoom;panY=my-wy*zoom;
+  document.getElementById('zoomLabel').textContent=Math.round(zoom*100)+'%';
+  render();
+},{passive:false});
+
+function addNodeAtCenter(){
+  const [wx,wy]=screenToWorld(W/2,H/2);
+  const node={id:nextId++,x:wx+(Math.random()-0.5)*100,y:wy+(Math.random()-0.5)*100,text:'New Node',color:nodeColor,w:100,h:36};
+  nodes.push(node);save();render();
+}
+
+function toggleConnect(){connecting=!connecting;connectFrom=null;document.getElementById('connectBtn').style.background=connecting?'#FFCB47':''}
+
+function deleteSelected(){
+  if(!selectedNode)return;
+  connections=connections.filter(c=>c.from!==selectedNode.id&&c.to!==selectedNode.id);
+  nodes=nodes.filter(n=>n.id!==selectedNode.id);
+  selectedNode=null;save();render();
+}
+
+function editNodeText(node){
+  const rect=canvas.getBoundingClientRect();
+  const [sx,sy]=worldToScreen(node.x,node.y);
+  const inp=document.createElement('input');inp.className='node-input';
+  inp.value=node.text;inp.style.left=(rect.left+sx-node.w/2*zoom)+'px';inp.style.top=(rect.top+sy-12)+'px';
+  inp.style.width=(node.w*zoom)+'px';
+  inp.onblur=()=>{node.text=inp.value||'Node';node.w=Math.max(80,node.text.length*9+30);inp.remove();save();render()};
+  inp.onkeydown=ev=>{if(ev.key==='Enter')inp.blur()};
+  wrap.appendChild(inp);inp.focus();inp.select();
+}
+
+function autoLayout(){
+  if(!nodes.length)return;
+  const cx=panX/zoom+W/(2*zoom),cy=panY/zoom+H/(2*zoom);
+  const angleStep=(2*Math.PI)/nodes.length;
+  nodes.forEach((n,i)=>{n.x=cx+Math.cos(i*angleStep)*200;n.y=cy+Math.sin(i*angleStep)*150});
+  save();render();
+}
+
+function render(){
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#1a1a4a';ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate(panX,panY);ctx.scale(zoom,zoom);
+  // Draw connections
+  ctx.strokeStyle='rgba(240,240,245,.3)';ctx.lineWidth=2;
+  connections.forEach(c=>{
+    const from=nodes.find(n=>n.id===c.from),to=nodes.find(n=>n.id===c.to);
+    if(from&&to){ctx.beginPath();ctx.moveTo(from.x,from.y);ctx.lineTo(to.x,to.y);ctx.stroke()}
+  });
+  if(connecting&&connectFrom){ctx.strokeStyle='#FFCB47';ctx.setLineDash([5,5]);ctx.beginPath();ctx.moveTo(connectFrom.x,connectFrom.y);const rect=canvas.getBoundingClientRect();const [mx,my]=screenToWorld(rect.width/2,rect.height/2);ctx.lineTo(mx,my);ctx.stroke();ctx.setLineDash([])}
+  // Draw nodes
+  nodes.forEach(n=>{
+    const hw=n.w/2,hh=n.h/2;
+    ctx.fillStyle=n.color||'#4449E2';
+    ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=8;ctx.shadowOffsetY=2;
+    ctx.beginPath();ctx.roundRect(n.x-hw,n.y-hh,n.w,n.h,8);ctx.fill();
+    ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+    if(selectedNode&&selectedNode.id===n.id){ctx.strokeStyle='#FFCB47';ctx.lineWidth=2;ctx.stroke()}
+    ctx.fillStyle='#F0F0F5';ctx.font='13px "Segoe UI",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(n.text,n.x,n.y);
+  });
+  ctx.restore();
+}
+
+canvas.addEventListener('dblclick',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const [wx,wy]=screenToWorld(e.clientX-rect.left,e.clientY-rect.top);
+  const node=getNodeAt(wx,wy);
+  if(node){editNodeText(node)}
+  else{
+    const node={id:nextId++,x:wx,y:wy,text:'New Node',color:nodeColor,w:100,h:36};
+    nodes.push(node);save();render();editNodeText(node);
+  }
+});
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({nodes,connections},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='mindmap.json';a.click();URL.revokeObjectURL(url);
+}
+function importJSON(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=e=>{const r=new FileReader();r.onload=ev=>{try{const d=JSON.parse(ev.target.result);nodes=d.nodes||[];connections=d.connections||[];nextId=nodes.length?Math.max(...nodes.map(n=>n.id))+1:1;save();render()}catch(e){alert('Invalid JSON')}};r.readAsText(e.target.files[0])};inp.click()}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Delete'&&selectedNode)deleteSelected();
+  if(e.key==='Escape'){connecting=false;connectFrom=null;document.getElementById('connectBtn').style.background=''}
+});
+
+if(!nodes.length){
+  nodes=[{id:1,x:0,y:0,text:'Central Idea',color:'#FFCB47',w:120,h:40},{id:2,x:-150,y:-80,text:'Topic A',color:'#4449E2',w:90,h:36},{id:3,x:150,y:-80,text:'Topic B',color:'#4449E2',w:90,h:36},{id:4,x:0,y:100,text:'Topic C',color:'#4449E2',w:90,h:36}];
+  connections=[{from:1,to:2},{from:1,to:3},{from:1,to:4}];nextId=5;save();
+}
+render();
+</script>
+</body>
+</html>

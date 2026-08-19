@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Game That Makes No Sense</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#1a0a2e;color:#F0F0F5;font-family:'Segoe UI',sans-serif;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:10px}
+a.back{position:fixed;top:12px;left:12px;color:#9b59b6;text-decoration:none;font-size:14px;z-index:100;background:rgba(26,10,46,.9);padding:4px 10px;border-radius:6px}
+a.back:hover{text-decoration:underline}
+h1{color:#9b59b6;margin:10px 0 5px;font-size:22px}
+.hud{display:flex;gap:16px;margin:8px 0;font-size:14px;flex-wrap:wrap;justify-content:center}
+.hud span{background:#2a1a4e;padding:4px 12px;border-radius:6px}
+.hud .hearts{color:#e74c3c}
+canvas{border:2px solid #9b59b6;border-radius:8px;display:block;background:#0d0520}
+.message{margin:8px;font-size:14px;color:#f1c40f;min-height:20px;text-align:center}
+.nonsense-btn{font-size:28px;padding:30px 60px;background:#9b59b6;color:#fff;border:none;border-radius:12px;cursor:pointer;margin:20px}
+.nonsense-btn:hover{background:#b07cc6}
+.nonsense-btn:active{transform:scale(.95)}
+.big-click-btn{font-size:24px;padding:20px 50px;background:#e74c3c;color:#fff;border:none;border-radius:10px;cursor:pointer;margin:10px;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.stage-title{color:#9b59b6;font-size:18px;margin:10px 0}
+.screen{text-align:center;margin-top:20px}
+.victory{color:#f1c40f;font-size:32px;margin:10px}
+.gameover{color:#e74c3c;font-size:32px;margin:10px}
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:50;flex-direction:column}
+.overlay .content{background:#1a0a2e;border:2px solid #9b59b6;border-radius:12px;padding:30px;text-align:center;max-width:500px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div id="app">
+<h1>A Game That Makes No Sense</h1>
+<div class="hud" id="hud"></div>
+<canvas id="canvas" width="800" height="500"></canvas>
+<div class="message" id="message"></div>
+<div id="gameArea"></div>
+</div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const W=800,H=500;
+
+let state={stage:'intro',score:0,lives:3,clickCount:0,greenCollected:0,stageTimer:30,timerInterval:null};
+let player={x:400,y:250,w:30,h:30,speed:4};
+let greens=[],reds=[];
+let keys={};
+let nonsenseMsgs=['The void stares back','You found a sock','ERROR: meaning not found','Congratulations, you clicked a box','The simulation is real','42','Is this real life?','Bananas are berries','Time is a construct','You are now a microwave','This text will self-destruct','Achievement unlocked: Clicking','The cake is a lie','Dogs are cats in disguise','Loading meaning... 404','Your existential crisis is ready','Plot twist: YOU are the game','Space is just a big room','Bread is a sandwich with commitment'];
+let milestoneShown={};
+
+function updateHud(){
+    const h=document.getElementById('hud');
+    let hearts='';for(let i=0;i<state.lives;i++)hearts+='♥ ';
+    h.innerHTML='<span>Score: '+state.score+'</span><span class="hearts">'+hearts+'</span><span>Stage: '+state.stage.toUpperCase()+'</span>'+
+        (state.stage==='main'||state.stage==='collect'||state.stage==='final'?'<span>Time: '+state.stageTimer+'s</span><span>Green: '+state.greenCollected+'</span>':'');
+}
+
+function showMessage(msg){document.getElementById('message').textContent=msg}
+
+function startStage(name){
+    state.stage=name;
+    greens=[];reds=[];state.greenCollected=0;player.x=400;player.y=250;
+    if(state.timerInterval)clearInterval(state.timerInterval);
+    const area=document.getElementById('gameArea');
+
+    if(name==='intro'){
+        state.clickCount=0;
+        area.innerHTML='<div class="screen"><p class="stage-title">STAGE 1: INTRO</p><button class="big-click-btn" id="clickBtn">CLICK ME</button><p id="clickCount">0 / 100</p></div>';
+        document.getElementById('clickBtn').onclick=()=>{
+            state.clickCount++;state.score+=1;
+            document.getElementById('clickCount').textContent=state.clickCount+' / 100';
+            if(state.clickCount===25)showMessage('25! You like clicking!');
+            if(state.clickCount===50)showMessage('50! Halfway to... something!');
+            if(state.clickCount===75)showMessage('75! Almost there... but where?');
+            if(state.clickCount>=100){showMessage('Nice. Let\'s make it worse.');setTimeout(()=>startStage('main'),1000);}
+            updateHud();
+        };
+    } else if(name==='main'){
+        area.innerHTML='';
+        canvas.style.display='block';
+        state.stageTimer=30;
+        spawnGreens(15);spawnReds(2);
+        state.timerInterval=setInterval(()=>{
+            state.stageTimer--;
+            if(state.stageTimer<=0){loseLife();if(state.lives>0)startStage('main');}
+            updateHud();
+        },1000);
+    } else if(name==='nonsense'){
+        canvas.style.display='none';
+        area.innerHTML='<div class="screen"><p class="stage-title">STAGE 3: THE NONSENSE</p><p style="color:#9b59b6;margin-bottom:10px">Click the purple box 20 times</p><p id="ncount">0 / 20</p><button class="nonsense-btn" id="nBtn" style="background:#9b59b6;border-radius:8px">🟪</button><p id="nmsg" style="color:#f1c40f;min-height:24px"></p></div>';
+        let nc=0;
+        document.getElementById('nBtn').onclick=()=>{
+            nc++;state.score+=5;
+            document.getElementById('ncount').textContent=nc+' / 20';
+            document.getElementById('nmsg').textContent=nonsenseMsgs[Math.floor(Math.random()*nonsenseMsgs.length)];
+            if(nc>=20){showMessage('Enough nonsense. Right?');setTimeout(()=>startStage('collect'),1000);}
+            updateHud();
+        };
+    } else if(name==='collect'){
+        canvas.style.display='block';
+        state.stageTimer=30;
+        spawnGreens(20);spawnReds(4);
+        state.timerInterval=setInterval(()=>{
+            state.stageTimer--;
+            if(state.stageTimer<=0){loseLife();if(state.lives>0)startStage('collect');}
+            updateHud();
+        },1000);
+    } else if(name==='final'){
+        canvas.style.display='block';
+        state.stageTimer=30;
+        spawnGreens(25);spawnReds(8);
+        state.timerInterval=setInterval(()=>{
+            state.stageTimer--;
+            if(state.stageTimer<=0){loseLife();if(state.lives>0)startStage('final');}
+            updateHud();
+        },1000);
+    }
+    updateHud();
+}
+
+function spawnGreens(n){for(let i=0;i<n;i++)greens.push({x:Math.random()*(W-20),y:Math.random()*(H-20),w:15,h:15,speed:0})}
+function spawnReds(n){for(let i=0;i<n;i++)reds.push({x:Math.random()*(W-20),y:Math.random()*(H-20),w:18,h:18,speed:state.stage==='final'?2.5:1.8})}
+
+function loseLife(){
+    state.lives--;
+    if(state.lives<=0){
+        clearInterval(state.timerInterval);
+        const area=document.getElementById('gameArea');
+        canvas.style.display='none';
+        area.innerHTML='<div class="screen"><p class="gameover">GAME OVER</p><p>Final Score: '+state.score+'</p><button class="btn" onclick="restart()" style="background:#9b59b6;color:#fff;border:none;padding:10px 30px;border-radius:8px;cursor:pointer;font-size:16px;margin-top:10px">Restart</button></div>';
+    }
+}
+
+function checkWin(){
+    if(state.greenCollected>=getRequired()){
+        clearInterval(state.timerInterval);
+        state.score+=state.stageTimer*5;
+        if(state.stage==='final'){
+            canvas.style.display='none';
+            document.getElementById('gameArea').innerHTML='<div class="screen"><p class="victory">YOU WIN!</p><p>Total Score: '+state.score+'</p><button onclick="restart()" style="background:#9b59b6;color:#fff;border:none;padding:10px 30px;border-radius:8px;cursor:pointer;font-size:16px;margin-top:10px">Play Again</button></div>';
+            return;
+        }
+        const next={main:'nonsense',collect:'final'};
+        showMessage('Stage complete! +'+(state.stageTimer*5)+' bonus!');
+        setTimeout(()=>startStage(next[state.stage]),1500);
+    }
+}
+
+function getRequired(){return state.stage==='main'?10:state.stage==='collect'?20:25}
+
+function restart(){
+    state={stage:'intro',score:0,lives:3,clickCount:0,greenCollected:0,stageTimer:30,timerInterval:null};
+    greens=[];reds=[];
+    document.getElementById('gameArea').innerHTML='';
+    canvas.style.display='none';
+    startStage('intro');
+}
+
+function gameLoop(){
+    if(state.stage!=='main'&&state.stage!=='collect'&&state.stage!=='final'){requestAnimationFrame(gameLoop);return;}
+    ctx.clearRect(0,0,W,H);
+
+    // Move player
+    if(keys['w']||keys['arrowup'])player.y-=player.speed;
+    if(keys['s']||keys['arrowdown'])player.y+=player.speed;
+    if(keys['a']||keys['arrowleft'])player.x-=player.speed;
+    if(keys['d']||keys['arrowright'])player.x+=player.speed;
+    player.x=Math.max(0,Math.min(W-player.w,player.x));
+    player.y=Math.max(0,Math.min(H-player.h,player.y));
+
+    // Draw player
+    ctx.fillStyle='#3498db';
+    ctx.fillRect(player.x,player.y,player.w,player.h);
+
+    // Draw requirement
+    ctx.fillStyle='#666';ctx.font='12px sans-serif';
+    ctx.fillText('Need '+getRequired()+' green | Have '+state.greenCollected,10,H-10);
+
+    // Update & draw greens
+    greens=greens.filter(g=>{
+        g.x+=Math.cos(Date.now()/1000+g.x)*0.3;g.y+=Math.sin(Date.now()/1000+g.y)*0.3;
+        ctx.fillStyle='#2ecc71';ctx.fillRect(g.x,g.y,g.w,g.h);
+        if(collides(player,g)){state.greenCollected++;state.score+=10;return false;}
+        return true;
+    });
+
+    // Update & draw reds
+    reds.forEach(r=>{
+        const dx=player.x-r.x,dy=player.y-r.y;
+        const dist=Math.sqrt(dx*dx+dy*dy)||1;
+        const spd=state.stage==='final'?2.5:1.8;
+        r.x+=dx/dist*spd;r.y+=dy/dist*spd;
+        ctx.fillStyle='#e74c3c';ctx.fillRect(r.x,r.y,r.w,r.h);
+        if(collides(player,r)){
+            r.x=Math.random()*W;r.y=Math.random()*H;
+            loseLife();
+        }
+    });
+
+    checkWin();updateHud();
+    requestAnimationFrame(gameLoop);
+}
+
+function collides(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+
+document.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;e.preventDefault()});
+document.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
+
+canvas.style.display='none';
+startStage('intro');
+gameLoop();
+</script>
+</body>
+</html>

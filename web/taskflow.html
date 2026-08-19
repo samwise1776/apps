@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow - Kanban Board</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;z-index:100;background:rgba(35,34,90,.9);padding:4px 10px;border-radius:6px}
+a.back:hover{text-decoration:underline}
+.header{padding:12px 20px;background:#2E2F5E;border-bottom:1px solid #4449E2;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.header h1{color:#FFCB47;font-size:20px}
+.header .actions{display:flex;gap:8px;align-items:center}
+select,button{font-size:13px}
+.board{display:flex;gap:12px;padding:16px;overflow-x:auto;min-height:calc(100vh - 60px);align-items:flex-start}
+.column{background:#2E2F5E;border:1px solid #4449E2;border-radius:10px;min-width:260px;max-width:280px;flex:1;display:flex;flex-direction:column}
+.column-header{padding:12px 14px;border-bottom:1px solid #4449E2;display:flex;justify-content:space-between;align-items:center}
+.column-header h3{font-size:14px;color:#FFCB47}
+.column-header .count{background:#4449E2;color:#F0F0F5;padding:2px 8px;border-radius:10px;font-size:11px}
+.column-body{padding:8px;flex:1;min-height:100px}
+.task-card{background:#23225A;border:1px solid #4449E2;border-radius:8px;padding:12px;margin-bottom:8px;cursor:grab;transition:border-color .2s}
+.task-card:hover{border-color:#FFCB47}
+.task-card.dragging{opacity:.5;border-style:dashed}
+.task-card .title{font-weight:600;font-size:14px;margin-bottom:4px}
+.task-card .desc{font-size:12px;color:#8888bb;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.priority{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;text-transform:uppercase}
+.priority.high{background:rgba(231,76,60,.2);color:#e74c3c}
+.priority.medium{background:rgba(241,196,15,.2);color:#f1c40f}
+.priority.low{background:rgba(46,204,113,.2);color:#2ecc71}
+.add-task-btn{width:100%;background:transparent;border:1px dashed #4449E2;color:#8888bb;padding:8px;border-radius:6px;cursor:pointer;font-size:13px}
+.add-task-btn:hover{border-color:#FFCB47;color:#FFCB47}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{background:#2E2F5E;border:1px solid #4449E2;border-radius:12px;padding:24px;width:450px;max-width:95vw}
+.modal h2{color:#FFCB47;font-size:18px;margin-bottom:16px}
+.modal input,.modal textarea,.modal select{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:8px 12px;font-size:14px;width:100%;margin-bottom:8px}
+.modal textarea{min-height:80px;resize:vertical}
+.modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.btn{background:#4449E2;color:#F0F0F5;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600}
+.btn:hover{background:#5555FF}
+.btn.danger{background:#e74c3c}
+.btn.secondary{background:transparent;border:1px solid #4449E2}
+.stats-bar{display:flex;gap:12px;padding:8px 16px;background:#1a1b3e;font-size:12px;color:#8888bb;border-bottom:1px solid #353670}
+.stats-bar span{margin-right:12px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="header">
+<h1>TaskFlow</h1>
+<div class="actions">
+<select id="boardSelect" onchange="switchBoard()" style="background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:6px 10px"></select>
+<button class="btn" onclick="createBoard()" style="font-size:12px">+ Board</button>
+<button class="btn" onclick="openAddTask()" style="font-size:12px">+ Task</button>
+<div style="display:flex;gap:4px;align-items:center">
+<select id="filterPriority" onchange="renderBoard()" style="background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:6px;font-size:12px"><option value="">All Priority</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+<select id="filterAssignee" onchange="renderBoard()" style="background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:6px;font-size:12px"><option value="">All Assignees</option></select>
+</div>
+</div>
+</div>
+<div class="stats-bar" id="statsBar"></div>
+<div class="board" id="board"></div>
+<script>
+const DB='tf_data';
+const COLUMNS=['todo','inprogress','review','done'];
+const COL_NAMES={'todo':'To Do','inprogress':'In Progress','review':'Review','done':'Done'};
+let boards=[{id:1,name:'My Board',tasks:[]}];
+let currentBoard=0;
+let draggedTask=null;
+
+function loadData(){try{const d=JSON.parse(localStorage.getItem(DB));if(d&&d.boards)boards=d.boards;}catch(e){}}
+function saveData(){localStorage.setItem(DB,JSON.stringify({boards}))}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function getBoard(){return boards[currentBoard]}
+
+function createBoard(){
+    const name=prompt('Board name:');if(!name)return;
+    boards.push({id:Date.now(),name,tasks:[]});
+    currentBoard=boards.length-1;saveData();renderBoardSelect();renderBoard();
+}
+
+function switchBoard(){
+    currentBoard=parseInt(document.getElementById('boardSelect').value);renderBoard();
+}
+
+function renderBoardSelect(){
+    document.getElementById('boardSelect').innerHTML=boards.map((b,i)=>
+        '<option value="'+i+'"'+(i===currentBoard?' selected':'')+'>'+esc(b.name)+'</option>'
+    ).join('');
+}
+
+function openAddTask(col){
+    const board=getBoard();
+    const assignees=[...new Set(board.tasks.map(t=>t.assignee).filter(Boolean))];
+    const overlay=document.createElement('div');overlay.className='modal-overlay';
+    overlay.innerHTML='<div class="modal"><h2>Add Task</h2>'+
+        '<input id="mTitle" placeholder="Title">'+
+        '<textarea id="mDesc" placeholder="Description"></textarea>'+
+        '<select id="mPriority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select>'+
+        '<input id="mAssignee" placeholder="Assignee" value="'+(assignees[0]||'')+'">'+
+        '<select id="mCol">'+COLUMNS.map(c=>'<option value="'+c+'"'+((col||'todo')===c?' selected':'')+'>'+COL_NAMES[c]+'</option>').join('')+'</select>'+
+        '<div class="actions"><button class="btn secondary" id="mCancel">Cancel</button><button class="btn" id="mSave">Save</button></div></div>';
+    document.body.appendChild(overlay);
+    document.getElementById('mCancel').onclick=()=>overlay.remove();
+    document.getElementById('mSave').onclick=()=>{
+        const title=document.getElementById('mTitle').value.trim();if(!title){alert('Title required');return;}
+        board.tasks.push({
+            id:Date.now(),title,
+            desc:document.getElementById('mDesc').value.trim(),
+            priority:document.getElementById('mPriority').value,
+            assignee:document.getElementById('mAssignee').value.trim(),
+            column:document.getElementById('mCol').value
+        });
+        saveData();overlay.remove();renderBoard();
+    };
+    document.getElementById('mTitle').focus();
+}
+
+function openTask(id){
+    const board=getBoard();const task=board.tasks.find(t=>t.id===id);if(!task)return;
+    const overlay=document.createElement('div');overlay.className='modal-overlay';
+    overlay.innerHTML='<div class="modal"><h2>'+esc(task.title)+'</h2>'+
+        '<p style="color:#8888bb;margin-bottom:12px">'+esc(task.desc||'No description')+'</p>'+
+        '<p><span class="priority '+task.priority+'">'+task.priority+'</span></p>'+
+        '<p style="margin-top:8px;font-size:13px;color:#8888bb">Assignee: '+(esc(task.assignee||'Unassigned'))+'</p>'+
+        '<div style="margin-top:12px"><label style="font-size:12px;color:#8888bb">Move to:</label>'+
+        '<select id="moveCol" style="background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:6px;margin-left:8px">'+
+        COLUMNS.map(c=>'<option value="'+c+'"'+(task.column===c?' selected':'')+'>'+COL_NAMES[c]+'</option>').join('')+'</select></div>'+
+        '<div class="actions"><button class="btn danger" id="mDel">Delete</button><button class="btn secondary" id="mClose">Close</button>'+
+        '<button class="btn" id="mMove">Move</button></div></div>';
+    document.body.appendChild(overlay);
+    document.getElementById('mClose').onclick=()=>overlay.remove();
+    document.getElementById('mDel').onclick=()=>{board.tasks=board.tasks.filter(t=>t.id!==id);saveData();overlay.remove();renderBoard()};
+    document.getElementById('mMove').onclick=()=>{task.column=document.getElementById('moveCol').value;saveData();overlay.remove();renderBoard()};
+}
+
+function renderBoard(){
+    const board=getBoard();
+    const fp=document.getElementById('filterPriority').value;
+    const fa=document.getElementById('filterAssignee').value;
+    const filtered=board.tasks.filter(t=>(!fp||t.priority===fp)&&(!fa||t.assignee===fa));
+
+    const assignees=[...new Set(board.tasks.map(t=>t.assignee).filter(Boolean))];
+    const faSelect=document.getElementById('filterAssignee');
+    const currentFA=faSelect.value;
+    faSelect.innerHTML='<option value="">All Assignees</option>'+assignees.map(a=>'<option value="'+esc(a)+'"'+(a===currentFA?' selected':'')+'>'+esc(a)+'</option>').join('');
+
+    const totalTasks=board.tasks.length;
+    const doneTasks=board.tasks.filter(t=>t.column==='done').length;
+    const completion=totalTasks?Math.round(doneTasks/totalTasks*100):0;
+    document.getElementById('statsBar').innerHTML=
+        '<span>Total: '+totalTasks+'</span><span>Done: '+doneTasks+'</span><span>Completion: '+completion+'%</span>'+
+        COLUMNS.map(c=>'<span>'+COL_NAMES[c]+': '+filtered.filter(t=>t.column===c).length+'</span>').join('');
+
+    document.getElementById('board').innerHTML=COLUMNS.map(col=>
+        '<div class="column"><div class="column-header"><h3>'+COL_NAMES[col]+'</h3><span class="count">'+filtered.filter(t=>t.column===col).length+'</span></div>'+
+        '<div class="column-body" data-col="'+col+'" ondragover="event.preventDefault()" ondrop="dropTask(event,\''+col+'\')">'+
+        filtered.filter(t=>t.column===col).map(t=>
+            '<div class="task-card" draggable="true" ondragstart="dragTask(event,'+t.id+')" onclick="openTask('+t.id+')">'+
+            '<div class="title">'+esc(t.title)+'</div>'+
+            (t.desc?'<div class="desc">'+esc(t.desc)+'</div>':'')+
+            '<span class="priority '+t.priority+'">'+t.priority+'</span>'+
+            (t.assignee?' <span style="font-size:11px;color:#8888bb">'+esc(t.assignee)+'</span>':'')+'</div>'
+        ).join('')+
+        '<button class="add-task-btn" onclick="openAddTask(\''+col+'\')">+ Add Task</button></div></div>'
+    ).join('');
+}
+
+function dragTask(e,id){draggedTask=id;e.dataTransfer.effectAllowed='move'}
+function dropTask(e,col){
+    e.preventDefault();if(draggedTask===null)return;
+    const board=getBoard();const task=board.tasks.find(t=>t.id===draggedTask);
+    if(task)task.column=col;
+    draggedTask=null;saveData();renderBoard();
+}
+
+loadData();renderBoardSelect();renderBoard();
+</script>
+</body>
+</html>

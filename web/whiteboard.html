@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Whiteboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#1a1a4a;color:#F0F0F5;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+a.back{position:fixed;top:8px;left:8px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:100;background:rgba(30,30,80,.8);padding:4px 8px;border-radius:4px}
+a.back:hover{opacity:1}
+.toolbar{display:flex;gap:4px;padding:6px 12px;background:#2E2F6E;align-items:center;flex-wrap:wrap;z-index:50}
+.toolbar .sep{width:1px;height:24px;background:rgba(240,240,245,.2);margin:0 4px}
+.tool-btn{width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:16px;background:transparent;color:#F0F0F5;transition:.15s}
+.tool-btn:hover{background:rgba(68,73,226,.3)}
+.tool-btn.active{background:#4449E2}
+.color-input{width:28px;height:28px;border:2px solid rgba(240,240,245,.3);border-radius:50%;cursor:pointer;background:none;padding:0}
+.stroke-input{width:60px;padding:4px;border:1px solid rgba(240,240,245,.2);border-radius:4px;background:#23225A;color:#F0F0F5;font-size:12px;text-align:center}
+.btn{padding:4px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;background:#4449E2;color:#F0F0F5}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-danger{background:#e74c3c}
+.canvas-wrap{flex:1;position:relative;overflow:hidden}
+canvas{position:absolute;top:0;left:0}
+.layers-panel{position:fixed;right:8px;top:50px;width:160px;background:rgba(46,47,110,.95);border-radius:8px;padding:8px;z-index:50;max-height:60vh;overflow-y:auto;display:none}
+.layers-panel.show{display:block}
+.layer-item{display:flex;gap:4px;align-items:center;padding:4px;border-radius:4px;font-size:12px;cursor:pointer}
+.layer-item:hover{background:rgba(68,73,226,.3)}
+.layer-item.active{background:#4449E2}
+.layer-item input[type=checkbox]{width:14px;height:14px}
+.layer-item span{flex:1}
+.layer-item button{width:20px;height:20px;border:none;border-radius:3px;background:rgba(239,76,76,.3);color:#F0F0F5;cursor:pointer;font-size:10px}
+.sticky-input{position:absolute;background:#FFCB47;color:#23225A;padding:8px;border-radius:4px;font-size:13px;min-width:100px;min-height:60px;resize:both;border:none;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.3);z-index:10}
+.text-input{position:absolute;background:transparent;color:#F0F0F5;border:1px dashed #4449E2;padding:4px 8px;font-size:14px;outline:none;z-index:10;font-family:inherit;min-width:60px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="toolbar">
+<button class="tool-btn active" data-tool="pen" onclick="setTool('pen')">✏️</button>
+<button class="tool-btn" data-tool="highlighter" onclick="setTool('highlighter')">🖊</button>
+<button class="tool-btn" data-tool="text" onclick="setTool('text')">T</button>
+<button class="tool-btn" data-tool="sticky" onclick="setTool('sticky')">📝</button>
+<button class="tool-btn" data-tool="arrow" onclick="setTool('arrow')">➜</button>
+<button class="tool-btn" data-tool="rect" onclick="setTool('rect')">▭</button>
+<button class="tool-btn" data-tool="circle" onclick="setTool('circle')">○</button>
+<button class="tool-btn" data-tool="eraser" onclick="setTool('eraser')">🧹</button>
+<div class="sep"></div>
+<input type="color" class="color-input" id="colorPicker" value="#F0F0F5">
+<input type="range" class="stroke-input" id="strokeWidth" min="1" max="20" value="2" style="width:80px">
+<span id="strokeLabel" style="font-size:11px;min-width:24px">2</span>
+<div class="sep"></div>
+<button class="btn" onclick="undo()">↩</button>
+<button class="btn" onclick="redo()">↪</button>
+<button class="btn" onclick="toggleGrid()">Grid</button>
+<button class="btn" onclick="toggleLayers()">Layers</button>
+<button class="btn" onclick="exportPNG()">PNG</button>
+<button class="btn btn-danger" onclick="clearAll()">Clear</button>
+<div style="flex:1"></div>
+<span style="font-size:11px;color:rgba(240,240,245,.4)" id="zoomLabel">100%</span>
+</div>
+<div class="canvas-wrap" id="canvasWrap">
+<canvas id="canvas"></canvas>
+</div>
+<div class="layers-panel" id="layersPanel"></div>
+<script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const wrap=document.getElementById('canvasWrap');
+
+let W,H;
+function resize(){W=wrap.clientWidth;H=wrap.clientHeight;canvas.width=W*2;canvas.height=H*2;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.scale(2,2);render()}
+resize();window.addEventListener('resize',resize);
+
+let tool='pen',drawing=false,strokeColor='#F0F0F5',strokeW=2;
+let offsetX=0,offsetY=0,zoom=1,showGrid=false;
+let layers=[{name:'Layer 1',visible:true,items:[]}];
+let activeLayer=0,history=[],histIdx=-1,maxHist=30;
+let startX=0,startY=0,panning=false,lastMX=0,lastMY=0;
+
+function setTool(t){tool=t;document.querySelectorAll('.tool-btn').forEach(b=>b.classList.toggle('active',b.dataset.tool===t))}
+
+document.getElementById('colorPicker').addEventListener('input',e=>strokeColor=e.target.value);
+document.getElementById('strokeWidth').addEventListener('input',e=>{strokeW=parseInt(e.target.value);document.getElementById('strokeLabel').textContent=strokeW});
+
+function screenToWorld(x,y){return[(x-offsetX)/zoom,(y-offsetY)/zoom]}
+function worldToScreen(x,y){return[x*zoom+offsetX,y*zoom+offsetY]}
+
+function pushHist(){histIdx++;history=history.slice(0,histIdx);history.push(JSON.parse(JSON.stringify(layers)));if(history.length>maxHist){history.shift();histIdx--}}
+function undo(){if(histIdx>0){histIdx--;layers=JSON.parse(JSON.stringify(history[histIdx]));render();renderLayers()}}
+function redo(){if(histIdx<history.length-1){histIdx++;layers=JSON.parse(JSON.stringify(history[histIdx]));render();renderLayers()}}
+
+canvas.addEventListener('mousedown',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  if(e.button===1||e.spaceKey){panning=true;lastMX=e.clientX;lastMY=e.clientY;return}
+  if(tool==='text'){
+    const inp=document.createElement('input');inp.className='text-input';inp.style.left=x+'px';inp.style.top=y+'px';
+    inp.onblur=()=>{if(inp.value){pushHist();layers[activeLayer].items.push({type:'text',x:screenToWorld(x,y)[0],y:screenToWorld(x,y)[1],text:inp.value,color:strokeColor,size:strokeW*7})}inp.remove();render()};
+    inp.onkeydown=ev=>{if(ev.key==='Enter')inp.blur()};
+    wrap.appendChild(inp);inp.focus();return;
+  }
+  if(tool==='sticky'){
+    const ta=document.createElement('textarea');ta.className='sticky-input';ta.style.left=x+'px';ta.style.top=y+'px';
+    ta.onblur=()=>{if(ta.value.trim()){pushHist();layers[activeLayer].items.push({type:'sticky',x:screenToWorld(x,y)[0],y:screenToWorld(x,y)[1],text:ta.value,color:strokeColor})}ta.remove();render()};
+    wrap.appendChild(ta);ta.focus();return;
+  }
+  drawing=true;startX=x;startY=y;
+  if(tool==='pen'||tool==='highlighter'||tool==='eraser'){
+    const [wx,wy]=screenToWorld(x,y);
+    layers[activeLayer].items.push({type:tool==='eraser'?'eraser':tool==='highlighter'?'highlight':'stroke',points:[[wx,wy]],color:tool==='eraser'?'eraser':strokeColor,width:tool==='eraser'?strokeW*3:tool==='highlighter'?strokeW*4:strokeW});
+  }
+});
+
+canvas.addEventListener('mousemove',e=>{
+  if(panning){offsetX+=e.clientX-lastMX;offsetY+=e.clientY-lastMY;lastMX=e.clientX;lastMY=e.clientY;render();return}
+  if(!drawing)return;
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  const [wx,wy]=screenToWorld(x,y);
+  const item=layers[activeLayer].items[layers[activeLayer].items.length-1];
+  if(item&&item.points){item.points.push([wx,wy]);render()}
+});
+
+canvas.addEventListener('mouseup',e=>{
+  if(panning){panning=false;return}
+  if(!drawing)return;
+  drawing=false;
+  const rect=canvas.getBoundingClientRect();
+  const x=e.clientX-rect.left,y=e.clientY-rect.top;
+  const [wx,wy]=screenToWorld(x,y);
+  if(tool==='arrow'||tool==='rect'||tool==='circle'){
+    pushHist();
+    layers[activeLayer].items.push({type:tool,x1:screenToWorld(startX,startY)[0],y1:screenToWorld(startX,startY)[1],x2:wx,y2:wy,color:strokeColor,width:strokeW});
+  }else if(tool==='pen'||tool==='highlighter'||tool==='eraser'){
+    pushHist();
+  }
+  render();
+});
+
+canvas.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const delta=e.deltaY>0?0.9:1.1;
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  const wx=(mx-offsetX)/zoom,wy=(my-offsetY)/zoom;
+  zoom*=delta;zoom=Math.max(0.1,Math.min(10,zoom));
+  offsetX=mx-wx*zoom;offsetY=my-wy*zoom;
+  document.getElementById('zoomLabel').textContent=Math.round(zoom*100)+'%';
+  render();
+},{passive:false});
+
+function render(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#1a1a4a';ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate(offsetX,offsetY);ctx.scale(zoom,zoom);
+  if(showGrid){drawGrid()}
+  layers.forEach(layer=>{if(!layer.visible)return;layer.items.forEach(item=>drawItem(item))});
+  ctx.restore();
+}
+
+function drawGrid(){
+  const step=30;const sx=-offsetX/zoom-100,sy=-offsetY/zoom-100;
+  const ex=sx+W/zoom+200,ey=sy+H/zoom+200;
+  ctx.strokeStyle='rgba(68,73,226,.15)';ctx.lineWidth=0.5;
+  for(let x=Math.floor(sx/step)*step;x<ex;x+=step){ctx.beginPath();ctx.moveTo(x,sy);ctx.lineTo(x,ey);ctx.stroke()}
+  for(let y=Math.floor(sy/step)*step;y<ey;y+=step){ctx.beginPath();ctx.moveTo(sx,y);ctx.lineTo(ex,y);ctx.stroke()}
+}
+
+function drawItem(item){
+  ctx.lineCap='round';ctx.lineJoin='round';
+  if(item.type==='stroke'){
+    ctx.strokeStyle=item.color;ctx.lineWidth=item.width;ctx.globalAlpha=1;
+    if(item.points.length>1){ctx.beginPath();ctx.moveTo(item.points[0][0],item.points[0][1]);for(let i=1;i<item.points.length;i++)ctx.lineTo(item.points[i][0],item.points[i][1]);ctx.stroke()}
+  }else if(item.type==='highlight'){
+    ctx.strokeStyle=item.color;ctx.lineWidth=item.width;ctx.globalAlpha=0.3;
+    if(item.points.length>1){ctx.beginPath();ctx.moveTo(item.points[0][0],item.points[0][1]);for(let i=1;i<item.points.length;i++)ctx.lineTo(item.points[i][0],item.points[i][1]);ctx.stroke()}
+    ctx.globalAlpha=1;
+  }else if(item.type==='eraser'){
+    ctx.globalCompositeOperation='destination-out';ctx.strokeStyle='rgba(0,0,0,1)';ctx.lineWidth=item.width;
+    if(item.points.length>1){ctx.beginPath();ctx.moveTo(item.points[0][0],item.points[0][1]);for(let i=1;i<item.points.length;i++)ctx.lineTo(item.points[i][0],item.points[i][1]);ctx.stroke()}
+    ctx.globalCompositeOperation='source-over';
+  }else if(item.type==='arrow'){
+    ctx.strokeStyle=item.color;ctx.lineWidth=item.width;ctx.globalAlpha=1;
+    ctx.beginPath();ctx.moveTo(item.x1,item.y1);ctx.lineTo(item.x2,item.y2);ctx.stroke();
+    const angle=Math.atan2(item.y2-item.y1,item.x2-item.x1);const len=12;
+    ctx.beginPath();ctx.moveTo(item.x2,item.y2);ctx.lineTo(item.x2-len*Math.cos(angle-0.4),item.y2-len*Math.sin(angle-0.4));ctx.moveTo(item.x2,item.y2);ctx.lineTo(item.x2-len*Math.cos(angle+0.4),item.y2-len*Math.sin(angle+0.4));ctx.stroke();
+  }else if(item.type==='rect'){
+    ctx.strokeStyle=item.color;ctx.lineWidth=item.width;ctx.globalAlpha=1;
+    ctx.strokeRect(item.x1,item.y1,item.x2-item.x1,item.y2-item.y1);
+  }else if(item.type==='circle'){
+    ctx.strokeStyle=item.color;ctx.lineWidth=item.width;ctx.globalAlpha=1;
+    const rx=Math.abs(item.x2-item.x1)/2,ry=Math.abs(item.y2-item.y1)/2;
+    const cx=(item.x1+item.x2)/2,cy=(item.y1+item.y2)/2;
+    ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.stroke();
+  }else if(item.type==='text'){
+    ctx.fillStyle=item.color;ctx.font=`${item.size||14}px 'Segoe UI',sans-serif`;ctx.globalAlpha=1;ctx.fillText(item.text,item.x,item.y);
+  }else if(item.type==='sticky'){
+    ctx.globalAlpha=1;ctx.fillStyle='#FFCB47';ctx.shadowColor='rgba(0,0,0,.3)';ctx.shadowBlur=8;ctx.shadowOffsetY=2;
+    const lines=item.text.split('\n');const lh=16;const w=Math.max(100,...lines.map(l=>l.length*8))+16;const h=lines.length*lh+16;
+    ctx.fillRect(item.x,item.y,w,h);ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+    ctx.fillStyle='#23225A';ctx.font='13px "Segoe UI",sans-serif';
+    lines.forEach((l,i)=>ctx.fillText(l,item.x+8,item.y+16+i*lh));
+  }
+}
+
+function toggleGrid(){showGrid=!showGrid;render()}
+
+function toggleLayers(){document.getElementById('layersPanel').classList.toggle('show');renderLayers()}
+
+function renderLayers(){
+  const el=document.getElementById('layersPanel');
+  el.innerHTML=layers.map((l,i)=>`<div class="layer-item ${i===activeLayer?'active':''}" onclick="selectLayer(${i})"><input type="checkbox" ${l.visible?'checked':''} onclick="event.stopPropagation();toggleLayerVis(${i})"><span>${l.name}</span>${layers.length>1?`<button onclick="event.stopPropagation();deleteLayer(${i})">×</button>`:''}</div>`).join('')+'<button class="btn" onclick="addLayer()" style="width:100%;margin-top:4px">+ Layer</button>';
+}
+
+function selectLayer(i){activeLayer=i;renderLayers()}
+function toggleLayerVis(i){layers[i].visible=!layers[i].visible;render();renderLayers()}
+function addLayer(){layers.push({name:'Layer '+(layers.length+1),visible:true,items:[]});activeLayer=layers.length-1;renderLayers()}
+function deleteLayer(i){layers.splice(i,1);if(activeLayer>=layers.length)activeLayer=layers.length-1;render();renderLayers()}
+
+function clearAll(){if(confirm('Clear all content?')){pushHist();layers=[{name:'Layer 1',visible:true,items:[]}];activeLayer=0;render();renderLayers()}}
+
+function exportPNG(){
+  const expCanvas=document.createElement('canvas');expCanvas.width=W*2;expCanvas.height=H*2;
+  const expCtx=expCanvas.getContext('2d');expCtx.scale(2,2);expCtx.fillStyle='#1a1a4a';expCtx.fillRect(0,0,W,H);
+  const origCtx=ctx;const origCanvas=canvas;
+  layers.forEach(layer=>{if(!layer.visible)return;layer.items.forEach(item=>{const tmpCtx=expCtx;Object.defineProperty(window,'ctx',{get:()=>tmpCtx,configurable:true});drawItem.call(null,item)})});
+  expCanvas.toBlob(blob=>{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='whiteboard.png';a.click();URL.revokeObjectURL(url)});
+}
+
+pushHist();render();
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LogScope - Log Viewer/Analyzer</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;z-index:1000;color:#FFCB47;text-decoration:none;font-size:13px;background:rgba(46,47,94,.85);padding:4px 10px;border-radius:6px}
+a.back:hover{background:rgba(68,73,226,.6)}
+.header{padding:16px 24px;display:flex;align-items:center;gap:14px;background:#2E2F5E;border-bottom:2px solid #4449E2}
+.header h1{font-size:20px;color:#FFCB47}
+.container{padding:20px;max-width:1400px;margin:0 auto}
+.section{background:#2E2F5E;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h3{color:#FFCB47;margin-bottom:12px;font-size:16px}
+.input-row{display:flex;gap:12px;margin-bottom:12px}
+textarea{flex:1;height:120px;padding:12px;border:none;border-radius:8px;background:#1a1a40;color:#F0F0F5;font-family:monospace;font-size:12px;resize:vertical}
+.file-upload{display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed #4449E2;border-radius:8px;padding:20px 30px;cursor:pointer;min-width:200px;transition:border-color .2s}
+.file-upload:hover{border-color:#FFCB47}
+.file-upload span{font-size:13px;color:#888;margin-top:6px}
+input[type=file]{display:none}
+.filter-bar{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.filter-bar label{display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer}
+.filter-bar input[type=checkbox]{accent-color:#FFCB47}
+.filter-bar input[type=text]{padding:8px 12px;border:none;border-radius:6px;background:#1a1a40;color:#F0F0F5;font-size:13px;width:220px}
+.filter-bar select{padding:8px 12px;border:none;border-radius:6px;background:#1a1a40;color:#F0F0F5;font-size:13px}
+.btn{padding:8px 16px;border:none;border-radius:6px;background:#4449E2;color:#F0F0F5;cursor:pointer;font-size:13px;transition:background .15s}
+.btn:hover{background:#5a5ff0}
+.btn.danger{background:#e24444}.btn.danger:hover{background:#ff5555}
+.stats-bar{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.stat{padding:6px 14px;border-radius:6px;background:#1a1a40;font-size:13px}
+.stat strong{color:#FFCB47}
+.stat.err strong{color:#e24444}
+.stat.warn strong{color:#e2a844}
+.stat.info strong{color:#4488ff}
+.stat.debug strong{color:#888}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;background:#1a1a40;color:#FFCB47;border-bottom:2px solid #4449E2;position:sticky;top:0}
+td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)}
+tr:hover{background:rgba(68,73,226,.1)}
+.badge{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;text-transform:uppercase}
+.badge.ERROR{background:#e24444;color:#fff}
+.badge.WARN{background:#e2a844;color:#000}
+.badge.INFO{background:#4488ff;color:#fff}
+.badge.DEBUG{background:#555;color:#ccc}
+.table-wrap{max-height:500px;overflow-y:auto;border-radius:8px}
+.empty{text-align:center;padding:60px 20px;color:#666;font-size:16px}
+.actions{display:flex;gap:8px;margin-top:12px}
+</style>
+</head>
+<body>
+<a class="back" href="../">&larr; Back</a>
+<div class="header">
+  <h1>LogScope</h1><span style="color:#888;font-size:13px">Log Viewer & Analyzer</span>
+</div>
+<div class="container">
+  <div class="section">
+    <h3>Load Logs</h3>
+    <div class="input-row">
+      <textarea id="logInput" placeholder="Paste log text here..."></textarea>
+      <div class="file-upload" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <span>📄 Click or drop .log file</span>
+        <input type="file" id="fileInput" accept=".log,.txt">
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="loadBtn">Parse Logs</button>
+      <button class="btn danger" id="clearBtn">Clear</button>
+      <button class="btn" id="exportBtn">Export Filtered</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Filter</h3>
+    <div class="filter-bar">
+      <label><input type="checkbox" checked data-level="ERROR"> ERROR</label>
+      <label><input type="checkbox" checked data-level="WARN"> WARN</label>
+      <label><input type="checkbox" checked data-level="INFO"> INFO</label>
+      <label><input type="checkbox" checked data-level="DEBUG"> DEBUG</label>
+      <input type="text" id="searchInput" placeholder="Regex search...">
+      <select id="sourceFilter"><option value="">All Sources</option></select>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Stats</h3>
+    <div class="stats-bar">
+      <div class="stat">Total: <strong id="statTotal">0</strong></div>
+      <div class="stat err">ERROR: <strong id="statError">0</strong></div>
+      <div class="stat warn">WARN: <strong id="statWarn">0</strong></div>
+      <div class="stat info">INFO: <strong id="statInfo">0</strong></div>
+      <div class="stat debug">DEBUG: <strong id="statDebug">0</strong></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Log Entries</h3>
+    <div class="table-wrap" id="tableWrap">
+      <div class="empty" id="emptyState">Load a log file or paste log text above</div>
+      <table id="logTable" style="display:none">
+        <thead><tr><th>Timestamp</th><th>Level</th><th>Source</th><th>Message</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+let allLogs=[];
+
+document.getElementById('fileInput').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{document.getElementById('logInput').value=ev.target.result;parseLogs();};
+  r.readAsText(f);
+});
+const dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='#FFCB47';});
+dz.addEventListener('dragleave',()=>{dz.style.borderColor='#4449E2';});
+dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='#4449E2';const f=e.dataTransfer.files[0];if(f){const r=new FileReader();r.onload=ev=>{document.getElementById('logInput').value=ev.target.result;parseLogs();};r.readAsText(f);}});
+
+function parseLine(line){
+  const regex=/^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}[.\d]*)\s+(ERROR|WARN|INFO|DEBUG)\s*(?:\[([^\]]*)\]\s*)?(.*)$/i;
+  let m=line.match(regex);
+  if(!m){
+    const regex2=/^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}[.\d]*)\s+(ERROR|WARN|INFO|DEBUG)\s+(.*)$/i;
+    m=line.match(regex2);
+    if(m)return{timestamp:m[1],level:m[2].toUpperCase(),source:'-',message:m[3]};
+    return null;
+  }
+  return{timestamp:m[1],level:m[2].toUpperCase(),source:m[3]||'-',message:m[4]};
+}
+
+function parseLogs(){
+  const raw=document.getElementById('logInput').value.trim();
+  if(!raw)return;
+  const lines=raw.split('\n');
+  allLogs=lines.map(parseLine).filter(Boolean);
+  populateSources();
+  render();
+}
+
+function populateSources(){
+  const sources=[...new Set(allLogs.map(l=>l.source))].sort();
+  const sel=document.getElementById('sourceFilter');
+  sel.innerHTML='<option value="">All Sources</option>';
+  sources.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
+}
+
+function getFiltered(){
+  const checked=[...document.querySelectorAll('[data-level]:checked')].map(c=>c.dataset.level);
+  const search=document.getElementById('searchInput').value;
+  const src=document.getElementById('sourceFilter').value;
+  let re=null;
+  try{if(search)re=new RegExp(search,'i');}catch(e){}
+  return allLogs.filter(l=>{
+    if(!checked.includes(l.level))return false;
+    if(src&&l.source!==src)return false;
+    if(re&&!re.test(l.message))return false;
+    return true;
+  });
+}
+
+function render(){
+  const filtered=getFiltered();
+  const total=allLogs.length;
+  const errors=allLogs.filter(l=>l.level==='ERROR').length;
+  const warns=allLogs.filter(l=>l.level==='WARN').length;
+  const infos=allLogs.filter(l=>l.level==='INFO').length;
+  const debugs=allLogs.filter(l=>l.level==='DEBUG').length;
+  document.getElementById('statTotal').textContent=total;
+  document.getElementById('statError').textContent=errors;
+  document.getElementById('statWarn').textContent=warns;
+  document.getElementById('statInfo').textContent=infos;
+  document.getElementById('statDebug').textContent=debugs;
+  const tbody=document.getElementById('logBody');
+  const empty=document.getElementById('emptyState');
+  const table=document.getElementById('logTable');
+  if(!filtered.length){table.style.display='none';empty.style.display='block';empty.textContent=total?'No matching log entries':'Load a log file or paste log text above';return;}
+  empty.style.display='none';table.style.display='table';
+  tbody.innerHTML=filtered.map(l=>`<tr><td style="white-space:nowrap;color:#aaa">${l.timestamp}</td><td><span class="badge ${l.level}">${l.level}</span></td><td style="color:#888">${l.source}</td><td>${l.message}</td></tr>`).join('');
+}
+
+document.querySelectorAll('[data-level]').forEach(c=>c.addEventListener('change',render));
+document.getElementById('searchInput').addEventListener('input',render);
+document.getElementById('sourceFilter').addEventListener('change',render);
+document.getElementById('loadBtn').addEventListener('click',parseLogs);
+document.getElementById('clearBtn').addEventListener('click',()=>{allLogs=[];document.getElementById('logInput').value='';document.getElementById('sourceFilter').innerHTML='<option value="">All Sources</option>';render();});
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const filtered=getFiltered();
+  const text=filtered.map(l=>`${l.timestamp} ${l.level} [${l.source}] ${l.message}`).join('\n');
+  const blob=new Blob([text],{type:'text/plain'});
+  const a=document.createElement('a');a.download='filtered_logs.log';a.href=URL.createObjectURL(blob);a.click();
+});
+</script>
+</body>
+</html>

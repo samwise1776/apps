@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeMaster - Typing Speed Test</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:800px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;margin-bottom:24px;color:#FFCB47;text-align:center}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-lg{padding:12px 28px;font-size:16px}
+.section{background:#2E2F6E;border-radius:12px;padding:20px;margin-bottom:16px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;justify-content:center;flex-wrap:wrap}
+.tabs button{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#2E2F6E;color:#F0F0F5;transition:.2s}
+.tabs button.active{background:#4449E2}
+.text-display{font-size:20px;line-height:1.8;padding:20px;background:#1a1a4a;border-radius:10px;margin-bottom:16px;min-height:100px;font-family:'Courier New',monospace;letter-spacing:0.5px}
+.text-display .correct{color:#2ecc71}
+.text-display .wrong{color:#e74c3c;text-decoration:underline}
+.text-display .current{border-bottom:2px solid #FFCB47}
+.text-display .pending{color:rgba(240,240,245,.3)}
+.input-area{width:100%;padding:16px;border:2px solid #2E2F6E;border-radius:10px;background:#1a1a4a;color:#F0F0F5;font-size:18px;font-family:'Courier New',monospace;outline:none;transition:.2s}
+.input-area:focus{border-color:#4449E2}
+.input-area:disabled{opacity:.5}
+.stats-row{display:flex;gap:20px;justify-content:center;margin:16px 0}
+.stat{text-align:center}
+.stat .val{font-size:36px;font-weight:700;color:#FFCB47}
+.stat .lbl{font-size:12px;color:rgba(240,240,245,.5)}
+.mode-buttons{display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.mode-btn{padding:8px 20px;border:2px solid rgba(240,240,245,.2);border-radius:8px;background:transparent;color:#F0F0F5;cursor:pointer;font-size:14px;transition:.2s}
+.mode-btn.selected{border-color:#FFCB47;background:rgba(255,203,71,.15);color:#FFCB47}
+.hs-table{width:100%;border-collapse:collapse;font-size:13px}
+.hs-table th{text-align:left;padding:6px;border-bottom:2px solid #4449E2;color:#FFCB47;font-size:11px}
+.hs-table td{padding:6px;border-bottom:1px solid rgba(240,240,245,.1)}
+.result-card{text-align:center;padding:24px}
+.result-card .wpm{font-size:64px;font-weight:700;color:#FFCB47}
+.result-card .label{font-size:14px;color:rgba(240,240,245,.5)}
+.result-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin:20px 0}
+.result-item{background:#1a1a4a;border-radius:8px;padding:12px;text-align:center}
+.result-item .val{font-size:24px;font-weight:700}
+.result-item .lbl{font-size:11px;color:rgba(240,200,245,.5)}
+@media(max-width:500px){.stats-row{gap:10px}.stat .val{font-size:24px}.result-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>⌨️ TypeMaster</h1>
+<div class="tabs">
+<button class="active" onclick="showTab('test',this)">Test</button>
+<button onclick="showTab('scores',this)">High Scores</button>
+</div>
+<div id="tabTest">
+<div class="mode-buttons">
+<button class="mode-btn selected" onclick="setMode(30,this)">30s</button>
+<button class="mode-btn" onclick="setMode(60,this)">60s</button>
+<button class="mode-btn" onclick="setMode(120,this)">120s</button>
+<span style="margin:0 8px;color:rgba(240,240,245,.2)">|</span>
+<button class="mode-btn selected" id="diffEasy" onclick="setDiff('easy',this)">Easy</button>
+<button class="mode-btn" id="diffHard" onclick="setDiff('hard',this)">Hard</button>
+</div>
+<div class="text-display" id="textDisplay"></div>
+<input class="input-area" id="typeInput" placeholder="Start typing to begin..." disabled oninput="onInput()" onkeydown="onKey(event)">
+<div class="stats-row">
+<div class="stat"><div class="val" id="wpmDisplay">0</div><div class="lbl">WPM</div></div>
+<div class="stat"><div class="val" id="accDisplay">100%</div><div class="lbl">Accuracy</div></div>
+<div class="stat"><div class="val" id="timeDisplay">0s</div><div class="lbl">Time</div></div>
+<div class="stat"><div class="val" id="charsDisplay">0</div><div class="lbl">Chars</div></div>
+</div>
+</div>
+<div id="tabScores" style="display:none">
+<div class="section">
+<h3 style="color:#FFCB47;margin-bottom:12px">High Scores (Top 10)</h3>
+<table class="hs-table"><thead><tr><th>WPM</th><th>Accuracy</th><th>Duration</th><th>Difficulty</th><th>Date</th></tr></thead><tbody id="hsBody"></tbody></table>
+</div>
+</div>
+</div>
+<script>
+const easyTexts=[
+"The quick brown fox jumps over the lazy dog near the river bank on a sunny afternoon.",
+"She sells seashells by the seashore while the waves crash gently against the rocks below.",
+"The early bird catches the worm but the second mouse gets the cheese from the trap.",
+"A journey of a thousand miles begins with a single step forward into the unknown world.",
+"Practice makes perfect when you dedicate yourself to learning something new every day.",
+"The book on the shelf contained stories of adventure and mystery from distant lands.",
+"Warm sunlight filtered through the window casting golden shadows across the wooden floor.",
+"Music fills the air as dancers move gracefully across the polished stage floor tonight.",
+"The garden bloomed with colorful flowers that attracted butterflies and bees each morning.",
+"Stars twinkled in the clear night sky above the quiet mountain village below the clouds.",
+"Fresh bread baked in the old oven filled the kitchen with a wonderful warm aroma each day.",
+"The children played happily in the park while their parents watched from nearby benches.",
+"Autumn leaves fell gently from the trees creating a colorful carpet on the forest floor.",
+"The old bridge spanned the wide river connecting the two small towns on either side.",
+"Penguins waddled across the icy landscape heading toward the cold blue ocean waters."
+];
+
+const hardTexts=[
+"The juxtaposition of philosophical methodologies often reveals unexpected epistemological convergences between seemingly disparate intellectual traditions.",
+"Quantum entanglement demonstrates that particles can maintain correlations regardless of spatial separation, challenging classical intuitions about locality.",
+"Archaeological excavations uncovered sophisticated hydraulic engineering systems that predate previously known civilizations by several millennia.",
+"The implementation of recursive algorithms necessitates careful consideration of stack overflow scenarios in resource-constrained environments.",
+"Metamorphosis represents one of biology's most extraordinary phenomena, involving complete cellular reorganization during organismal development.",
+"The confluence of socioeconomic factors and technological disruption has fundamentally transformed contemporary labor market dynamics.",
+"Bioavailability of pharmaceutical compounds depends critically on molecular lipophilicity, gastrointestinal pH gradients, and enzymatic degradation rates.",
+"The cinematographer's masterful use of chiaroscuro lighting created profound psychological depth throughout the film's atmospheric narrative.",
+"Neuroplasticity research demonstrates that adult brains retain remarkable capacity for structural reorganization in response to environmental demands.",
+"The exquisitely crafted manuscript exhibited calligraphic flourishes characteristic of thirteenth-century illuminated monastic traditions.",
+"Thermodynamic irreversibility fundamentally constrains the efficiency of all real-world energy conversion processes according to entropy principles.",
+"The centrifugal mechanism operates through differential rotational velocities generating measurable pressure gradients within the containment vessel.",
+];
+
+let duration=30,difficulty='easy',text='',typed='',startTime=null,timerInterval=null,running=false,completed=false;
+let highScores=JSON.parse(localStorage.getItem('typeHS'))||[];
+
+function showTab(name,btn){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('tabTest').style.display=name==='test'?'':'none';
+  document.getElementById('tabScores').style.display=name==='scores'?'':'none';
+  if(name==='scores')renderHS();
+}
+
+function setMode(d,btn){duration=d;document.querySelectorAll('.mode-buttons .mode-btn').forEach(b=>{if(b.textContent.includes('s')&&!b.textContent.includes('Easy')&&!b.textContent.includes('Hard'))b.classList.remove('selected')});btn.classList.add('selected');resetTest()}
+function setDiff(d,btn){difficulty=d;document.getElementById('diffEasy').classList.toggle('selected',d==='easy');document.getElementById('diffHard').classList.toggle('selected',d==='hard');resetTest()}
+
+function newText(){
+  const pool=difficulty==='easy'?easyTexts:hardTexts;
+  text=pool[Math.floor(Math.random()*pool.length)];
+}
+
+function renderText(){
+  const display=document.getElementById('textDisplay');
+  let html='';
+  for(let i=0;i<text.length;i++){
+    if(i<typed.length){
+      html+=`<span class="${typed[i]===text[i]?'correct':'wrong'}">${text[i]}</span>`;
+    }else if(i===typed.length){
+      html+=`<span class="current">${text[i]}</span>`;
+    }else{
+      html+=`<span class="pending">${text[i]}</span>`;
+    }
+  }
+  display.innerHTML=html;
+}
+
+function resetTest(){
+  clearInterval(timerInterval);running=false;completed=false;typed='';startTime=null;
+  newText();renderText();
+  const input=document.getElementById('typeInput');
+  input.value='';input.disabled=false;input.placeholder='Start typing to begin...';
+  document.getElementById('wpmDisplay').textContent='0';
+  document.getElementById('accDisplay').textContent='100%';
+  document.getElementById('timeDisplay').textContent='0s';
+  document.getElementById('charsDisplay').textContent='0';
+}
+
+function onKey(e){
+  if(completed)return;
+  if(!running&&e.key.length===1&&e.key!==' '){
+    running=true;startTime=Date.now();
+    timerInterval=setInterval(()=>{
+      const elapsed=Math.floor((Date.now()-startTime)/1000);
+      const remaining=Math.max(0,duration-elapsed);
+      document.getElementById('timeDisplay').textContent=remaining+'s';
+      updateStats();
+      if(remaining<=0){endTest();return}
+    },100);
+  }
+}
+
+function onInput(){
+  if(completed)return;
+  const input=document.getElementById('typeInput');
+  typed=input.value;
+  if(typed.length>=text.length){endTest();return}
+  renderText();updateStats();
+}
+
+function updateStats(){
+  if(!startTime)return;
+  const elapsed=(Date.now()-startTime)/1000;
+  const words=typed.trim().split(/\s+/).filter(w=>w).length;
+  const wpm=elapsed>0?Math.round(words/(elapsed/60)):0;
+  const correct=[...typed].filter((c,i)=>c===text[i]).length;
+  const acc=typed.length?Math.round(correct/typed.length*100):100;
+  document.getElementById('wpmDisplay').textContent=wpm;
+  document.getElementById('accDisplay').textContent=acc+'%';
+  document.getElementById('charsDisplay').textContent=typed.length;
+}
+
+function endTest(){
+  completed=true;clearInterval(timerInterval);running=false;
+  document.getElementById('typeInput').disabled=true;
+  updateStats();
+  const elapsed=(Date.now()-startTime)/1000;
+  const words=typed.trim().split(/\s+/).filter(w=>w).length;
+  const wpm=Math.round(words/(elapsed/60));
+  const correct=[...typed].filter((c,i)=>c===text[i]).length;
+  const acc=typed.length?Math.round(correct/typed.length*100):0;
+  highScores.push({wpm,acc,duration,difficulty,date:new Date().toLocaleDateString()});
+  highScores.sort((a,b)=>b.wpm-a.wpm);
+  highScores=highScores.slice(0,10);
+  localStorage.setItem('typeHS',JSON.stringify(highScores));
+}
+
+function renderHS(){
+  document.getElementById('hsBody').innerHTML=highScores.map(h=>`<tr><td style="color:#FFCB47;font-weight:700">${h.wpm}</td><td>${h.acc}%</td><td>${h.duration}s</td><td>${h.difficulty}</td><td>${h.date}</td></tr>`).join('')||'<tr><td colspan="5" style="color:rgba(240,240,245,.4)">No scores yet. Take a test!</td></tr>';
+}
+
+resetTest();
+</script>
+</body>
+</html>
