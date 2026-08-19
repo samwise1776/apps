@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Yourtime</title>
+
+    <link
+        rel="icon"
+        type="image/png"
+        href="yourtime-icon.png"
+    >
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            background: #f4f6f8;
+            color: #202124;
+        }
+
+        /* ==================================================
+           HEADER
+           ================================================== */
+
+        header {
+            height: 56px;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 24px;
+
+            background: white;
+
+            border-bottom:
+                1px solid #dddddd;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* ==================================================
+           MAIN
+           ================================================== */
+
+        main {
+            max-width: 1000px;
+
+            margin: auto;
+
+            padding: 40px;
+        }
+
+        /* ==================================================
+           WELCOME PAGE
+           ================================================== */
+
+        #welcomePage h1 {
+            margin: 0;
+
+            font-size: 48px;
+        }
+
+        #welcomePage p {
+            color: #666666;
+
+            font-size: 18px;
+        }
+
+        /* ==================================================
+           BUTTONS
+           ================================================== */
+
+        button {
+            border: none;
+            border-radius: 8px;
+
+            padding: 11px 22px;
+
+            background: #4a54ff;
+            color: white;
+
+            font-size: 15px;
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #3943e6;
+        }
+
+        /* ==================================================
+           FEED PAGE
+           ================================================== */
+
+        #startPage {
+            display: none;
+        }
+
+        #postPage {
+            display: none;
+        }
+
+        /* ==================================================
+           CREATE POST
+           ================================================== */
+
+        .post-card {
+            margin-top: 20px;
+
+            padding: 25px;
+
+            background: white;
+
+            border:
+                1px solid #dddddd;
+
+            border-radius: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+
+            resize: vertical;
+
+            padding: 14px;
+
+            font-family:
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+            font-size: 16px;
+
+            border:
+                1px solid #cccccc;
+
+            border-radius: 8px;
+
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #4a54ff;
+        }
+
+        /* ==================================================
+           VIDEO DROP AREA
+           ================================================== */
+
+        #dropArea {
+            margin-top: 20px;
+
+            height: 230px;
+
+            display: flex;
+            flex-direction: column;
+
+            justify-content: center;
+            align-items: center;
+
+            background: #fafafa;
+
+            border:
+                2px dashed #c9c9c9;
+
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        #dropArea:hover {
+            background: #f2f3ff;
+
+            border-color: #4a54ff;
+        }
+
+        #dropArea.dragging {
+            background: #eceeff;
+
+            border-color: #4a54ff;
+        }
+
+        .upload-icon {
+            font-size: 42px;
+
+            color: #4a54ff;
+        }
+
+        #dropArea h3 {
+            margin:
+                8px
+                0
+                4px;
+        }
+
+        #dropArea p {
+            margin: 0;
+
+            color: #777777;
+        }
+
+        #videoInput {
+            display: none;
+        }
+
+        /* ==================================================
+           VIDEO PREVIEW
+           ================================================== */
+
+        #videoPreview {
+            display: none;
+
+            width: 100%;
+
+            margin-top: 20px;
+
+            background: black;
+
+            border-radius: 10px;
+        }
+
+        /* ==================================================
+           POST BUTTON AREA
+           ================================================== */
+
+        .actions {
+            margin-top: 20px;
+
+            display: flex;
+
+            gap: 10px;
+        }
+
+        .secondary {
+            background: #e8e8e8;
+            color: #202020;
+        }
+
+        .secondary:hover {
+            background: #d8d8d8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==================================================
+         HEADER
+         ================================================== -->
+
+    <header>
+
+        <div class="logo">
+            Yourtime
+        </div>
+
+    </header>
+
+
+    <main>
+
+        <!-- ==================================================
+             WELCOME
+             ================================================== -->
+
+        <section id="welcomePage">
+
+            <h1>
+                Yourtime
+            </h1>
+
+            <p>
+                Share your time with the world.
+            </p>
+
+            <button id="startButton">
+                Start
+            </button>
+
+        </section>
+
+
+        <!-- ==================================================
+             START / FEED
+             ================================================== -->
+
+        <section id="startPage">
+
+            <h1>
+                Welcome to Yourtime
+            </h1>
+
+            <p>
+                Your feed will go here.
+            </p>
+
+            <button id="createPostButton">
+                Create Post
+            </button>
+
+        </section>
+
+
+        <!-- ==================================================
+             CREATE POST PAGE
+             ================================================== -->
+
+        <section id="postPage">
+
+            <h1>
+                Create Post
+            </h1>
+
+            <div class="post-card">
+
+                <textarea
+                    id="postText"
+                    placeholder="What's happening?"
+                ></textarea>
+
+                <!-- ==========================================
+                     VIDEO DROP AREA
+                     ========================================== -->
+
+                <div id="dropArea">
+
+                    <div class="upload-icon">
+                        ↑
+                    </div>
+
+                    <h3>
+                        Drag a video here
+                    </h3>
+
+                    <p>
+                        MP4, WebM, MOV or other browser-supported video
+                    </p>
+
+                </div>
+
+                <input
+                    type="file"
+                    id="videoInput"
+                    accept="video/*"
+                >
+
+                <!-- ==========================================
+                     VIDEO PREVIEW
+                     ========================================== -->
+
+                <video
+                    id="videoPreview"
+                    controls
+                ></video>
+
+                <!-- ==========================================
+                     ACTIONS
+                     ========================================== -->
+
+                <div class="actions">
+
+                    <button id="postButton">
+                        Post
+                    </button>
+
+                    <button
+                        id="cancelButton"
+                        class="secondary"
+                    >
+                        Cancel
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        // ==================================================
+        // PAGES
+        // ==================================================
+
+        const welcomePage =
+            document.getElementById(
+                "welcomePage"
+            );
+
+        const startPage =
+            document.getElementById(
+                "startPage"
+            );
+
+        const postPage =
+            document.getElementById(
+                "postPage"
+            );
+
+
+        // ==================================================
+        // BUTTONS
+        // ==================================================
+
+        const startButton =
+            document.getElementById(
+                "startButton"
+            );
+
+        const createPostButton =
+            document.getElementById(
+                "createPostButton"
+            );
+
+        const postButton =
+            document.getElementById(
+                "postButton"
+            );
+
+        const cancelButton =
+            document.getElementById(
+                "cancelButton"
+            );
+
+
+        // ==================================================
+        // VIDEO
+        // ==================================================
+
+        const dropArea =
+            document.getElementById(
+                "dropArea"
+            );
+
+        const videoInput =
+            document.getElementById(
+                "videoInput"
+            );
+
+        const videoPreview =
+            document.getElementById(
+                "videoPreview"
+            );
+
+        let selectedVideo = null;
+
+
+        // ==================================================
+        // START
+        // ==================================================
+
+        startButton.addEventListener(
+            "click",
+            function () {
+
+                welcomePage.style.display =
+                    "none";
+
+                startPage.style.display =
+                    "block";
+            }
+        );
+
+
+        // ==================================================
+        // CREATE POST
+        // ==================================================
+
+        createPostButton.addEventListener(
+            "click",
+            function () {
+
+                startPage.style.display =
+                    "none";
+
+                postPage.style.display =
+                    "block";
+            }
+        );
+
+
+        // ==================================================
+        // CLICK DROP AREA
+        // ==================================================
+
+        dropArea.addEventListener(
+            "click",
+            function () {
+
+                videoInput.click();
+            }
+        );
+
+
+        // ==================================================
+        // FILE PICKER
+        // ==================================================
+
+        videoInput.addEventListener(
+            "change",
+            function () {
+
+                const file =
+                    videoInput.files[0];
+
+                if (file) {
+                    loadVideo(file);
+                }
+            }
+        );
+
+
+        // ==================================================
+        // DRAG OVER
+        // ==================================================
+
+        dropArea.addEventListener(
+            "dragover",
+            function (event) {
+
+                event.preventDefault();
+
+                dropArea.classList.add(
+                    "dragging"
+                );
+            }
+        );
+
+
+        // ==================================================
+        // DRAG LEAVE
+        // ==================================================
+
+        dropArea.addEventListener(
+            "dragleave",
+            function () {
+
+                dropArea.classList.remove(
+                    "dragging"
+                );
+            }
+        );
+
+
+        // ==================================================
+        // DROP
+        // ==================================================
+
+        dropArea.addEventListener(
+            "drop",
+            function (event) {
+
+                event.preventDefault();
+
+                dropArea.classList.remove(
+                    "dragging"
+                );
+
+                const file =
+                    event.dataTransfer.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+                if (!file.type.startsWith("video/")) {
+
+                    alert(
+                        "Please select a video."
+                    );
+
+                    return;
+                }
+
+                loadVideo(file);
+            }
+        );
+
+
+        // ==================================================
+        // LOAD VIDEO PREVIEW
+        // ==================================================
+
+        function loadVideo(file) {
+
+            selectedVideo = file;
+
+            const videoURL =
+                URL.createObjectURL(file);
+
+            videoPreview.src =
+                videoURL;
+
+            videoPreview.style.display =
+                "block";
+
+            dropArea.querySelector("h3")
+                .textContent =
+                file.name;
+        }
+
+
+        // ==================================================
+        // POST
+        // ==================================================
+
+        postButton.addEventListener(
+            "click",
+            function () {
+
+                const text =
+                    document.getElementById(
+                        "postText"
+                    ).value;
+
+                console.log(
+                    "Post text:",
+                    text
+                );
+
+                console.log(
+                    "Video:",
+                    selectedVideo
+                );
+
+                alert(
+                    "Post ready!"
+                );
+
+                // Later this is where you can
+                // send it to your Lua/server backend.
+            }
+        );
+
+
+        // ==================================================
+        // CANCEL
+        // ==================================================
+
+        cancelButton.addEventListener(
+            "click",
+            function () {
+
+                postPage.style.display =
+                    "none";
+
+                startPage.style.display =
+                    "block";
+            }
+        );
+
+    </script>
+
+</body>
+</html>

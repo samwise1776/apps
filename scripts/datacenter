@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+DATACENTER_DIR="$(cd -- "$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")/.." && pwd)"
+REPO_PY="$DATACENTER_DIR/main/src/infrastructure/repository.py"
+CLI_HELP="$DATACENTER_DIR/main/src/infrastructure/cli_helper.py"
+REGISTRY="$DATACENTER_DIR/config/apps.json"
+
+usage() {
+    cat <<EOF
+Datacenter Company Management CLI
+
+Usage: datacenter <command> [options]
+
+Commands:
+  status              Show company status overview
+  apps                List all registered applications
+  info <slug>         Show details for a specific application
+  build [slug]        Build all active apps or a specific one
+  test [slug]         Run tests for all active apps or a specific one
+  check               Validate repository structure and builds
+  package [slug]      Package distributable apps
+  release [slug]      Alias for package
+  backup              Create verified source backup
+  backup-check        Verify a source backup includes all registered apps
+  audit               Run security audit
+  docs                Generate documentation
+  clean               Remove generated build outputs
+  doctor              Diagnose common problems
+  fix                 Run the Datacenter Fixer utility
+  help                Show this help message
+
+Examples:
+  datacenter status
+  datacenter build
+  datacenter build datadocs
+  datacenter test learner
+  datacenter package datadocs
+  datacenter backup
+  datacenter doctor
+EOF
+}
+
+cmd_status() {
+    python3 "$REPO_PY" status
+}
+
+cmd_apps() {
+    python3 "$CLI_HELP" list "$REGISTRY"
+}
+
+cmd_info() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: datacenter info <slug>" >&2
+        exit 1
+    fi
+    python3 "$CLI_HELP" info "$REGISTRY" "$1"
+}
+
+cmd_build() {
+    python3 "$REPO_PY" build "$@"
+}
+
+cmd_test() {
+    if [[ $# -eq 0 ]]; then
+        python3 "$REPO_PY" check
+    else
+        python3 "$REPO_PY" test "$@"
+    fi
+}
+
+cmd_check() {
+    bash "$DATACENTER_DIR/scripts/checker.sh"
+}
+
+cmd_package() {
+    python3 "$REPO_PY" package "$@"
+}
+
+cmd_release() {
+    python3 "$REPO_PY" package "$@"
+}
+
+cmd_backup() {
+    python3 "$REPO_PY" backup
+}
+
+cmd_backup_check() {
+    python3 "$REPO_PY" backup-check
+}
+
+cmd_audit() {
+    bash "$DATACENTER_DIR/scripts/security-audit.sh"
+}
+
+cmd_docs() {
+    python3 "$REPO_PY" docs
+}
+
+cmd_clean() {
+    bash "$DATACENTER_DIR/scripts/clean.sh"
+}
+
+cmd_doctor() {
+    python3 "$REPO_PY" doctor
+}
+
+cmd_fix() {
+    if [[ -f "$DATACENTER_DIR/build/apps/fixer/Fixer.class" ]]; then
+        java -cp "$DATACENTER_DIR/build/apps/fixer" Fixer "$DATACENTER_DIR"
+    elif [[ -f "$DATACENTER_DIR/tools/fixer/Fixer.java" ]]; then
+        echo "Building and running Fixer..."
+        mkdir -p "$DATACENTER_DIR/build/apps/fixer"
+        javac -d "$DATACENTER_DIR/build/apps/fixer" "$DATACENTER_DIR/tools/fixer/Fixer.java" "$DATACENTER_DIR/utils/"*.java 2>/dev/null && \
+        java -cp "$DATACENTER_DIR/build/apps/fixer" Fixer "$DATACENTER_DIR" || \
+        echo "Could not run Fixer. Check Java installation."
+    else
+        echo "Fixer source not found at tools/fixer/Fixer.java" >&2
+        exit 1
+    fi
+}
+
+case "${1:-help}" in
+    status)       shift; cmd_status "$@" ;;
+    apps)         shift; cmd_apps "$@" ;;
+    info)         shift; cmd_info "$@" ;;
+    build)        shift; cmd_build "$@" ;;
+    test)         shift; cmd_test "$@" ;;
+    check)        shift; cmd_check "$@" ;;
+    package)      shift; cmd_package "$@" ;;
+    release)      shift; cmd_release "$@" ;;
+    backup)       shift; cmd_backup "$@" ;;
+    backup-check) shift; cmd_backup_check "$@" ;;
+    audit)        shift; cmd_audit "$@" ;;
+    docs)         shift; cmd_docs "$@" ;;
+    clean)        shift; cmd_clean "$@" ;;
+    doctor)       shift; cmd_doctor "$@" ;;
+    fix)          shift; cmd_fix "$@" ;;
+    help|-h|--help) usage ;;
+    *)
+        echo "Unknown command: $1" >&2
+        echo "Run 'datacenter help' for usage." >&2
+        exit 1
+        ;;
+esac

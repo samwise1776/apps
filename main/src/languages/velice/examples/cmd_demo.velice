@@ -1,0 +1,10 @@
+# Running terminal commands with `cmd`
+import cmd
+
+# Standalone: prints the command's output to the console.
+cmd.write("echo Hello from Velice")
+
+# Captured: the output lands in a variable instead of printing.
+files = cmd.capture("ls -1 /home/${User.name}")
+print("Home directory of ${User.name}:")
+print(files)

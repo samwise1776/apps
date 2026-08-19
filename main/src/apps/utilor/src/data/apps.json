@@ -1,0 +1,24 @@
+{
+  "planned": {
+    "apps": [
+      {
+        "name": "Calculator",
+        "type": "Math",
+        "id": "001",
+        "idName": "calc"
+      },
+      {
+        "name": "Color Picker",
+        "type": "Design",
+        "id": "9083",
+        "idName": "color-picker"
+      },
+      {
+        "name": "Password Generator",
+        "type": "Security",
+        "id": "1001",
+        "idName": "pass-gen"
+      }
+    ]
+  }
+}

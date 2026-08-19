@@ -1,0 +1,52 @@
+# history.velice — undo/redo stack of project snapshots.
+
+fn create(limit = 50) {
+    return {"stack": [], "index": -1, "limit": limit}
+}
+
+fn save(h, project) {
+    h["stack"] = _trim(h["stack"], h["index"] + 1)
+    append(h["stack"], _snapshot(project))
+    h["index"] = len(h["stack"]) - 1
+    h["stack"] = _trim(h["stack"], h["limit"])
+    h["index"] = len(h["stack"]) - 1
+    return h
+}
+
+fn undo(h) {
+    if h["index"] > 0 {
+        h["index"] = h["index"] - 1
+        return _restore(h["stack"][h["index"]])
+    }
+    return nil
+}
+
+fn redo(h) {
+    if h["index"] < len(h["stack"]) - 1 {
+        h["index"] = h["index"] + 1
+        return _restore(h["stack"][h["index"]])
+    }
+    return nil
+}
+
+fn can_undo(h) {
+    return h["index"] > 0
+}
+
+fn can_redo(h) {
+    return h["index"] < len(h["stack"]) - 1
+}
+
+# ── internal ─────────────────────────────────────────────────────────────
+fn _snapshot(project) {
+    return json_parse(json_stringify(project))
+}
+
+fn _restore(snapshot) {
+    return json_parse(json_stringify(snapshot))
+}
+
+fn _trim(list, max) {
+    if len(list) <= max { return list }
+    return list[len(list) - max:]
+}

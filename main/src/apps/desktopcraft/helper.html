@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Use the Desktopcraft AI coding agent to inspect code, consult course references, and plan desktop application projects." />
+    <title>AI Coding Agent — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="helper.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body class="helper-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="helper-topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/desktopcraft-icon.svg" alt="" /></span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav aria-label="Helper navigation">
+        <a href="index.html">Courses</a>
+        <a href="tutorials.html">Tutorials</a>
+        <a href="forum.html">Forum</a>
+        <a href="projects.html">Projects</a>
+        <a href="customization.html">Customize</a>
+      </nav>
+    </header>
+
+    <main class="helper-shell" id="main-content">
+      <section class="helper-hero">
+        <div>
+          <p class="section-kicker">DESKTOPCRAFT AI AGENT</p>
+          <h1>Bring the question.<br />Untangle the code.</h1>
+        </div>
+        <div class="helper-status-card">
+          <span class="helper-status-dot" id="helperStatusDot" aria-hidden="true"></span>
+          <div><strong id="helperStatusTitle">Checking helper mode…</strong><p id="helperStatusText">Course guidance is always available.</p></div>
+        </div>
+      </section>
+
+      <div class="helper-layout">
+        <aside class="helper-sidebar">
+          <section class="helper-side-section">
+            <p class="section-kicker">LEARNING CONTEXT</p>
+            <label class="helper-course-field" for="helperCourse">
+              <span>Current course</span>
+              <select id="helperCourse">
+                <option value="java-swing">Java Swing</option>
+                <option value="python-tkinter">Python Tkinter</option>
+                <option value="csharp-winforms">C# WinForms</option>
+                <option value="cpp-qt">C++ Qt Widgets</option>
+                <option value="javascript-electron">JavaScript Electron</option>
+              </select>
+            </label>
+            <p class="helper-context-copy" id="helperContextCopy"></p>
+          </section>
+
+          <section class="helper-side-section">
+            <p class="section-kicker">QUICK QUESTIONS</p>
+            <div class="helper-prompts" id="helperPrompts">
+              <button type="button" data-prompt="Explain how button click events work in this course.">Explain click events</button>
+              <button type="button" data-prompt="Help me choose the right layout for a form.">Choose a layout</button>
+              <button type="button" data-prompt="Why can slow work freeze a desktop window?">Fix a frozen window</button>
+              <button type="button" data-prompt="Give me the smallest example that opens a window.">Open a first window</button>
+              <button type="button" data-prompt="Statically review this code for likely bugs and explain the first fix:\n\n">Review my code</button>
+            </div>
+          </section>
+
+          <section class="helper-side-section helper-privacy-note">
+            <strong>Safe by design</strong>
+            <p>The API key stays on the server. Saved chat history stays in this browser. Do not paste passwords, private keys, or personal information.</p>
+            <button id="clearHelperChat" type="button">Clear conversation</button>
+          </section>
+        </aside>
+
+        <section class="helper-chat" aria-labelledby="helperChatTitle">
+          <header class="helper-chat-heading">
+            <div class="helper-orb" aria-hidden="true"><span></span></div>
+            <div><h2 id="helperChatTitle">Desktopcraft Agent</h2><p>Tool-using AI coding tutor</p></div>
+            <a id="helperSignInLink" href="login.html?switch=1&amp;next=helper.html" hidden>Sign in for AI</a>
+          </header>
+
+          <div class="helper-messages" id="helperMessages" role="log" aria-live="polite" aria-label="Helper conversation"></div>
+
+          <div class="helper-suggestions" id="helperSuggestions" aria-label="Suggested questions">
+            <button type="button" data-prompt="What should I learn next?">What should I learn next?</button>
+            <button type="button" data-prompt="Explain this toolkit in plain language.">Explain this toolkit</button>
+            <button type="button" data-prompt="How do I debug an event that does not run?">Debug an event</button>
+          </div>
+
+          <form class="helper-composer" id="helperForm">
+            <label class="sr-only" for="helperQuestion">Ask the Desktopcraft AI agent a question</label>
+            <textarea id="helperQuestion" rows="2" maxlength="2000" required placeholder="Ask about a lesson, paste a short error, or describe what your window should do…"></textarea>
+            <div class="helper-composer-actions">
+              <span><strong id="helperCharacterCount">0</strong>/2000</span>
+              <span>Enter to send · Shift+Enter for a new line</span>
+              <button class="button button-primary" id="helperSend" type="submit">Ask agent</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="helper.js"></script>
+  </body>
+</html>

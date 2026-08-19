@@ -1,0 +1,23 @@
+# 2D drawing with the Canvas widget
+#
+#   Canvas(width, height, bg)  creates a drawing surface
+#   draw_rect / draw_oval / draw_line / draw_polygon / draw_text / draw_arc
+#   clear()                    empties the canvas
+#   screenshot(path)           saves a PostScript snapshot
+
+import gui
+
+var window = Window("Canvas", 640, 480)
+
+var canvas = Canvas(600, 400, "#ffffff")
+
+canvas.draw_rect(20, 20, 80, 80, "#e74c3c")
+canvas.draw_oval(120, 20, 80, 80, "#2ecc71")
+canvas.draw_line(20, 150, 580, 150, "#3498db", 3)
+canvas.draw_polygon([300, 250, 350, 180, 400, 250], "#f1c40f")
+canvas.draw_text(300, 320, "Hello, Velice GUI", "#34495e", 20, true)
+canvas.draw_arc(460, 20, 80, 80, 0, 120, "#9b59b6", 4)
+
+window.add(canvas)
+
+gui.run()

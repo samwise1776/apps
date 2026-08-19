@@ -1,0 +1,18 @@
+# editor.velice — CodeEditor helpers: load, refresh, extract.
+import gui
+import generator
+
+fn make(parent, x, y, w, h) {
+    var ed = CodeEditor(name = "code_editor", parent = parent, text = "")
+    parent.add(ed)
+    ed.set("x", x)
+    ed.set("y", y)
+    ed.set("width", w)
+    ed.set("height", h)
+    return ed
+}
+
+fn load(ed, project) {
+    ed.text = generator.generate(project)
+    return ed
+}

@@ -1,0 +1,23 @@
+# Concurrency and async-style patterns
+fn fetch_slow() {
+    sleep(0.1)
+    return "data"
+}
+
+fn process(data) {
+    return "processed: " + data
+}
+
+# Pipeline-style chaining
+fn pipeline() {
+    return "fetch" |> fetch_slow |> process
+}
+
+print(pipeline())
+
+# Parallel-ish batch processing
+let results = map([1, 2, 3, 4, 5], fn(x) { return x * x })
+print("squares:", results)
+
+let total = sum(map(range(1, 1000), fn(x) { return x * x }))
+print("sum of squares 1..999:", total)

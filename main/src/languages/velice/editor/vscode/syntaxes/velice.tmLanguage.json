@@ -1,0 +1,164 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Velice",
+  "scopeName": "source.velice",
+    "patterns": [
+      { "include": "#comments" },
+      { "include": "#strings" },
+      { "include": "#numbers" },
+      { "include": "#keywords" },
+      { "include": "#types" },
+      { "include": "#builtins" },
+      { "include": "#operators" },
+      { "include": "#decorators" },
+      { "include": "#gui-events" },
+      { "include": "#function-calls" },
+      { "include": "#identifiers" }
+    ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "match": "#.*$", "name": "comment.line.number-sign.velice" },
+        { "begin": "/\\*", "end": "\\*/", "name": "comment.block.velice" },
+        { "begin": "///", "end": "$", "name": "comment.line.documentation.velice" }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        { "begin": "r\"", "end": "\"", "name": "string.quoted.raw.velice" },
+        {
+          "begin": "\"\"\"",
+          "end": "\"\"\"",
+          "name": "string.quoted.triple.velice",
+          "patterns": [
+            { "include": "#interpolation" }
+          ]
+        },
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.velice",
+          "patterns": [
+            { "include": "#escapes" },
+            { "include": "#interpolation" }
+          ]
+        },
+        {
+          "begin": "'",
+          "end": "'",
+          "name": "string.quoted.single.velice",
+          "patterns": [
+            { "include": "#escapes" }
+          ]
+        },
+        {
+          "begin": "`",
+          "end": "`",
+          "name": "string.quoted.other.velice"
+        }
+      ]
+    },
+    "escapes": {
+      "match": "\\\\[abfnrtv'\"\\\\0]|\\\\x[0-9A-Fa-f]{2}|\\\\u[0-9A-Fa-f]{4}|\\\\U[0-9A-Fa-f]{8}",
+      "name": "constant.character.escape.velice"
+    },
+    "interpolation": {
+      "begin": "\\$\\{",
+      "end": "\\}",
+      "name": "meta.interpolation.velice",
+      "patterns": [
+        { "include": "#strings" },
+        { "include": "#numbers" },
+        { "include": "#keywords" },
+        { "include": "#identifiers" },
+        { "include": "#operators" }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        { "match": "\\b(?:0[xX][0-9a-fA-F](?:[0-9a-fA-F_]*[0-9a-fA-F])?)\\b", "name": "constant.numeric.hex.velice" },
+        { "match": "\\b(?:0[bB][01](?:[01_]*[01])?)\\b", "name": "constant.numeric.binary.velice" },
+        { "match": "\\b(?:0[oO][0-7](?:[0-7_]*[0-7])?)\\b", "name": "constant.numeric.octal.velice" },
+        { "match": "\\b\\d(?:\\d|_)*\\.[0-9_]+(?:[eE][+-]?\\d+)?\\b", "name": "constant.numeric.float.velice" },
+        { "match": "\\b\\d(?:\\d|_)*(?:[eE][+-]?\\d+)\\b", "name": "constant.numeric.float.velice" },
+        { "match": "\\b\\d(?:\\d|_)*\\b", "name": "constant.numeric.integer.velice" }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "match": "\\b(?:let|mut|const|var|fn|return|if|elif|else|while|for|in|loop|break|continue|match|class|extends|struct|enum|trait|impl|try|catch|finally|throw|defer|assert|import|from|use|export|pub|private|as|and|or|not|true|false|nil|self|super|async|await|type|where|is|window|run|new|sizeof|typeof|guard|some|ok|err|panic|argu)\\b",
+          "name": "keyword.control.velice"
+        }
+      ]
+    },
+    "types": {
+      "match": "\\b(?:int|float|string|bool|char|byte|void|any|array|map|tuple|list|fn|never|i8|i16|i32|i64|u8|u16|u32|u64|f32|f64)\\b",
+      "name": "storage.type.velice"
+    },
+    "builtins": {
+      "patterns": [
+        {
+          "match": "\\b(?:print|println|input|len|range|str|int|float|bool|typeof|sizeof|min|max|sum|sorted|reversed|map|filter|reduce|append|push|pop|insert|remove|keys|values|items|json_parse|json_stringify|sha256|now|time|sleep|random|rand_int|rand|sqrt|abs|floor|ceil|round|pow|panic|exit|assert_eq|contains|starts|ends|inbetween|readFileLines)\\b(?=\\s*\\()",
+          "name": "support.function.builtin.velice"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        { "match": "=>", "name": "keyword.operator.arrow.velice" },
+        { "match": "\\|>", "name": "keyword.operator.pipe.velice" },
+        { "match": "\\?>", "name": "keyword.operator.option.velice" },
+        { "match": "::", "name": "keyword.operator.scope.velice" },
+        { "match": "\\?\\?", "name": "keyword.operator.null-coalesce.velice" },
+        { "match": "===|!==|==|!=|<=|>=|<|>", "name": "keyword.operator.comparison.velice" },
+        { "match": "&&|\\|\\||!|\\band\\b|\\bor\\b|\\bnot\\b", "name": "keyword.operator.logical.velice" },
+        { "match": "\\+\\+|--|\\+=|-=|\\*=|/=|%=|\\*\\*=|//=", "name": "keyword.operator.assignment.velice" },
+        { "match": "\\+|-|\\*|/|%|\\*\\*|//|\\^|&|\\||~|<<|>>", "name": "keyword.operator.arithmetic.velice" },
+        { "match": "=|;|,|\\.\\.|\\.|:|@|\\?|\\$", "name": "punctuation.operator.velice" }
+      ]
+    },
+    "decorators": {
+      "match": "^\\s*(#[a-zA-Z_][a-zA-Z0-9_]*)\\b",
+      "name": "meta.preprocessor.velice"
+    },
+    "gui-events": {
+      "patterns": [
+        {
+          "match": "\\.\\s*(on_[a-z][a-zA-Z0-9_]*)\\s*(?=\\{)",
+          "captures": {
+            "1": { "name": "entity.name.function.method.velice" }
+          }
+        },
+        {
+          "match": "\\.\\s*(on[A-Z][a-zA-Z0-9_]*)\\s*(?=\\{)",
+          "captures": {
+            "1": { "name": "entity.name.function.method.velice" }
+          }
+        }
+      ]
+    },
+    "function-calls": {
+      "patterns": [
+        {
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": { "name": "entity.name.function.velice" }
+          }
+        },
+        {
+          "match": "\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+          "captures": {
+            "1": { "name": "entity.name.function.method.velice" }
+          }
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        { "match": "\\b(?:[A-Z][a-zA-Z0-9_]*)\\b", "name": "support.class.velice" },
+        { "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b", "name": "variable.other.velice" }
+      ]
+    }
+  }
+}

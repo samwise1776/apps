@@ -1,0 +1,22 @@
+# console.velice — a scrollable, read-only log panel.
+import gui
+
+fn make(parent, name = "console", x = 0, y = 0, w = 400, h = 120) {
+    var ta = TextArea(name = name, parent = parent)
+    ta.set("readonly", true)
+    ta.set("x", x)
+    ta.set("y", y)
+    ta.set("width", w)
+    ta.set("height", h)
+    return ta
+}
+
+fn log(ta, msg) {
+    if ta == nil { return }
+    ta.append("> " + msg + "\n")
+}
+
+fn clear(ta) {
+    if ta == nil { return }
+    ta.clear()
+}

@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta 
+      name="description"
+      content="Desktopcraft is an interactive tutor for building desktop applications with Java, Python, C#, C++, and JavaScript."
+    />
+    <title>Desktopcraft — Learn desktop apps by building</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand-row">
+          <a class="brand" href="#" aria-label="Desktopcraft home">
+            <span class="brand-mark" aria-hidden="true">
+              <img src="assets/desktopcraft-icon.svg" alt="" />
+            </span>
+            <span>Desktopcraft</span>
+          </a>
+          <button class="icon-button sidebar-close" id="sidebarClose" aria-label="Close lessons">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+
+        <div class="course-summary">
+          <p class="micro-label">CURRENT COURSE</p>
+          <h2 id="courseTitle">Java Swing: Zero to Builder</h2>
+          <label class="course-picker">
+            <span>Switch course</span>
+            <select id="courseSelect" aria-label="Choose a desktop app course"></select>
+          </label>
+          <div class="progress-copy">
+            <span id="progressLabel">0 of 500 lessons</span>
+            <strong id="progressPercent">0%</strong>
+          </div>
+          <div class="progress-track" aria-hidden="true">
+            <span id="progressBar"></span>
+          </div>
+        </div>
+
+        <div class="desktop-download-card">
+          <div class="desktop-download-heading">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v11H5zM9 20h6M12 15v5M9 9h6" /></svg>
+            <div><strong>Complete desktop edition</strong><span>Unzip, run the installer, and launch from your Desktop · Java 17+</span></div>
+          </div>
+          <div class="desktop-download-actions">
+            <a href="downloads/Desktopcraft-desktop.zip" download>Desktop setup ZIP</a>
+            <a href="downloads/Desktopcraft.jar" download>JAR only</a>
+            <a href="downloads/Desktopcraft-source.zip" download>Source ZIP</a>
+          </div>
+        </div>
+
+        <label class="lesson-search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+          <input id="lessonSearch" type="search" placeholder="Find a lesson or API…" autocomplete="off" />
+          <kbd>/</kbd>
+        </label>
+
+        <nav class="lesson-nav" aria-label="Course lessons" id="lessonNav"></nav>
+
+        <div class="sidebar-note">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 18h6M10 22h4M8.5 14.5A7 7 0 1 1 16 14c-1 .8-1.5 1.7-1.5 3h-5c0-1.1-.3-1.8-1-2.5Z" />
+          </svg>
+          <div>
+            <strong>Keep experimenting</strong>
+            <p>You can always reset the code if something goes sideways.</p>
+          </div>
+        </div>
+      </aside>
+
+      <div class="sidebar-scrim" id="sidebarScrim" hidden></div>
+
+      <main class="main-content" id="main-content">
+      <a class="cod3space-link" href="../index.html">Cod3Space</a>
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="icon-button menu-button" id="menuButton" aria-label="Open lessons">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+            </button>
+            <div class="breadcrumb">
+              <span id="courseLanguage">Java Swing</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              <strong id="breadcrumbTitle">First window</strong>
+            </div>
+          </div>
+          <div class="topbar-actions">
+            <a class="forum-link" href="forum.html" aria-label="Forum">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4V5ZM9 9h6M9 12h4" /></svg>
+              <span>Forum</span>
+            </a>
+            <a class="tutorials-link" href="tutorials.html" aria-label="Tutorials">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h6a3 3 0 0 1 3 3v13a3 3 0 0 0-3-3H5V4Zm14 0h-2a3 3 0 0 0-3 3v13a3 3 0 0 1 3-3h2V4Z" /></svg>
+              <span>Tutorials</span>
+            </a>
+            <a class="app-maker-link" href="appmaker.html" aria-label="App Maker">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6.5 3-3 3 3-3 3M13 8l-9 9v3h3l9-9M4 7h6M7 4v6" /></svg>
+              <span>App Maker</span>
+            </a>
+            <a class="customization-link" href="customization.html" aria-label="Customize">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" /></svg>
+              <span>Customize</span>
+            </a>
+            <a class="helper-link" href="helper.html" aria-label="Helper AI">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a7 7 0 0 0-4.2 12.6V19h8.4v-3.4A7 7 0 0 0 12 3ZM9 22h6M9 11h.01M15 11h.01M9.5 14c1.5 1 3.5 1 5 0" /></svg>
+              <span>Helper AI</span>
+            </a>
+            <a class="helper-link" href="review.html" aria-label="Code Review">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h9l5 5v11H5zM14 4v5h5M8.5 12l-2 2 2 2M11.5 16h4" /></svg>
+              <span>Code Review</span>
+            </a>
+            <button class="create-lesson-button" id="createLessonButton" type="button" aria-label="Create lesson">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+              <span>Create lesson</span>
+            </button>
+            <a class="leaderboard-link" href="leaderboard.html" aria-label="Leaderboard">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v4a4 4 0 0 1-8 0V4ZM8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4M12 12v5M8 21h8M9 17h6" /></svg>
+              <span>Leaderboard</span>
+            </a>
+            <div class="streak" title="Learning streak">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2s.7 3.1-2 5.8C8.5 10.3 8.2 14 11 16c-1.2-3.8 2.7-4.6 3.4-7.5 2.7 2 4.1 4.3 3.5 7.1A6 6 0 0 1 6 14c0-5.3 4-8.8 7-12Z" /></svg>
+              <span><strong id="streakCount">1</strong> day streak</span>
+            </div>
+            <div class="account-wrap">
+              <button class="avatar-button" id="accountButton" title="Account" aria-label="Open account menu" aria-expanded="false">GU</button>
+              <div class="account-menu" id="accountMenu" hidden>
+                <div class="account-summary">
+                  <span class="account-avatar" id="accountAvatar">GU</span>
+                  <div><strong id="accountName">Guest learner</strong><span id="accountHandle">No account signed in</span></div>
+                </div>
+                <a href="login.html?switch=1&amp;next=index.html" id="signInLink">Sign in or create account</a>
+                <a href="leaderboard.html">View leaderboard</a>
+                <a href="customization.html">Customize experience</a>
+                <a href="projects.html">Open projects</a>
+                <a href="helper.html">Ask Helper AI</a>
+                <a href="review.html">Review my code</a>
+                <a href="view.html">Browse free community apps</a>
+                <a href="make.html">Publish a free app</a>
+                <a href="feedback.html">Send feedback</a>
+                <button type="button" id="resetProgress">Reset current course</button>
+                <button type="button" id="signOutButton" hidden>Sign out</button>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="lesson-page">
+          <section class="lesson-heading" aria-labelledby="lessonTitle">
+            <div class="eyebrow-row">
+              <span class="lesson-number" id="lessonNumber">LESSON 01</span>
+              <span class="lesson-time" id="lessonTime">6 MIN</span>
+            </div>
+            <h1 id="lessonTitle">Give your app a window</h1>
+            <p id="lessonDescription"></p>
+            <div class="lesson-tags" id="lessonTags"></div>
+          </section>
+
+          <div class="learning-grid">
+            <article class="lesson-content">
+              <section class="content-section">
+                <p class="section-kicker">THE BIG IDEA</p>
+                <h2 id="conceptTitle"></h2>
+                <div id="conceptBody"></div>
+              </section>
+
+              <aside class="coach-note">
+                <div class="coach-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 3a7 7 0 0 0-4.1 12.7V18h8.2v-2.3A7 7 0 0 0 12 3ZM9 22h6M9 13h6" /></svg>
+                </div>
+                <div>
+                  <p class="micro-label">HELPFUL TIP</p>
+                  <p id="mentorNote"></p>
+                </div>
+              </aside>
+
+              <section class="content-section">
+                <p class="section-kicker">REMEMBER THIS</p>
+                <h2>Three things to remember</h2>
+                <div class="key-points" id="keyPoints"></div>
+              </section>
+
+              <section class="lesson-reference" aria-labelledby="referenceTitle">
+                <div class="reference-heading">
+                  <div>
+                    <p class="section-kicker">LESSON EXPLAINED</p>
+                    <h2 id="referenceTitle">See how every part works</h2>
+                  </div>
+                  <span id="referenceLanguage">JAVA</span>
+                </div>
+                <p class="reference-summary" id="referenceSummary"></p>
+
+                <div class="reference-grid">
+                  <article class="reference-card">
+                    <div class="reference-card-heading"><span>01</span><h3>Attributes &amp; properties (settings)</h3></div>
+                    <p>Values that set the look, size, text, layout, and current state.</p>
+                    <div class="reference-items" id="attributeReference"></div>
+                  </article>
+                  <article class="reference-card">
+                    <div class="reference-card-heading"><span>02</span><h3>Functions &amp; methods (actions)</h3></div>
+                    <p>Code actions that create, read, change, and show the screen.</p>
+                    <div class="reference-items" id="functionReference"></div>
+                  </article>
+                  <article class="reference-card">
+                    <div class="reference-card-heading"><span>03</span><h3>Events &amp; callbacks (reactions)</h3></div>
+                    <p>How the app reacts to clicks, typing, timers, and other actions.</p>
+                    <div class="reference-items" id="eventReference"></div>
+                  </article>
+                  <article class="reference-card">
+                    <div class="reference-card-heading"><span>04</span><h3>What runs first</h3></div>
+                    <p>The order used to build the example and make it work.</p>
+                    <ol class="reference-flow" id="flowReference"></ol>
+                  </article>
+                </div>
+
+                <div class="lesson-glossary">
+                  <h3>Words to know</h3>
+                  <dl id="lessonGlossary"></dl>
+                </div>
+
+                <details class="code-walkthrough">
+                  <summary>
+                    <span><strong>Every code line explained</strong><small>Open a simple guide to the starter code</small></span>
+                    <span aria-hidden="true">+</span>
+                  </summary>
+                  <ol id="lineWalkthrough"></ol>
+                </details>
+              </section>
+
+              <section class="challenge-box" id="challengeBox">
+                <div class="challenge-heading">
+                  <span class="challenge-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M14 3 5 14h7l-2 7 9-11h-7l2-7Z" /></svg>
+                  </span>
+                  <div>
+                    <p class="micro-label">QUICK CHALLENGE</p>
+                    <h2 id="challengeTitle"></h2>
+                  </div>
+                </div>
+                <p id="challengeText"></p>
+                <div class="challenge-status" id="challengeStatus" aria-live="polite">
+                  <span class="status-dot"></span>
+                  Waiting for your code
+                </div>
+                <div class="challenge-support">
+                  <button class="challenge-hint-button" id="challengeHint" type="button">Need a hint?</button>
+                  <p class="challenge-hint" id="challengeHintText" hidden></p>
+                </div>
+              </section>
+
+              <section class="quiz-panel" id="quizPanel" hidden>
+                <div class="quiz-intro">
+                  <p class="section-kicker">KNOWLEDGE CHECK</p>
+                  <h2>Lock in what you learned</h2>
+                  <p>Twenty questions, shown one at a time. Check your answer to unlock the next question.</p>
+                </div>
+                <div class="quiz-progress" id="quizProgress"></div>
+                <div id="quizQuestions"></div>
+                <div class="quiz-actions">
+                  <button class="button button-dark" id="checkQuiz">Check answer</button>
+                  <button class="button button-primary" id="quizNext" hidden>Next question</button>
+                </div>
+                <div class="quiz-result" id="quizResult" aria-live="polite"></div>
+              </section>
+
+              <div class="lesson-navigation">
+                <div class="mastery-checklist" aria-label="Lesson mastery steps">
+                  <span class="mastery-step complete"><b>1</b> Learn</span>
+                  <span class="mastery-step" id="practiceMasteryStep"><b>2</b> Run the challenge</span>
+                  <span class="mastery-step" id="completeMasteryStep"><b>3</b> Complete</span>
+                </div>
+                <button class="button button-ghost" id="previousLesson">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+                  Previous
+                </button>
+                <button class="button button-primary" id="completeLesson">
+                  Complete lesson
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+                </button>
+              </div>
+            </article>
+
+            <section class="practice-column" aria-label="Code playground">
+              <div class="practice-sticky">
+                <div class="workspace-card code-card">
+                  <div class="workspace-toolbar">
+                    <div class="file-tab">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7zM14 3v5h5" /></svg>
+                      <span id="editorFileName">Main.java</span>
+                    </div>
+                    <div class="toolbar-actions">
+                      <button class="text-button" id="copyCode" title="Copy code">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 8h10v12H9zM5 16H4V4h10v1" /></svg>
+                        Copy
+                      </button>
+                      <button class="text-button" id="resetCode" title="Reset code">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7L4 8.6M4 4v4.6h4.6" /></svg>
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                  <div class="editor-shell">
+                    <div class="line-numbers" id="lineNumbers" aria-hidden="true"></div>
+                    <textarea id="codeEditor" aria-label="Java code editor" spellcheck="false"></textarea>
+                  </div>
+                  <div class="run-bar">
+                    <p><span class="keyboard-key">⌘</span><span class="keyboard-key">↵</span> to run</p>
+                    <button class="button button-run" id="runCode">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z" /></svg>
+                      Run code
+                    </button>
+                  </div>
+                </div>
+
+                <div class="workspace-card preview-card">
+                  <div class="preview-heading">
+                    <div>
+                      <span class="live-dot"></span>
+                      <strong>Desktop simulator</strong>
+                    </div>
+                    <button class="simulator-help-button" id="simulatorHelp" type="button" aria-expanded="false">SUPPORTED APIS</button>
+                  </div>
+                  <div class="simulator-help" id="simulatorHelpPanel" hidden>
+                    <strong>Browser-safe desktop UI subset</strong>
+                    <p>Java Swing, Python Tkinter, C# WinForms, C++ Qt Widgets, and JavaScript Electron controls are recognized. The simulator covers windows, layouts, inputs, lists, tables, progress, and common event callbacks without executing operating-system code.</p>
+                  </div>
+                  <div class="desktop-canvas" id="previewCanvas"></div>
+                  <div class="console-bar" id="consoleBar">
+                    <div class="console-label">
+                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 7 5 5-5 5M13 17h6" /></svg>
+                      CONSOLE
+                    </div>
+                    <p id="consoleOutput">Ready. Run your code to update the preview.</p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <dialog class="lesson-creator" id="lessonCreator">
+      <form class="lesson-creator-card" id="lessonCreatorForm" method="dialog">
+        <div class="lesson-creator-heading">
+          <div>
+            <p class="section-kicker">LESSON STUDIO</p>
+            <h2>Create your own lesson</h2>
+            <p>Your lesson will be added to <strong id="creatorCourseName">this course</strong>.</p>
+          </div>
+          <button class="icon-button" id="closeLessonCreator" type="button" aria-label="Close lesson creator">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+        <div class="moderation-warning">
+          <strong>Profanity-free studio</strong>
+          <p>Submitting profanity permanently disables lesson creation for the account and erases every custom lesson and the current draft.</p>
+        </div>
+        <label class="creator-field">
+          <span>Lesson name</span>
+          <input id="customLessonName" required maxlength="80" placeholder="Build a friendly greeting window" />
+        </label>
+        <label class="creator-field">
+          <span>Starter code</span>
+          <textarea id="customStarterCode" required maxlength="12000" spellcheck="false" placeholder="Write the code learners begin with…"></textarea>
+        </label>
+        <label class="creator-field">
+          <span>Answer</span>
+          <textarea id="customAnswer" required maxlength="12000" spellcheck="false" placeholder="Write the completed code used to check the challenge…"></textarea>
+        </label>
+        <label class="creator-field">
+          <span>Expected output</span>
+          <textarea id="customOutput" required maxlength="1000" placeholder="Describe what the finished desktop app should display or do…"></textarea>
+        </label>
+        <div class="lesson-creator-actions">
+          <button class="button button-ghost" id="cancelLessonCreator" type="button">Cancel</button>
+          <button class="button button-primary" type="submit">Publish lesson</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="auth.js"></script>
+    <script src="lessons-extra.js"></script>
+    <script src="desktop-courses.js"></script>
+    <script src="language-courses.js"></script>
+    <script src="curriculum-expansion.js"></script>
+    <script src="simulator.js"></script>
+    <script src="desktop-simulator.js"></script>
+    <script src="app.js"></script>
+
+    <section class="index-about" aria-labelledby="aboutDesktopcraftTitle">
+      <p class="section-kicker">ABOUT THE STUDIO</p>
+      <h1 id="aboutDesktopcraftTitle">About <strong>Desktopcraft</strong></h1>
+      <p>Learn to build desktop applications through guided lessons, editable code, interactive previews, and community projects.</p><br>
+      <p>Desktopcraft was made originally in 2026 for learning Java swing, it used to be called Swingcraft</p><br>
+
+      <p>But when I made it have multiple languages, it became Desktopcraft. <b>Before</b> it was for me to learn with people, now it is used to make applications and learn, also it was made so people could build together in one place, it did that well with a Forum, App maker, and public App-creator.</p><br><br>
+
+      <p>Please notify me at the <a href="feedback.html">feedback</a> page if there is anything you want to add</p>
+      <hr>
+    </section>
+
+    <section class="main-content">
+      <h1>Shell language: </h1>
+      <p style="font-size: 16px;">This is only for Java, so please enjoy!</p>
+
+
+    </section>
+    <script>
+      // Enlarge the knowledge panels and their compact supporting text only.
+      const knowledgeText = document.querySelectorAll(`
+        .coach-note, .coach-note *,
+        .key-points, .key-points *,
+        .lesson-reference, .lesson-reference *,
+        .challenge-box, .challenge-box *,
+        .quiz-panel, .quiz-panel *,
+        .micro-label,
+        .section-kicker,
+        .lesson-tag
+      `);
+
+      const pageTextSizes = [...knowledgeText]
+        .map((element) => ({
+          element,
+          size: Number.parseFloat(getComputedStyle(element).fontSize),
+        }))
+        .filter(({ size }) => Number.isFinite(size) && size > 0 && size <= 16);
+
+      pageTextSizes.forEach(({ element, size }) => {
+        element.style.setProperty("font-size", `${size + 7}px`, "important");
+      });
+
+      document.querySelectorAll(`
+        .key-point,
+        .reference-card
+      `).forEach((box) => {
+        const boxStyle = getComputedStyle(box);
+        box.style.boxSizing = "border-box";
+        box.style.minWidth = "0";
+        box.style.overflowWrap = "anywhere";
+        box.style.paddingTop = `${Number.parseFloat(boxStyle.paddingTop) + 50}px`;
+        box.style.paddingRight = `${Number.parseFloat(boxStyle.paddingRight) + 50}px`;
+        box.style.paddingBottom = `${Number.parseFloat(boxStyle.paddingBottom) + 50}px`;
+        box.style.paddingLeft = `${Number.parseFloat(boxStyle.paddingLeft) + 50}px`;
+      });
+
+      document.querySelectorAll(".key-points, .reference-grid").forEach((grid) => {
+        grid.style.gridTemplateColumns = "minmax(0, 1fr)";
+      });
+
+      document.querySelectorAll(`
+        .key-point strong,
+        .key-point p,
+        .reference-card h3,
+        .reference-card p,
+        .reference-card li,
+        .reference-card dd
+      `).forEach((text) => {
+        text.style.width = "min(100%, 60ch)";
+        text.style.maxWidth = "60ch";
+      });
+    </script>
+  </body>
+</html>

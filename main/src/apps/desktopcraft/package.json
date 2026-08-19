@@ -1,0 +1,27 @@
+{
+  "name": "desktopcraft",
+  "version": "1.0.0",
+  "description": "Interactive desktop application courses, simulators, quizzes, and a Java Swing edition.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/verify-site.mjs dist",
+    "preview": "node scripts/serve.mjs dist",
+    "db:init": "python3 database/server.py --init-only",
+    "desktop:build": "python3 scripts/build-desktop.py",
+    "test:auth": "node scripts/test-auth.mjs",
+    "test:customization": "node scripts/test-customization.mjs",
+    "test:projects": "node scripts/test-projects.mjs",
+    "test:review": "node scripts/test-review.mjs",
+    "test:curriculum": "node scripts/test-curriculum.mjs",
+    "test:quality": "node scripts/audit-quality.mjs dist",
+    "test:desktop": "python3 scripts/build-desktop.py --verify-only",
+    "test:database": "python3 -m unittest discover -s database -p 'test_*.py'",
+    "test:all": "npm run check && npm run test:quality && npm run test:curriculum && npm run test:auth && npm run test:customization && npm run test:projects && npm run test:review && npm run test:database && npm run test:desktop",
+    "start": "python3 database/server.py --host 0.0.0.0",
+    "publish:check": "npm run desktop:build && npm run build && npm run test:all"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

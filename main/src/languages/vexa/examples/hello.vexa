@@ -1,0 +1,4 @@
+# Vexa hello-world example
+text greeting = "Hello from Vexa"
+print(greeting)
+print("Variables and print are supported")

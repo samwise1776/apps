@@ -1,0 +1,58 @@
+# Dialogs, toasts, file pickers, and the clipboard
+#
+# Headless mode (VELICE_GUI=none) records every dialog call so the program
+# still runs on CI servers without a display.
+
+import gui
+
+var window = Window("Dialogs", 480, 360)
+
+var status = Label("Choose an action")
+window.add(status)
+
+var info = Button("Alert")
+info.on_click {
+    gui.alert("This is an alert dialog.")
+}
+window.add(info)
+
+var ask = Button("Confirm")
+ask.on_click {
+    if gui.confirm("Are you sure?") {
+        status.text = "You confirmed."
+    } else {
+        status.text = "You declined."
+    }
+}
+window.add(ask)
+
+var prompt = Button("Input")
+prompt.on_click {
+    var name = gui.input_box("What is your name?", "Ask", "Velice")
+    if name != nil {
+        status.text = "Hello, " + name
+    }
+}
+window.add(prompt)
+
+var pick = Button("Open file")
+pick.on_click {
+    var path = gui.open_file("Open File")
+    status.text = "Picked: " + path
+}
+window.add(pick)
+
+var copy = Button("Copy text")
+copy.on_click {
+    gui.clipboard.copy("copied from Velice")
+    status.text = "Copied to clipboard."
+}
+window.add(copy)
+
+var paste = Button("Paste")
+paste.on_click {
+    status.text = "Clipboard: " + gui.clipboard.paste()
+}
+window.add(paste)
+
+gui.run()

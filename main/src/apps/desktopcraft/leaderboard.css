@@ -1,0 +1,487 @@
+.leaderboard-page {
+  min-height: 100vh;
+  background: var(--canvas);
+}
+
+.leaderboard-header {
+  display: flex;
+  height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 max(24px, calc((100vw - 1120px) / 2));
+  background: var(--nav);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.leaderboard-header .brand-mark {
+  color: var(--nav);
+}
+
+.back-to-course {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #c2cec6;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.leaderboard-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.back-to-course:hover {
+  color: white;
+}
+
+.back-to-course svg {
+  width: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.leaderboard-main {
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 56px 0 80px;
+}
+
+.leaderboard-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding-bottom: 38px;
+  border-bottom: 1px solid var(--line);
+}
+
+.leaderboard-hero h1 {
+  margin: 8px 0 10px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(42px, 6vw, 72px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1;
+}
+
+.leaderboard-hero p:last-child {
+  max-width: 590px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.league-emblem {
+  display: grid;
+  width: 112px;
+  height: 112px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--nav);
+  background: var(--lime);
+  border: 8px solid #e7efb7;
+  border-radius: 50%;
+}
+
+.league-emblem svg {
+  width: 63px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+}
+
+.player-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 32px 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.player-stats article {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding: 20px;
+  border-right: 1px solid var(--soft-line);
+}
+
+.player-stats article:last-child {
+  border-right: 0;
+}
+
+.stat-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--green-dark);
+  font-size: 10px;
+  font-weight: 900;
+  background: var(--green-soft);
+  border-radius: 9px;
+}
+
+.xp-icon {
+  color: #8e4c26;
+  background: var(--orange-soft);
+}
+
+.rank-icon {
+  color: #6b6500;
+  background: #f3efc6;
+}
+
+.course-icon {
+  color: #315e8e;
+  background: #e0ebf4;
+}
+
+.player-stats strong,
+.player-stats span {
+  display: block;
+}
+
+.player-stats strong {
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.player-stats div > span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.leaderboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.75fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.rankings-panel,
+.course-progress-panel {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.panel-heading {
+  display: flex;
+  min-height: 82px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--soft-line);
+}
+
+.panel-heading h2 {
+  margin: 4px 0 0;
+  font-size: 19px;
+  letter-spacing: -0.025em;
+}
+
+.league-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.league-label span {
+  width: 7px;
+  height: 7px;
+  background: #45a96f;
+  border-radius: 50%;
+}
+
+.ranking-header,
+.ranking-row {
+  display: grid;
+  grid-template-columns: 55px minmax(150px, 1fr) 120px 80px;
+  gap: 12px;
+  align-items: center;
+}
+
+.ranking-header {
+  padding: 10px 18px;
+  color: #929a95;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  background: #f7f6f1;
+  border-bottom: 1px solid var(--soft-line);
+}
+
+.ranking-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leaderboard-empty {
+  display: grid;
+  min-height: 180px;
+  place-content: center;
+  gap: 7px;
+  padding: 28px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.leaderboard-empty strong {
+  color: var(--ink);
+  font-family: Georgia, serif;
+  font-size: 22px;
+}
+
+.leaderboard-empty span {
+  font-size: 12px;
+}
+
+.leaderboard-empty a {
+  justify-self: center;
+  color: var(--green-dark);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ranking-row {
+  min-height: 64px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--soft-line);
+}
+
+.ranking-row.you {
+  background: #edf5f0;
+  box-shadow: inset 3px 0 var(--green);
+}
+
+.rank-number {
+  color: #7a847e;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.rank-number.medal {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  color: #6d4b18;
+  background: #f0d67b;
+  border-radius: 50%;
+}
+
+.ranking-row:nth-child(2) .rank-number.medal {
+  color: #53605a;
+  background: #d8ddda;
+}
+
+.ranking-row:nth-child(3) .rank-number.medal {
+  color: #74482d;
+  background: #e6b792;
+}
+
+.builder-cell {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.builder-avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--green);
+  border-radius: 50%;
+}
+
+.builder-cell strong,
+.builder-cell span {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.builder-cell strong {
+  font-size: 12px;
+}
+
+.builder-cell span {
+  color: #87908b;
+  font-size: 9px;
+}
+
+.focus-cell {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 9px;
+}
+
+.xp-cell {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.xp-cell span {
+  color: #8c958f;
+  font-size: 8px;
+}
+
+.local-note {
+  margin: 0;
+  padding: 13px 18px;
+  color: #8a938e;
+  font-size: 9px;
+  text-align: center;
+  background: #f8f7f2;
+}
+
+.course-progress-panel {
+  position: sticky;
+  top: 24px;
+}
+
+.course-progress-list {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.course-progress-item {
+  display: grid;
+  gap: 7px;
+}
+
+.course-progress-copy {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.course-progress-copy strong {
+  font-size: 11px;
+}
+
+.course-progress-copy span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.course-progress-track {
+  height: 6px;
+  overflow: hidden;
+  background: #e6e7e1;
+  border-radius: 999px;
+}
+
+.course-progress-track span {
+  display: block;
+  height: 100%;
+  background: var(--green);
+  border-radius: inherit;
+}
+
+.continue-button {
+  width: calc(100% - 44px);
+  margin: 0 22px 22px;
+  text-decoration: none;
+}
+
+@media (max-width: 850px) {
+  .player-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .player-stats article:nth-child(2) {
+    border-right: 0;
+  }
+
+  .player-stats article:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--soft-line);
+  }
+
+  .leaderboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .course-progress-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 620px) {
+  .leaderboard-header {
+    padding: 0 18px;
+  }
+
+  .back-to-course {
+    font-size: 0;
+  }
+
+  .leaderboard-main {
+    width: calc(100% - 28px);
+    padding-top: 36px;
+  }
+
+  .league-emblem {
+    width: 76px;
+    height: 76px;
+    border-width: 5px;
+  }
+
+  .league-emblem svg {
+    width: 44px;
+  }
+
+  .player-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .player-stats article {
+    border-right: 0;
+    border-bottom: 1px solid var(--soft-line);
+  }
+
+  .ranking-header,
+  .ranking-row {
+    grid-template-columns: 42px minmax(130px, 1fr) 65px;
+  }
+
+  .ranking-header span:nth-child(3),
+  .ranking-row .focus-cell {
+    display: none;
+  }
+
+  .panel-heading {
+    padding: 16px;
+  }
+}

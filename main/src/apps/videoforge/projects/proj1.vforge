@@ -1,0 +1,136 @@
+{
+  "canvasWidth": 1920,
+  "format": "vforge",
+  "fps": 30,
+  "outPoint": -1,
+  "version": 1,
+  "tracks": [
+    {
+      "soloed": false,
+      "hidden": false,
+      "kind": "VIDEO",
+      "clips": [],
+      "name": "V1",
+      "zOrder": 0,
+      "id": "60e66815-466c-4041-b034-a731fa832391",
+      "locked": false,
+      "muted": false
+    },
+    {
+      "soloed": false,
+      "hidden": false,
+      "kind": "VIDEO",
+      "clips": [],
+      "name": "V2",
+      "zOrder": 1,
+      "id": "8ce55147-0574-44f9-9f5e-559697577395",
+      "locked": false,
+      "muted": false
+    },
+    {
+      "soloed": false,
+      "hidden": false,
+      "kind": "VIDEO",
+      "clips": [],
+      "name": "V3",
+      "zOrder": 2,
+      "id": "2e9113c8-720b-4157-ac70-59422aedf31a",
+      "locked": false,
+      "muted": false
+    },
+    {
+      "soloed": false,
+      "hidden": false,
+      "kind": "AUDIO",
+      "clips": [],
+      "name": "A1",
+      "zOrder": 3,
+      "id": "424b4b07-adba-4c13-9df9-10675aeb2203",
+      "locked": false,
+      "muted": false
+    },
+    {
+      "soloed": false,
+      "hidden": false,
+      "kind": "AUDIO",
+      "clips": [],
+      "name": "A2",
+      "zOrder": 4,
+      "id": "78fff5cf-7fe8-4da2-abc9-8f4346ca72b7",
+      "locked": false,
+      "muted": false
+    },
+    {
+      "soloed": false,
+      "hidden": false,
+      "kind": "AUDIO",
+      "clips": [],
+      "name": "A3",
+      "zOrder": 5,
+      "id": "e307c79d-27c3-492c-9f6e-ec108ab0489f",
+      "locked": false,
+      "muted": false
+    },
+    {
+      "soloed": false,
+      "hidden": false,
+      "kind": "TEXT",
+      "clips": [],
+      "name": "TEXT",
+      "zOrder": 6,
+      "id": "4ee8b4e9-b290-47c0-9617-496849e36352",
+      "locked": false,
+      "muted": false
+    },
+    {
+      "soloed": false,
+      "hidden": false,
+      "kind": "IMAGE",
+      "clips": [],
+      "name": "IMAGES",
+      "zOrder": 7,
+      "id": "80810d61-4a5c-4e3c-b9b7-9c3da0ac8b4e",
+      "locked": false,
+      "muted": false
+    },
+    {
+      "soloed": false,
+      "hidden": false,
+      "kind": "EFFECT",
+      "clips": [],
+      "name": "EFFECTS",
+      "zOrder": 8,
+      "id": "ee6c1a43-c980-4220-b07d-a7bb32b40b5c",
+      "locked": false,
+      "muted": false
+    }
+  ],
+  "canvasHeight": 1080,
+  "playhead": 0,
+  "inPoint": -1,
+  "background": {
+    "videoPath": "",
+    "imagePath": "",
+    "solidColor": 0,
+    "gradientVertical": true,
+    "type": "SOLID",
+    "gradientColorB": 0,
+    "fillMode": "BLUR_BEHIND",
+    "blurStrength": 40,
+    "gradientColorA": 2236962
+  },
+  "name": "Untitled Project",
+  "markers": [],
+  "export": {
+    "container": "mp4",
+    "crf": 20,
+    "fps": 30,
+    "width": 1920,
+    "presetLabel": "YouTube 1080p",
+    "bitrate": 8000000,
+    "audioCodec": "aac",
+    "qualityMode": "crf",
+    "videoCodec": "h264",
+    "height": 1080
+  }
+}

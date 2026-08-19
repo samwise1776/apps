@@ -1,0 +1,1 @@
+# Memory activity log — timestamps are UTC; credentials are never logged.

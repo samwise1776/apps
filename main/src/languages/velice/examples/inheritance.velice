@@ -1,0 +1,38 @@
+# Inheritance and traits (mixins)
+trait Runnable {
+    fn run()
+}
+
+class Vehicle {
+    fn init(make) {
+        self.make = make
+    }
+    fn describe() {
+        print("Vehicle: " + self.make)
+    }
+}
+
+class Car extends Vehicle {
+    fn init(make, model) {
+        self.make = make
+        self.model = model
+    }
+    fn describe() {
+        print("Car: " + self.make + " " + self.model)
+    }
+}
+
+let v = Vehicle("Generic")
+v.describe()
+
+let c = Car("Toyota", "Corolla")
+c.describe()
+
+# Struct-like data records
+struct Point {
+    x: float
+    y: float
+}
+
+let origin = Point(0.0, 0.0)
+print("Point created:", origin.x, origin.y)

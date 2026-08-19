@@ -1,0 +1,246 @@
+# sourceparse.velice — parse the Descr1be DSL source back into a project map.
+# Handles the exact structure emitted by generator.velice (plus minor edits).
+import model
+import util
+
+# Parse `source` into a project map. Returns the project, or nil on failure.
+fn from_source(source) {
+    var lines = split(str(source), "\n")
+    var toks = _clean_lines(lines)
+    var project = {
+        "name": "App",
+        "version": "1",
+        "theme": "dark",
+        "widgets": [],
+    }
+    var i = 0
+    while i < len(toks) {
+        var t = toks[i]
+        if _starts(t, "window ") {
+            var rest = _after(t, "window ")
+            project["name"] = trim(_strip(rest, "{"))
+            i = i + 1
+            while i < len(toks) and trim(toks[i]) != "}" {
+                var line = toks[i]
+                if _has_eq(line) {
+                    var kv = _split_eq(line)
+                    project[kv[0]] = _parse_value(kv[1])
+                    i = i + 1
+                } elif _ends_open(line) {
+                    var parsed = _parse_widget(toks, i)
+                    append(project["widgets"], parsed[0])
+                    i = parsed[1]
+                } else {
+                    i = i + 1
+                }
+            }
+            i = i + 1
+            return project
+        }
+        i = i + 1
+    }
+    return project
+}
+
+fn _parse_widget(toks, i) {
+    var line = trim(toks[i])
+    var parts = split(line, " ")
+    var wtype = _dsl_to_type(parts[0])
+    var wname = "Widget"
+    if len(parts) >= 2 {
+        wname = parts[1]
+    }
+    var node = model.make_node(wtype, wname, 20, 20)
+    node["props"] = {}
+    node["events"] = {}
+    node["children"] = []
+    var depth = 1
+    i = i + 1
+    while i < len(toks) {
+        var text = trim(toks[i])
+        if _starts(text, "}") {
+            depth = depth - 1
+            i = i + 1
+            if depth <= 0 {
+                break
+            }
+            continue
+        }
+        if _starts_lower(text, "on") and _ends_close(text) {
+            node["events"][_event_name(text)] = ""
+            i = i + 1
+            continue
+        }
+        if _starts_lower(text, "on") and _ends_open(text) {
+            node["events"][_event_name(text)] = _parse_event_body(toks, i)
+            i = _after_event(toks, i)
+            continue
+        }
+        if _ends_open(text) {
+            var child = _parse_widget(toks, i)
+            append(node["children"], child[0])
+            i = child[1]
+            continue
+        }
+        if _has_eq(text) {
+            var kv = _split_eq(text)
+            _apply_prop(node, kv[0], _parse_value(kv[1]))
+            i = i + 1
+            continue
+        }
+        i = i + 1
+    }
+    return [node, i]
+}
+
+fn _parse_event_body(toks, i) {
+    var body_lines = []
+    var depth = 1
+    i = i + 1
+    while i < len(toks) {
+        var text = trim(toks[i])
+        if _starts(text, "}") {
+            depth = depth - 1
+            i = i + 1
+            if depth <= 0 {
+                break
+            }
+            continue
+        }
+        if _ends_open(text) {
+            depth = depth + 1
+        }
+        append(body_lines, toks[i])
+        i = i + 1
+    }
+    return join(body_lines, "\n")
+}
+
+fn _after_event(toks, i) {
+    var depth = 1
+    i = i + 1
+    while i < len(toks) {
+        var text = trim(toks[i])
+        if _starts(text, "}") {
+            depth = depth - 1
+            i = i + 1
+            if depth <= 0 {
+                break
+            }
+            continue
+        }
+        if _ends_open(text) {
+            depth = depth + 1
+        }
+        i = i + 1
+    }
+    return i
+}
+
+fn _apply_prop(node, key, value) {
+    if key == "x" or key == "y" or key == "width" or key == "height" {
+        if key == "width" {
+            node["w"] = int(value)
+        } elif key == "height" {
+            node["h"] = int(value)
+        } else {
+            node[key] = int(value)
+        }
+    } elif key == "name" {
+        node["name"] = value
+    } elif key == "type" {
+        node["type"] = _dsl_to_type(value)
+    } else {
+        node["props"][key] = value
+    }
+}
+
+fn _parse_value(v) {
+    var s = trim(str(v))
+    if s == "true" { return true }
+    if s == "false" { return false }
+    if len(s) >= 2 and s[0] == "\"" and s[len(s) - 1] == "\"" {
+        return _unescape(s[1:len(s) - 1])
+    }
+    if len(s) > 0 and (s[0] >= "0" and s[0] <= "9" or s[0] == "-") {
+        if contains(s, ".") { return parse_float(s) }
+        return parse_int(s)
+    }
+    if len(s) > 0 and (s[0] == "[" or s[0] == "{") {
+        return json_parse(s)
+    }
+    return s
+}
+
+fn _unescape(s) {
+    var out = replace(s, "\\n", "\n")
+    out = replace(out, "\\r", "\r")
+    out = replace(out, "\\\"", "\"")
+    out = replace(out, "\\\\", "\\")
+    return out
+}
+
+fn _event_name(text) {
+    var s = trim(str(text))
+    while len(s) > 0 and (s[len(s) - 1] == "{" or s[len(s) - 1] == "}") {
+        s = trim(s[0:len(s) - 1])
+    }
+    return s
+}
+
+fn _dsl_to_type(wtype) {
+    var t = lower(str(wtype))
+    if t == "passwordfield" { return "password" }
+    if t == "radiobutton" { return "radio" }
+    return t
+}
+
+fn _clean_lines(lines) {
+    var out = []
+    for line in lines {
+        var t = trim(str(line))
+        if len(t) == 0 { continue }
+        if _starts(t, "#") { continue }
+        append(out, t)
+    }
+    return out
+}
+
+fn _starts(s, prefix) {
+    return str(s).starts(prefix)
+}
+
+fn _starts_lower(s, p) {
+    return lower(str(s)).starts(p)
+}
+
+fn _ends_open(s) {
+    return str(s).ends("{")
+}
+
+fn _ends_close(s) {
+    return str(s).ends("}")
+}
+
+fn _has_eq(s) {
+    return contains(str(s), "=")
+}
+
+fn _split_eq(s) {
+    var parts = split(str(s), "=")
+    var key = trim(parts[0])
+    var rest = join(parts[1:], "=")
+    return [key, trim(rest)]
+}
+
+fn _after(s, prefix) {
+    return str(s)[len(prefix):]
+}
+
+fn _strip(s, ch) {
+    var out = str(s)
+    while len(out) > 0 and out[len(out) - 1] == ch {
+        out = out[0:len(out) - 1]
+    }
+    return out
+}

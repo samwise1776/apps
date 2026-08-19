@@ -1,0 +1,7 @@
+* text=auto eol=lf
+*.sh text eol=lf
+*.java text eol=lf
+*.cs text eol=lf
+*.png binary
+*.zip binary
+*.jar binary

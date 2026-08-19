@@ -1,0 +1,681 @@
+#!/usr/bin/env bash
+
+# ============================================================
+# DATACENTER APP CREATOR
+#
+# Script location:
+#   /home/ray/Data/bin/private/
+#
+# Apps:
+#   /home/ray/Data/app/
+#
+# Public ZIPs:
+#   /home/ray/Data/public/zip/app/
+# ============================================================
+
+set -u
+
+# ============================================================
+# PATHS
+# ============================================================
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+DATA_DIR="/home/ray/Data"
+
+APP_DIR="$DATA_DIR/app"
+
+ZIP_ROOT="$DATA_DIR/public/zip/app"
+
+# ============================================================
+# CREATE REQUIRED DIRECTORIES
+# ============================================================
+
+mkdir -p "$APP_DIR" || {
+    echo "Error: Could not create:"
+    echo "$APP_DIR"
+    exit 1
+}
+
+mkdir -p "$ZIP_ROOT" || {
+    echo "Error: Could not create:"
+    echo "$ZIP_ROOT"
+    exit 1
+}
+
+# ============================================================
+# ZIP FUNCTION
+# ============================================================
+
+create_zip() {
+
+    local project_name="$1"
+    local project_dir="$2"
+
+    local zip_dir="$ZIP_ROOT/$project_name"
+    local zip_file="$zip_dir/$project_name.zip"
+
+    echo
+    echo "Creating public ZIP..."
+
+    # --------------------------------------------------------
+    # CHECK ZIP
+    # --------------------------------------------------------
+
+    if ! command -v zip >/dev/null 2>&1; then
+
+        echo
+        echo "Warning: zip is not installed."
+        echo
+        echo "Install it with:"
+        echo
+        echo "sudo apt install zip"
+        echo
+
+        return 1
+    fi
+
+    # --------------------------------------------------------
+    # CREATE ZIP DIRECTORY
+    # --------------------------------------------------------
+
+    mkdir -p "$zip_dir" || {
+
+        echo "Error: Could not create ZIP directory:"
+        echo "$zip_dir"
+
+        return 1
+    }
+
+    # --------------------------------------------------------
+    # DELETE OLD ZIP
+    # --------------------------------------------------------
+
+    if [[ -f "$zip_file" ]]; then
+
+        rm -f "$zip_file"
+    fi
+
+    # --------------------------------------------------------
+    # ZIP PROJECT
+    # --------------------------------------------------------
+
+    (
+        cd "$project_dir" || exit 1
+
+        zip -r "$zip_file" .
+    )
+
+    if [[ $? -ne 0 ]]; then
+
+        echo "Error: Failed to create ZIP."
+
+        return 1
+    fi
+
+    echo
+    echo "ZIP created:"
+    echo "$zip_file"
+
+    return 0
+}
+
+# ============================================================
+# COMMANDS
+# ============================================================
+
+case "${1:-}" in
+
+    add|--add|-add)
+
+        # ====================================================
+        # APP NAME
+        # ====================================================
+
+        read -r -p "Enter the app name (.java or .cs): " appname
+
+        # Remove spaces from beginning
+        appname="${appname#"${appname%%[![:space:]]*}"}"
+
+        # Remove spaces from end
+        appname="${appname%"${appname##*[![:space:]]}"}"
+
+        # ====================================================
+        # EMPTY CHECK
+        # ====================================================
+
+        if [[ -z "$appname" ]]; then
+
+            echo "Error: App name cannot be empty."
+
+            exit 1
+        fi
+
+        # ====================================================
+        # LANGUAGE
+        # ====================================================
+
+        if [[ "$appname" == *.java ]]; then
+
+            language="java"
+
+        elif [[ "$appname" == *.cs ]]; then
+
+            language="cs"
+
+        else
+
+            echo "Error: App must end with:"
+            echo
+            echo "  .java"
+            echo "or"
+            echo "  .cs"
+
+            exit 1
+        fi
+
+        # ====================================================
+        # PROJECT NAME
+        #
+        # ClickRush.java -> ClickRush
+        # Game.cs        -> Game
+        # ====================================================
+
+        proj_name="${appname%.*}"
+
+        # ====================================================
+        # VALIDATE PROJECT NAME
+        # ====================================================
+
+        if [[ -z "$proj_name" ]]; then
+
+            echo "Error: Invalid project name."
+
+            exit 1
+        fi
+
+        # Prevent paths such as:
+        #
+        # ../../test.java
+        #
+
+        if [[ "$proj_name" == *"/"* || "$proj_name" == *"\\"* ]]; then
+
+            echo "Error: Project names cannot contain / or \\"
+
+            exit 1
+        fi
+
+        PROJECT_DIR="$APP_DIR/$proj_name"
+
+        # ====================================================
+        # EXISTING PROJECT
+        # ====================================================
+
+        if [[ -e "$PROJECT_DIR" ]]; then
+
+            echo
+            echo "Error: Project already exists:"
+            echo "$PROJECT_DIR"
+
+            exit 1
+        fi
+
+        # ====================================================
+        # INFO
+        # ====================================================
+
+        echo
+        echo "======================================"
+        echo " DATACENTER APP CREATOR"
+        echo "======================================"
+        echo
+        echo "Project:  $proj_name"
+        echo "Language: $language"
+        echo "Folder:   $PROJECT_DIR"
+        echo
+        echo "======================================"
+        echo
+
+        # ====================================================
+        # C#
+        # ====================================================
+
+        if [[ "$language" == "cs" ]]; then
+
+            # ------------------------------------------------
+            # CHECK DOTNET
+            # ------------------------------------------------
+
+            if ! command -v dotnet >/dev/null 2>&1; then
+
+                echo "Error: dotnet is not installed."
+
+                exit 1
+            fi
+
+            # ------------------------------------------------
+            # CREATE DIRECTORY
+            # ------------------------------------------------
+
+            mkdir -p "$PROJECT_DIR" || {
+
+                echo "Error: Could not create project folder."
+
+                exit 1
+            }
+
+            cd "$PROJECT_DIR" || {
+
+                echo "Error: Could not enter project folder."
+
+                exit 1
+            }
+
+            # ------------------------------------------------
+            # DOTNET PROJECT
+            # ------------------------------------------------
+
+            echo "Creating C# project..."
+
+            if ! dotnet new console --force; then
+
+                echo "Error: dotnet project creation failed."
+
+                exit 1
+            fi
+
+            # ------------------------------------------------
+            # RAYLIB-CS
+            # ------------------------------------------------
+
+            echo
+            echo "Installing Raylib-cs..."
+
+            if ! dotnet add package Raylib-cs; then
+
+                echo "Error: Failed to install Raylib-cs."
+
+                exit 1
+            fi
+
+            # ------------------------------------------------
+            # PROGRAM.CS
+            # ------------------------------------------------
+
+            cat > Program.cs <<'EOF'
+using Raylib_cs;
+
+class Program
+{
+    public static void Main()
+    {
+        const int width = 800;
+        const int height = 480;
+
+        Raylib.InitWindow(
+            width,
+            height,
+            "Raylib-cs App"
+        );
+
+        Raylib.SetTargetFPS(60);
+
+        while (!Raylib.WindowShouldClose())
+        {
+            // ========================================
+            // UPDATE
+            // ========================================
+
+
+            // ========================================
+            // DRAW
+            // ========================================
+
+            Raylib.BeginDrawing();
+
+            Raylib.ClearBackground(
+                Color.RayWhite
+            );
+
+            Raylib.DrawText(
+                "Hello, Raylib-cs!",
+                20,
+                20,
+                30,
+                Color.DarkBlue
+            );
+
+            Raylib.DrawText(
+                "Created by Datacenter App Creator",
+                20,
+                65,
+                18,
+                Color.DarkGray
+            );
+
+            Raylib.EndDrawing();
+        }
+
+        Raylib.CloseWindow();
+    }
+}
+EOF
+
+            # ------------------------------------------------
+            # CREATE ZIP
+            # ------------------------------------------------
+
+            create_zip \
+                "$proj_name" \
+                "$PROJECT_DIR"
+
+            # ------------------------------------------------
+            # FINISHED
+            # ------------------------------------------------
+
+            echo
+            echo "======================================"
+            echo " C# PROJECT CREATED"
+            echo "======================================"
+            echo
+            echo "Project:"
+            echo "  $proj_name"
+            echo
+            echo "Project path:"
+            echo "  $PROJECT_DIR"
+            echo
+            echo "ZIP:"
+            echo "  $ZIP_ROOT/$proj_name/$proj_name.zip"
+            echo
+            echo "Run:"
+            echo
+            echo "  cd \"$PROJECT_DIR\""
+            echo "  dotnet run"
+            echo
+            echo "======================================"
+
+        # ====================================================
+        # JAVA
+        # ====================================================
+
+        elif [[ "$language" == "java" ]]; then
+
+            # ------------------------------------------------
+            # JAVA CLASS NAME VALIDATION
+            # ------------------------------------------------
+
+            if [[ ! "$proj_name" =~ ^[A-Za-z_\$][A-Za-z0-9_\$]*$ ]]; then
+
+                echo "Error: '$proj_name' is not a valid Java class name."
+
+                echo
+                echo "Valid:"
+                echo
+                echo "  MyApp.java"
+                echo "  ClickRush.java"
+                echo "  Calculator2.java"
+                echo
+                echo "Invalid:"
+                echo
+                echo "  My-App.java"
+                echo "  My App.java"
+                echo "  2Game.java"
+
+                exit 1
+            fi
+
+            # ------------------------------------------------
+            # CHECK JAVA
+            # ------------------------------------------------
+
+            if ! command -v javac >/dev/null 2>&1; then
+
+                echo "Warning: javac was not found."
+                echo "The source file will still be created."
+                echo
+            fi
+
+            # ------------------------------------------------
+            # CREATE DIRECTORY
+            # ------------------------------------------------
+
+            mkdir -p "$PROJECT_DIR" || {
+
+                echo "Error: Could not create project folder."
+
+                exit 1
+            }
+
+            cd "$PROJECT_DIR" || {
+
+                echo "Error: Could not enter project folder."
+
+                exit 1
+            }
+
+            # ------------------------------------------------
+            # JAVA SOURCE FILE
+            # ------------------------------------------------
+
+            cat > "${proj_name}.java" <<EOF
+import javax.swing.*;
+import java.awt.*;
+
+public class ${proj_name} {
+
+    public static void main(String[] args) {
+
+        SwingUtilities.invokeLater(() -> {
+            createWindow();
+        });
+    }
+
+    private static void createWindow() {
+
+        // ============================================
+        // WINDOW
+        // ============================================
+
+        JFrame frame =
+                new JFrame("${proj_name}");
+
+        frame.setDefaultCloseOperation(
+                JFrame.EXIT_ON_CLOSE
+        );
+
+        frame.setSize(
+                800,
+                480
+        );
+
+        frame.setLocationRelativeTo(
+                null
+        );
+
+        // ============================================
+        // PANEL
+        // ============================================
+
+        JPanel panel =
+                new JPanel(
+                        new BorderLayout()
+                );
+
+        panel.setBackground(
+                new Color(
+                        20,
+                        25,
+                        60
+                )
+        );
+
+        // ============================================
+        // TITLE
+        // ============================================
+
+        JLabel title =
+                new JLabel(
+                        "Hello from ${proj_name}!",
+                        SwingConstants.CENTER
+                );
+
+        title.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        32
+                )
+        );
+
+        title.setForeground(
+                Color.WHITE
+        );
+
+        // ============================================
+        // BUTTON
+        // ============================================
+
+        JButton button =
+                new JButton(
+                        "Click Me"
+                );
+
+        button.setFont(
+                new Font(
+                        "SansSerif",
+                        Font.BOLD,
+                        18
+                )
+        );
+
+        button.addActionListener(e -> {
+
+            title.setText(
+                    "Button clicked!"
+            );
+
+        });
+
+        // ============================================
+        // ADD COMPONENTS
+        // ============================================
+
+        panel.add(
+                title,
+                BorderLayout.CENTER
+        );
+
+        panel.add(
+                button,
+                BorderLayout.SOUTH
+        );
+
+        frame.setContentPane(
+                panel
+        );
+
+        frame.setVisible(
+                true
+        );
+    }
+}
+EOF
+
+            # ------------------------------------------------
+            # CREATE ZIP
+            # ------------------------------------------------
+
+            create_zip \
+                "$proj_name" \
+                "$PROJECT_DIR"
+
+            # ------------------------------------------------
+            # FINISHED
+            # ------------------------------------------------
+
+            echo
+            echo "======================================"
+            echo " JAVA PROJECT CREATED"
+            echo "======================================"
+            echo
+            echo "Project:"
+            echo "  $proj_name"
+            echo
+            echo "Project path:"
+            echo "  $PROJECT_DIR"
+            echo
+            echo "ZIP:"
+            echo "  $ZIP_ROOT/$proj_name/$proj_name.zip"
+            echo
+            echo "Compile:"
+            echo
+            echo "  cd \"$PROJECT_DIR\""
+            echo "  javac ${proj_name}.java"
+            echo
+            echo "Run:"
+            echo
+            echo "  java ${proj_name}"
+            echo
+            echo "======================================"
+
+        fi
+
+        ;;
+
+    # ========================================================
+    # HELP
+    # ========================================================
+
+    help|--help|-h)
+
+        echo
+        echo "======================================"
+        echo " DATACENTER APP CREATOR"
+        echo "======================================"
+        echo
+        echo "Usage:"
+        echo
+        echo "  $0 add"
+        echo "  $0 --add"
+        echo "  $0 -add"
+        echo
+        echo "Supported projects:"
+        echo
+        echo "  Java Swing     .java"
+        echo "  C# Raylib-cs   .cs"
+        echo
+        echo "Projects:"
+        echo
+        echo "  $APP_DIR"
+        echo
+        echo "Public ZIPs:"
+        echo
+        echo "  $ZIP_ROOT"
+        echo
+
+        ;;
+
+    # ========================================================
+    # UNKNOWN COMMAND
+    # ========================================================
+
+    *)
+
+        echo
+        echo "Datacenter App Creator"
+        echo
+        echo "Usage:"
+        echo
+        echo "  $0 add"
+        echo
+        echo "Try:"
+        echo
+        echo "  $0 --help"
+        echo
+
+        exit 1
+
+        ;;
+
+esac

@@ -1,0 +1,174 @@
+# model.velice — project model: widget nodes, defaults, tree helpers.
+import util
+
+WIDGET_TYPES = ["frame", "label", "button", "textfield", "textarea", "password",
+                "checkbox", "radio", "combobox", "listbox", "slider",
+                "progressbar", "image", "hyperlink"]
+
+fn is_widget_type(wtype) {
+    return contains(WIDGET_TYPES, wtype)
+}
+
+fn default_name(wtype) {
+    var map = {
+        "frame": "Frame", "label": "Label", "button": "Button",
+        "textfield": "Text", "textarea": "TextArea", "password": "Password",
+        "checkbox": "Check", "radio": "Radio", "combobox": "Combo",
+        "listbox": "List", "slider": "Slider", "progressbar": "Progress",
+        "image": "Image", "hyperlink": "Link",
+    }
+    return util.map_get(map, wtype, wtype)
+}
+
+fn default_size(wtype) {
+    var map = {
+        "frame": [200, 140], "label": [120, 26], "button": [100, 32],
+        "textfield": [160, 28], "textarea": [200, 80], "password": [160, 28],
+        "checkbox": [120, 26], "radio": [120, 26], "combobox": [160, 28],
+        "listbox": [160, 80], "slider": [160, 28], "progressbar": [160, 20],
+        "image": [160, 120], "hyperlink": [120, 26],
+    }
+    return util.map_get(map, wtype, [160, 30])
+}
+
+fn default_props(wtype) {
+    var props = {}
+    if wtype == "label" {
+        props = {"text": "Label", "font_size": 14}
+    } elif wtype == "button" {
+        props = {"text": "Button"}
+    } elif wtype == "textfield" {
+        props = {"placeholder": ""}
+    } elif wtype == "textarea" {
+        props = {"placeholder": ""}
+    } elif wtype == "password" {
+        props = {"placeholder": ""}
+    } elif wtype == "checkbox" {
+        props = {"text": "Checkbox"}
+    } elif wtype == "radio" {
+        props = {"text": "Radio"}
+    } elif wtype == "combobox" {
+        props = {"text": "Option 1"}
+    } elif wtype == "listbox" {
+        props = {"text": "Item 1"}
+    } elif wtype == "slider" {
+        props = {"min": 0, "max": 100, "step": 1}
+    } elif wtype == "progressbar" {
+        props = {"min": 0, "max": 100, "value": 0}
+    } elif wtype == "image" {
+        props = {"path": ""}
+    } elif wtype == "hyperlink" {
+        props = {"text": "Link", "url": "https://example.com"}
+    }
+    return props
+}
+
+fn default_events(wtype) {
+    var events = {}
+    if wtype == "button" or wtype == "checkbox" or wtype == "radio" or wtype == "combobox" or wtype == "hyperlink" or wtype == "frame" {
+        events = {"onClick": ""}
+    }
+    return events
+}
+
+fn make_node(wtype, name = nil, x = 20, y = 20) {
+    var size = default_size(wtype)
+    var n = {
+        "id": util.rand_id(),
+        "name": name ?? default_name(wtype),
+        "type": wtype,
+        "x": x,
+        "y": y,
+        "w": size[0],
+        "h": size[1],
+        "props": default_props(wtype),
+        "events": default_events(wtype),
+        "children": [],
+    }
+    return n
+}
+
+fn default_project() {
+    var root = make_node("frame", "Main", 20, 20)
+    root["w"] = 380
+    root["h"] = 260
+    var b = make_node("button", "Greet", 140, 110)
+    b["props"] = {"text": "Greet"}
+    root["children"] = [b]
+    return {
+        "name": "MyApp",
+        "version": "1",
+        "theme": "dark",
+        "widgets": [root],
+    }
+}
+
+# ── tree helpers ─────────────────────────────────────────────────────────
+fn find_node(nodes, id) {
+    for node in nodes {
+        if node["id"] == id { return node }
+        var hit = find_node(node["children"], id)
+        if hit != nil { return hit }
+    }
+    return nil
+}
+
+fn count_nodes(nodes) {
+    var total = 0
+    for node in nodes {
+        total = total + 1
+        total = total + count_nodes(node["children"])
+    }
+    return total
+}
+
+fn remove_node(nodes, id) {
+    var out = []
+    for node in nodes {
+        if node["id"] != id {
+            node["children"] = remove_node(node["children"], id)
+            append(out, node)
+        }
+    }
+    return out
+}
+
+fn update_prop(nodes, id, key, value) {
+    for node in nodes {
+        if node["id"] == id {
+            if key == "name" or key == "type" {
+                node[key] = value
+            } elif key == "x" or key == "y" or key == "w" or key == "h" {
+                node[key] = parse_int(value)
+            } elif util.has(node["events"], key) {
+                node["events"][key] = value
+            } else {
+                node["props"][key] = _coerce(value)
+            }
+            return
+        }
+        update_prop(node["children"], id, key, value)
+    }
+}
+
+fn _coerce(value) {
+    var s = str(value)
+    if s == "true" { return true }
+    if s == "false" { return false }
+    if len(s) > 0 and (s[0] >= "0" and s[0] <= "9" or s[0] == "-") {
+        if contains(s, ".") { return parse_float(s) }
+        return parse_int(s)
+    }
+    return value
+}
+
+# Pick a placement spot for a newly added widget: below any existing roots.
+fn next_free_spot(nodes) {
+    var max_y = 20
+    for node in nodes {
+        if node["y"] + node["h"] + 20 > max_y {
+            max_y = node["y"] + node["h"] + 20
+        }
+    }
+    return max_y
+}

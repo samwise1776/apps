@@ -1,0 +1,19 @@
+# Native GUI application with Velice
+#
+#   import gui          brings Window, Button, ... into scope
+#   Window(title, w, h) creates a window
+#   widget.on_click { } binds an event block
+#   window.add(child)   adds a widget to the window
+#   gui.run()           starts the event loop (headless in CI)
+
+import gui
+
+window = Window("My Application", 800, 600)
+button = Button("Click Me")
+
+button.on_click {
+    print("Hello from Velice")
+}
+
+window.add(button)
+gui.run()

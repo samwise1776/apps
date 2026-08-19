@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Send feedback to the Desktopcraft team." />
+    <title>Feedback — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="feedback.css" />
+    <script src="customization.js"></script>
+    <script src="feedback.js" defer></script>
+  </head>
+  <body class="feedback-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="feedback-topbar">
+      <a class="brand" href="index.html" aria-label="Desktopcraft home">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/desktopcraft-icon.svg" alt="" /></span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav aria-label="Feedback navigation">
+        <a href="index.html">Courses</a>
+        <a href="tutorials.html">Tutorials</a>
+        <a href="forum.html">Forum</a>
+        <a href="helper.html">Helper AI</a>
+      </nav>
+    </header>
+
+    <main class="feedback-shell" id="main-content">
+      <section class="feedback-intro" aria-labelledby="feedbackTitle">
+        <p class="section-kicker">HELP SHAPE DESKTOPCRAFT</p>
+        <h1 id="feedbackTitle">Tell us what would make learning better.</h1>
+        <p class="feedback-lead">Share an idea, point out a problem, or tell us what is working well. Every message is saved for review and emailed to the site owner.</p>
+
+        <div class="feedback-promises" aria-label="What happens to feedback">
+          <article>
+            <span aria-hidden="true">01</span>
+            <div><strong>It is saved</strong><p>The server adds the message to its private <code>texta.txt</code> feedback log.</p></div>
+          </article>
+          <article>
+            <span aria-hidden="true">02</span>
+            <div><strong>It is delivered</strong><p>The same message is sent to the configured owner email address.</p></div>
+          </article>
+          <article>
+            <span aria-hidden="true">03</span>
+            <div><strong>Your details are optional</strong><p>Add an email only if you would like a reply. Never include passwords or private keys.</p></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="feedback-card" aria-labelledby="formTitle">
+        <div class="feedback-card-heading">
+          <p class="section-kicker">SEND A MESSAGE</p>
+          <h2 id="formTitle">What is on your mind?</h2>
+          <p>Fields marked optional can be left blank.</p>
+        </div>
+
+        <form id="feedbackForm">
+          <div class="feedback-person-row">
+            <label class="feedback-field">
+              <span>Name <small>optional</small></span>
+              <input id="feedbackName" name="name" type="text" maxlength="80" autocomplete="name" placeholder="Your name" />
+            </label>
+            <label class="feedback-field">
+              <span>Email <small>optional</small></span>
+              <input id="feedbackEmail" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@example.com" />
+            </label>
+          </div>
+
+          <label class="feedback-field">
+            <span>Message</span>
+            <textarea id="feedbackMessage" name="message" rows="9" minlength="2" maxlength="5000" required placeholder="Describe your idea, problem, or experience…"></textarea>
+          </label>
+
+          <label class="feedback-honeypot" aria-hidden="true">
+            Website
+            <input id="feedbackWebsite" name="website" type="text" tabindex="-1" autocomplete="off" />
+          </label>
+
+          <div class="feedback-actions">
+            <span class="feedback-count"><strong id="feedbackCount">0</strong>/5000</span>
+            <button class="button button-primary" id="feedbackSubmit" type="submit">Send feedback</button>
+          </div>
+          <p class="feedback-status" id="feedbackStatus" role="status" aria-live="polite" hidden></p>
+        </form>
+      </section>
+    </main>
+    <script src="auth.js"></script>
+    <script src="feedback.js"></script>
+  </body>
+</html>

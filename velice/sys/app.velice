@@ -1,0 +1,12 @@
+if argu.len == 0 {
+    print("Usage: velice run app.velice <file>")
+    exit(1)
+}
+
+file = argu.0
+lines = readFileLines(file)
+
+while lines.hasMore() {
+    line = lines.currentLine()
+    print(line)
+}

@@ -1,0 +1,117 @@
+{
+  "name": "velice",
+  "displayName": "Velice Language",
+  "description": "Language support for the Velice programming language: syntax highlighting, file icons, snippets, and run commands.",
+  "version": "0.1.0",
+  "publisher": "velice-lang",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Themes"
+  ],
+  "keywords": [
+    "velice",
+    "language",
+    "programming"
+  ],
+  "icon": "icons/velice-icon.png",
+  "galleryBanner": {
+    "color": "#1e1e2e",
+    "theme": "dark"
+  },
+  "activationEvents": [
+    "onLanguage:velice",
+    "onCommand:velice.runFile",
+    "onCommand:velice.openRepl",
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "velice",
+        "aliases": [
+          "Velice",
+          "velice"
+        ],
+        "extensions": [
+          ".velice"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/velice-icon.svg",
+          "dark": "./icons/velice-icon.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "velice",
+        "scopeName": "source.velice",
+        "path": "./syntaxes/velice.tmLanguage.json"
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "velice-icons",
+        "label": "Velice Icons",
+        "path": "./themes/velice-icon-theme.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "velice",
+        "path": "./snippets/velice.code-snippets"
+      }
+    ],
+    "commands": [
+      {
+        "command": "velice.runFile",
+        "title": "Velice: Run File"
+      },
+      {
+        "command": "velice.openRepl",
+        "title": "Velice: Open REPL"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "when": "resourceLangId == velice",
+          "command": "velice.runFile",
+          "group": "navigation@0"
+        }
+      ],
+      "explorer/context": [
+        {
+          "when": "resourceLangId == velice",
+          "command": "velice.runFile"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Velice",
+      "properties": {
+        "velice.executablePath": {
+          "type": "string",
+          "default": "velice",
+          "description": "Path to the velice CLI executable (or `python3 -m velice`)."
+        },
+        "velice.enableHighlighting": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable semantic syntax highlighting for Velice files."
+        },
+        "velice.guiHeadless": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run GUI programs in headless mode (records GUI calls instead of opening windows). Equivalent to VELICE_GUI=none."
+        }
+      }
+    }
+  }
+}

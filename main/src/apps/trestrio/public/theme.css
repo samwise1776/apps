@@ -1,0 +1,40 @@
+/* Trestrio's red, blue and white atmospheric theme */
+:root {
+  --ink: #17203d; --muted: #65708f; --paper: #eef3ff;
+  --card: rgba(255,255,255,.76); --field: rgba(246,248,255,.84);
+  --line: rgba(60,79,139,.18); --orange: #f04e64; --green: #1c5794;
+  --side: rgba(255,255,255,.65); --shadow: 0 22px 58px rgba(28,52,118,.14);
+}
+[data-theme=dark] {
+  --ink: #f5f7ff; --muted: #b2bad4; --paper: #10152c;
+  --card: rgba(21,28,58,.78); --field: rgba(34,42,79,.86);
+  --line: rgba(200,211,255,.18); --green: #75beff;
+  --side: rgba(12,17,42,.72); --shadow: 0 22px 58px rgba(0,0,0,.3);
+}
+body {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(circle at 5% 10%, rgba(255,45,78,.86) 0, rgba(255,81,105,.48) 17%, transparent 38%),
+    radial-gradient(circle at 95% 8%, rgba(24,86,255,.92) 0, rgba(63,122,255,.5) 21%, transparent 44%),
+    radial-gradient(circle at 50% 96%, rgba(255,255,255,.98) 0, rgba(241,246,255,.82) 31%, transparent 62%),
+    linear-gradient(135deg,#fff 0%,#f9dce4 25%,#edf0ff 53%,#dae7ff 78%,#fff 100%);
+  background-attachment: fixed; background-size: 140% 140%;
+  animation: gradientDrift 18s ease-in-out infinite alternate;
+}
+body::before, body::after { content:""; position:fixed; z-index:-1; border-radius:50%; filter:blur(22px); pointer-events:none; }
+body::before { width:320px; height:320px; left:20%; top:16%; background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(255,50,83,.16)); }
+body::after { width:400px; height:400px; right:5%; bottom:0; background:linear-gradient(135deg,rgba(42,101,255,.25),rgba(255,255,255,.78)); }
+[data-theme=dark] body { background-image:radial-gradient(circle at 7% 10%,rgba(225,34,70,.58) 0,transparent 37%),radial-gradient(circle at 94% 8%,rgba(26,81,232,.72) 0,transparent 43%),radial-gradient(circle at 50% 100%,rgba(228,234,255,.14) 0,transparent 56%),linear-gradient(135deg,#090d20,#171e3e 50%,#10162f); }
+@keyframes gradientDrift { from { background-position:0 0; } to { background-position:100% 70%; } }
+aside { background:var(--side); border-right-color:rgba(255,255,255,.5); backdrop-filter:blur(28px) saturate(140%); box-shadow:8px 0 38px rgba(28,52,118,.08); }
+.stat,.panel { background:var(--card); border-color:rgba(255,255,255,.64); backdrop-filter:blur(20px) saturate(135%); box-shadow:var(--shadow); }
+.stat:hover { border-color:rgba(63,104,255,.42); transform:translateY(-3px); }
+.stat.lime { background:linear-gradient(135deg,#ff3857 0%,#ff7086 52%,#4773f5 145%); border-color:rgba(255,255,255,.5); color:#fff; }
+.stat.lime span,.stat.lime strong { color:#fff; }.stat.lime span { opacity:.78; }
+.stat.lime .progress { background:rgba(255,255,255,.34); }.stat.lime .progress i { background:#fff; }
+.timer-card { background:linear-gradient(145deg,rgba(255,255,255,.82),rgba(226,234,255,.75)); }
+[data-theme=dark] .timer-card { background:linear-gradient(145deg,rgba(27,35,72,.88),rgba(44,33,67,.75)); }
+.primary { background:linear-gradient(100deg,#ff4660,#446ff0); color:#fff; box-shadow:0 9px 25px rgba(65,91,207,.3); }
+.mark,.profile>span { background:linear-gradient(135deg,#f03e58,#3268ed); color:#fff; }
+@media(max-width:800px) { aside { background:var(--side); } }
+@media(prefers-reduced-motion:reduce) { body { animation:none; } }

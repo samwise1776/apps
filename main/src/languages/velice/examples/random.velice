@@ -1,0 +1,21 @@
+# Random values with rand()
+#   rand(a, b)     int in [a, b] (both ints, inclusive)
+#                  float in [a, b] (a or b is a float)
+#                  random choice between a and b (e.g. booleans)
+#   rand(n)        int in [0, n], float in [0, n], or a random list/string element
+#   rand()         float in [0, 1)
+
+var a = rand(1, 100)
+var b = rand(true, false)
+print("rand(1, 100):", a)
+print("rand(true, false):", b)
+
+for i in 0..4 {
+    print("die roll:", rand(1, 6))
+    print("coin flip:", rand(true, false))
+}
+
+print("rand(1.0, 2.0):", rand(1.0, 2.0))
+print("random element:", rand(["red", "green", "blue"]))
+print("rand(5):", rand(5))
+print("rand():", rand())
