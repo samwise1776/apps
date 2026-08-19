@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NoteCraft - Markdown Note Editor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column}
+a.back{position:fixed;top:8px;left:8px;color:#FFCB47;text-decoration:none;font-size:13px;z-index:100;background:rgba(35,34,90,.9);padding:3px 8px;border-radius:4px}
+a.back:hover{text-decoration:underline}
+.app{display:flex;flex:1;overflow:hidden}
+.sidebar{width:240px;background:#2E2F5E;border-right:1px solid #4449E2;display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-header{padding:12px;border-bottom:1px solid #4449E2}
+.sidebar-header h2{color:#FFCB47;font-size:16px;margin-bottom:8px}
+.sidebar-header input{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:4px;padding:6px 8px;font-size:12px;width:100%;margin-bottom:6px}
+.sidebar-header .btn-row{display:flex;gap:4px}
+.note-list{flex:1;overflow-y:auto;padding:8px}
+.note-item{padding:10px;border-radius:6px;cursor:pointer;margin-bottom:4px;border:1px solid transparent}
+.note-item:hover{background:rgba(68,73,226,.1);border-color:#4449E2}
+.note-item.active{background:rgba(68,73,226,.2);border-color:#FFCB47}
+.note-item .title{font-weight:600;font-size:13px;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note-item .preview{font-size:11px;color:#8888bb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.note-item .tags{display:flex;gap:3px;margin-top:4px;flex-wrap:wrap}
+.note-tag{background:#4449E2;color:#F0F0F5;padding:1px 6px;border-radius:8px;font-size:9px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.toolbar{display:flex;gap:4px;padding:8px 12px;background:#2E2F5E;border-bottom:1px solid #4449E2;flex-wrap:wrap;align-items:center}
+.toolbar button{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px}
+.toolbar button:hover{border-color:#FFCB47}
+.toolbar button.active{background:#4449E2;border-color:#FFCB47}
+.toolbar .spacer{flex:1}
+.toolbar .info{font-size:11px;color:#8888bb}
+.editor-area{flex:1;display:flex;overflow:hidden}
+.editor-pane{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.editor-pane textarea{flex:1;background:#1a1b3e;color:#F0F0F5;border:none;padding:16px;font-family:'Fira Code',monospace;font-size:14px;resize:none;line-height:1.6}
+.preview-pane{flex:1;background:#1a1b3e;border-left:1px solid #4449E2;padding:16px;overflow-y:auto;line-height:1.7;font-size:14px}
+.preview-pane h1{font-size:24px;color:#FFCB47;border-bottom:1px solid #4449E2;padding-bottom:6px;margin-bottom:12px}
+.preview-pane h2{font-size:20px;color:#FFCB47;margin:12px 0 8px}
+.preview-pane h3{font-size:16px;color:#FFCB47;margin:10px 0 6px}
+.preview-pane code{background:#23225A;padding:2px 6px;border-radius:3px;font-family:'Fira Code',monospace;font-size:13px;color:#2ecc71}
+.preview-pane pre{background:#23225A;border:1px solid #4449E2;border-radius:6px;padding:12px;margin:8px 0;overflow-x:auto}
+.preview-pane pre code{background:none;padding:0}
+.preview-pane blockquote{border-left:3px solid #4449E2;padding-left:12px;color:#8888bb;margin:8px 0}
+.preview-pane a{color:#FFCB47}
+.preview-pane ul,.preview-pane ol{padding-left:20px;margin:8px 0}
+.preview-pane strong{color:#FFCB47}
+.preview-pane em{color:#2ecc71}
+.preview-pane hr{border:none;border-top:1px solid #4449E2;margin:12px 0}
+.tag-filter{padding:8px;border-bottom:1px solid #4449E2;display:flex;gap:4px;flex-wrap:wrap}
+.tag-filter .tag{padding:3px 8px;border-radius:8px;font-size:10px;cursor:pointer;border:1px solid #4449E2;background:transparent;color:#8888bb}
+.tag-filter .tag.active{background:#4449E2;color:#F0F0F5}
+.split-editor .preview-pane{display:block}
+.split-editor .preview-pane.hidden{display:none}
+.only-editor .preview-pane{display:none}
+.only-preview .editor-pane{display:none}
+.only-preview .preview-pane{border-left:none}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="app" id="app">
+<div class="sidebar">
+<div class="sidebar-header">
+<h2>NoteCraft</h2>
+<input id="searchInput" placeholder="Search notes..." oninput="renderList()">
+<div class="btn-row">
+<button class="btn" style="flex:1" onclick="newNote()">+ New Note</button>
+<button class="btn" onclick="exportAll()" style="font-size:11px">Export</button>
+</div>
+</div>
+<div class="tag-filter" id="tagFilter"></div>
+<div class="note-list" id="noteList"></div>
+</div>
+<div class="main">
+<div class="toolbar">
+<button onclick="insertMd('**','**')" title="Bold"><b>B</b></button>
+<button onclick="insertMd('*','*')" title="Italic"><i>I</i></button>
+<button onclick="insertMd('\\n# ','')" title="Heading">H1</button>
+<button onclick="insertMd('\\n## ','')" title="Heading 2">H2</button>
+<button onclick="insertMd('`','`')" title="Code">&lt;/&gt;</button>
+<button onclick="insertMd('\\n```\\n','\\n```')" title="Code Block">{ }</button>
+<button onclick="insertMd('[','](url)')" title="Link">Link</button>
+<button onclick="insertMd('\\n- ','')" title="List">List</button>
+<button onclick="insertMd('\\n> ','')" title="Quote">Quote</button>
+<button onclick="insertMd('\\n---\\n','')" title="HR">HR</button>
+<div class="spacer"></div>
+<button id="viewEditor" onclick="setView('only-editor')" class="active">Editor</button>
+<button id="viewSplit" onclick="setView('split-editor')">Split</button>
+<button id="viewPreview" onclick="setView('only-preview')">Preview</button>
+<div class="spacer"></div>
+<span class="info" id="wordInfo">0 words | 0 chars</span>
+<button onclick="exportMd()" style="font-size:11px">Export .md</button>
+<button onclick="deleteNote()" style="font-size:11px;color:#e74c3c;border-color:#e74c3c">Delete</button>
+</div>
+<div class="editor-area split-editor" id="editorArea">
+<div class="editor-pane">
+<textarea id="editor" oninput="onEdit()" placeholder="Write your note in Markdown..."></textarea>
+</div>
+<div class="preview-pane" id="preview"></div>
+</div>
+</div>
+</div>
+<script>
+const DB='nc_data';
+let notes=[];let currentId=null;let viewMode='split-editor';let tagFilter=null;
+
+function loadData(){try{const d=JSON.parse(localStorage.getItem(DB));if(d)notes=d.notes||[];}catch(e){}}
+function saveData(){localStorage.setItem(DB,JSON.stringify({notes}))}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function newNote(){
+    const id=Date.now();
+    const tags=prompt('Tags (comma separated):')||'';
+    notes.unshift({id,title:'Untitled',content:'',tags:tags.split(',').map(t=>t.trim()).filter(Boolean),created:Date.now()});
+    currentId=id;saveData();renderList();loadNote();
+}
+
+function deleteNote(){
+    if(!currentId)return;
+    if(!confirm('Delete this note?'))return;
+    notes=notes.filter(n=>n.id!==currentId);currentId=notes[0]?.id||null;
+    saveData();renderList();loadNote();
+}
+
+function loadNote(){
+    const note=notes.find(n=>n.id===currentId);
+    document.getElementById('editor').value=note?note.content:'';
+    onEdit();
+}
+
+function onEdit(){
+    const note=notes.find(n=>n.id===currentId);
+    if(!note)return;
+    note.content=document.getElementById('editor').value;
+    const firstLine=note.content.split('\n')[0].replace(/^#+\s*/,'').trim();
+    note.title=firstLine||'Untitled';
+    saveData();
+    renderPreview();
+    const words=note.content.trim()?note.content.trim().split(/\s+/).length:0;
+    const chars=note.content.length;
+    document.getElementById('wordInfo').textContent=words+' words | '+chars+' chars';
+}
+
+function renderPreview(){
+    const note=notes.find(n=>n.id===currentId);
+    if(!note){document.getElementById('preview').innerHTML='';return;}
+    document.getElementById('preview').innerHTML=markdown(note.content);
+}
+
+function markdown(md){
+    let html=esc(md);
+    // Code blocks
+    html=html.replace(/```([\s\S]*?)```/g,'<pre><code>$1</code></pre>');
+    // Headings
+    html=html.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+    html=html.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+    html=html.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+    // Bold & Italic
+    html=html.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
+    html=html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+    html=html.replace(/\*(.+?)\*/g,'<em>$1</em>');
+    // Inline code
+    html=html.replace(/`([^`]+)`/g,'<code>$1</code>');
+    // Blockquote
+    html=html.replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>');
+    // HR
+    html=html.replace(/^---$/gm,'<hr>');
+    // Links
+    html=html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2">$1</a>');
+    // Lists
+    html=html.replace(/^(- .+)$/gm,'<li>$1</li>');
+    html=html.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
+    // Paragraphs
+    html=html.replace(/\n\n/g,'</p><p>');
+    html='<p>'+html+'</p>';
+    html=html.replace(/<p>\s*<(h[123]|pre|blockquote|hr|ul)/g,'<$1');
+    html=html.replace(/<\/(h[123]|pre|blockquote|hr|ul)>\s*<\/p>/g,'</$1>');
+    html=html.replace(/<p>\s*<\/p>/g,'');
+    return html;
+}
+
+function insertMd(before,after){
+    const ta=document.getElementById('editor');
+    const start=ta.selectionStart,end=ta.selectionEnd;
+    const sel=ta.value.substring(start,end)||'text';
+    ta.value=ta.value.substring(0,start)+before+sel+after+ta.value.substring(end);
+    ta.focus();ta.selectionStart=start+before.length;ta.selectionEnd=start+before.length+sel.length;
+    onEdit();
+}
+
+function setView(mode){
+    viewMode=mode;
+    const area=document.getElementById('editorArea');
+    area.className='editor-area '+mode;
+    document.querySelectorAll('.toolbar button').forEach(b=>b.classList.remove('active'));
+    document.getElementById(mode==='only-editor'?'viewEditor':mode==='split-editor'?'viewSplit':'viewPreview').classList.add('active');
+}
+
+function renderList(){
+    const q=document.getElementById('searchInput').value.toLowerCase();
+    const allTags=[...new Set(notes.flatMap(n=>n.tags||[]))];
+    document.getElementById('tagFilter').innerHTML=allTags.map(t=>
+        '<div class="tag'+(tagFilter===t?' active':'')+'" onclick="toggleTagFilter(\''+esc(t)+'\')">'+esc(t)+'</div>'
+    ).join('');
+
+    const filtered=notes.filter(n=>{
+        if(q&&!n.title.toLowerCase().includes(q)&&!(n.content||'').toLowerCase().includes(q))return false;
+        if(tagFilter&&!(n.tags||[]).includes(tagFilter))return false;
+        return true;
+    });
+
+    document.getElementById('noteList').innerHTML=filtered.map(n=>
+        '<div class="note-item'+(n.id===currentId?' active':'')+'" onclick="currentId='+n.id+';renderList();loadNote()">'+
+        '<div class="title">'+esc(n.title)+'</div>'+
+        '<div class="preview">'+esc((n.content||'').substring(0,60))+'</div>'+
+        (n.tags&&n.tags.length?'<div class="tags">'+n.tags.map(t=>'<span class="note-tag">'+esc(t)+'</span>').join('')+'</div>':'')+'</div>'
+    ).join('')||'<div style="text-align:center;color:#8888bb;padding:20px;font-size:13px">No notes</div>';
+}
+
+function toggleTagFilter(tag){tagFilter=tagFilter===tag?null:tag;renderList()}
+
+function exportMd(){
+    const note=notes.find(n=>n.id===currentId);if(!note)return;
+    const blob=new Blob([note.content],{type:'text/markdown'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(note.title||'note')+'.md';a.click();
+}
+
+function exportAll(){
+    const blob=new Blob([JSON.stringify({notes},null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='notecraft-notes.json';a.click();
+}
+
+loadData();currentId=notes[0]?.id||null;renderList();loadNote();
+</script>
+</body>
+</html>

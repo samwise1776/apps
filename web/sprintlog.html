@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SprintLog - Sprint Planning Board</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:1200px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;margin-bottom:20px;color:#FFCB47;text-align:center}
+.btn{padding:6px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-danger{background:#e74c3c}
+.btn-sm{padding:3px 8px;font-size:11px}
+input,select,textarea{padding:6px 10px;border:1px solid rgba(240,240,245,.2);border-radius:6px;background:#1a1a4a;color:#F0F0F5;font-size:13px;width:100%}
+textarea{min-height:60px;resize:vertical}
+.section{background:#2E2F6E;border-radius:12px;padding:16px;margin-bottom:16px}
+.section h3{color:#FFCB47;margin-bottom:12px;font-size:15px}
+.tabs{display:flex;gap:4px;margin-bottom:16px}
+.tabs button{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#2E2F6E;color:#F0F0F5;transition:.2s}
+.tabs button.active{background:#4449E2}
+.form-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.form-row>div{flex:1;min-width:120px;display:flex;flex-direction:column;gap:2px}
+.form-row label{font-size:11px;color:rgba(240,240,245,.5)}
+.story-card{background:#1a1a4a;border-radius:8px;padding:10px;margin-bottom:6px;cursor:grab;border-left:3px solid #4449E2;transition:.15s}
+.story-card:hover{border-left-color:#FFCB47}
+.story-card .title{font-weight:600;font-size:13px}
+.story-card .meta{font-size:11px;color:rgba(240,240,245,.5);margin-top:4px;display:flex;gap:8px}
+.story-card .pts{background:#4449E2;padding:1px 6px;border-radius:10px;font-size:11px;font-weight:600}
+.story-card .priority-high{color:#e74c3c}.story-card .priority-med{color:#f39c12}.story-card .priority-low{color:#2ecc71}
+.board{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.column{background:#1a1a4a;border-radius:8px;padding:10px;min-height:200px}
+.column h4{font-size:13px;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #4449E2}
+.column .count{color:rgba(240,240,245,.4);font-size:11px}
+.column[ondragover]{background:rgba(68,73,226,.2)}
+.sprint-info{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.info-card{background:#1a1a4a;border-radius:8px;padding:10px;text-align:center}
+.info-card .val{font-size:20px;font-weight:700;color:#FFCB47}
+.info-card .lbl{font-size:11px;color:rgba(240,240,245,.5)}
+.chart-container{height:150px;display:flex;align-items:end;gap:4px;padding:8px 0}
+.chart-bar{flex:1;border-radius:4px 4px 0 0;position:relative;transition:height .3s}
+.chart-bar span{position:absolute;top:-16px;width:100%;text-align:center;font-size:10px}
+.sprint-list{display:flex;gap:8px;flex-wrap:wrap}
+.sprint-chip{padding:6px 12px;border-radius:6px;background:#1a1a4a;cursor:pointer;font-size:12px;border:2px solid transparent;transition:.15s}
+.sprint-chip.active{border-color:#FFCB47}
+.sprint-chip .status{font-size:10px;color:rgba(240,240,245,.4)}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>📋 SprintLog</h1>
+<div class="tabs">
+<button class="active" onclick="showTab('board',this)">Board</button>
+<button onclick="showTab('backlog',this)">Backlog</button>
+<button onclick="showTab('sprints',this)">Sprints</button>
+<button onclick="showTab('charts',this)">Charts</button>
+<button onclick="showTab('retro',this)">Retrospective</button>
+</div>
+<div id="tabBoard" class="section">
+<div class="sprint-info" id="sprintInfo"></div>
+<div class="board" id="board"></div>
+</div>
+<div id="tabBacklog" class="section" style="display:none">
+<div style="display:flex;gap:8px;margin-bottom:12px;align-items:end">
+<div style="flex:1"><label style="font-size:11px;color:rgba(240,240,245,.5)">Title</label><input id="storyTitle"></div>
+<div style="flex:2"><label style="font-size:11px;color:rgba(240,240,245,.5)">Description</label><input id="storyDesc"></div>
+<div style="width:80px"><label style="font-size:11px;color:rgba(240,240,245,.5)">Points</label><select id="storyPts"><option>1</option><option>2</option><option>3</option><option selected>5</option><option>8</option><option>13</option></select></div>
+<div style="width:100px"><label style="font-size:11px;color:rgba(240,240,245,.5)">Priority</label><select id="storyPri"><option value="low">Low</option><option value="med" selected>Medium</option><option value="high">High</option></select></div>
+<button class="btn btn-accent" onclick="addStory()">Add</button>
+</div>
+<div id="backlogList"></div>
+</div>
+<div id="tabSprints" class="section" style="display:none">
+<div class="form-row" style="margin-bottom:12px">
+<div><label style="font-size:11px;color:rgba(240,240,245,.5)">Sprint Name</label><input id="sprintName"></div>
+<div><label style="font-size:11px;color:rgba(240,240,245,.5)">Start</label><input type="date" id="sprintStart"></div>
+<div><label style="font-size:11px;color:rgba(240,240,245,.5)">End</label><input type="date" id="sprintEnd"></div>
+<div style="flex:2"><label style="font-size:11px;color:rgba(240,240,245,.5)">Goal</label><input id="sprintGoal"></div>
+<button class="btn btn-accent" onclick="createSprint()">Create Sprint</button>
+</div>
+<div class="sprint-list" id="sprintList"></div>
+</div>
+<div id="tabCharts" class="section" style="display:none">
+<h3>Velocity Chart</h3>
+<div class="chart-container" id="velocityChart"></div>
+<h3 style="margin-top:16px">Burndown Chart</h3>
+<canvas id="burndownCanvas" width="600" height="200" style="width:100%;border-radius:8px;background:#1a1a4a"></canvas>
+</div>
+<div id="tabRetro" class="section" style="display:none">
+<h3>Sprint Retrospective</h3>
+<div style="margin-bottom:12px"><label style="font-size:11px;color:rgba(240,240,245,.5)">Select Sprint</label><select id="retroSprint" onchange="loadRetro()"></select></div>
+<textarea id="retroText" placeholder="What went well? What could improve? Action items?" style="min-height:150px" oninput="saveRetro()"></textarea>
+</div>
+</div>
+<script>
+let sprints=JSON.parse(localStorage.getItem('sprintLog_sprints'))||[];
+let backlog=JSON.parse(localStorage.getItem('sprintLog_backlog'))||[];
+let activeSprintIdx=JSON.parse(localStorage.getItem('sprintLog_active'))||0;
+let boardState=JSON.parse(localStorage.getItem('sprintLog_board'))||{todo:[],progress:[],done:[]};
+
+function save(){localStorage.setItem('sprintLog_sprints',JSON.stringify(sprints));localStorage.setItem('sprintLog_backlog',JSON.stringify(backlog));localStorage.setItem('sprintLog_active',JSON.stringify(activeSprintIdx));localStorage.setItem('sprintLog_board',JSON.stringify(boardState))}
+
+function showTab(name,btn){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  ['Board','Backlog','Sprints','Charts','Retro'].forEach(t=>document.getElementById('tab'+t).style.display='none');
+  document.getElementById('tab'+name.charAt(0).toUpperCase()+name.slice(1)).style.display='';
+  if(name==='board')renderBoard();if(name==='backlog')renderBacklog();if(name==='sprints')renderSprints();if(name==='charts')renderCharts();if(name==='retro')renderRetroList();
+}
+
+function addStory(){
+  const title=document.getElementById('storyTitle').value.trim();if(!title)return;
+  backlog.push({id:Date.now(),title,desc:document.getElementById('storyDesc').value,pts:parseInt(document.getElementById('storyPts').value),pri:document.getElementById('storyPri').value});
+  save();renderBacklog();
+}
+
+function deleteStory(id){backlog=backlog.filter(s=>s.id!==id);save();renderBacklog()}
+
+function renderBacklog(){
+  document.getElementById('backlogList').innerHTML=backlog.length?backlog.map(s=>`<div class="story-card" draggable="true" ondragstart="dragStory(event,${s.id})" style="border-left-color:${s.pri==='high'?'#e74c3c':s.pri==='med'?'#f39c12':'#2ecc71'}"><div style="display:flex;justify-content:space-between"><div class="title">${esc(s.title)}</div><button class="btn btn-danger btn-sm" onclick="deleteStory(${s.id})">×</button></div><div class="meta"><span class="pts">${s.pts} pts</span><span class="priority-${s.pri}">${s.pri}</span></div>${s.desc?`<div style="font-size:11px;color:rgba(240,240,245,.5);margin-top:4px">${esc(s.desc)}</div>`:''}</div>`).join(''):'<p style="color:rgba(240,240,245,.4);font-size:13px">No stories in backlog</p>';
+}
+
+function addToSprint(id){
+  const story=backlog.find(s=>s.id===id);if(!story)return;
+  boardState.todo.push({...story,status:'todo'});backlog=backlog.filter(s=>s.id!==id);
+  save();renderBoard();renderBacklog();
+}
+
+function dragStory(e,id){e.dataTransfer.setData('text/plain',id)}
+
+function dropStory(e,status){
+  e.preventDefault();
+  const id=parseInt(e.dataTransfer.getData('text/plain'));
+  let story=null;
+  ['todo','progress','done'].forEach(col=>{const idx=boardState[col].findIndex(s=>s.id===id);if(idx>=0){story=boardState[col].splice(idx,1)[0]}});
+  if(story){story.status=status;boardState[status].push(story)}
+  save();renderBoard();
+}
+
+function renderBoard(){
+  const sprint=sprints[activeSprintIdx];
+  if(sprint){
+    const committed=boardState.todo.concat(boardState.progress,boardState.done);
+    const done=boardState.done;
+    document.getElementById('sprintInfo').innerHTML=`
+      <div class="info-card"><div class="val">${committed.reduce((a,s)=>a+s.pts,0)}</div><div class="lbl">Committed Points</div></div>
+      <div class="info-card"><div class="val">${done.reduce((a,s)=>a+s.pts,0)}</div><div class="lbl">Completed Points</div></div>
+      <div class="info-card"><div class="val">${sprint.name}</div><div class="lbl">Active Sprint</div></div>
+      <div class="info-card"><div class="val">${sprint.goal||'-'}</div><div class="lbl">Goal</div></div>`;
+  }else{
+    document.getElementById('sprintInfo').innerHTML='<div class="info-card" style="grid-column:span 4"><div class="val">No active sprint</div><div class="lbl">Create one in Sprints tab</div></div>';
+  }
+  ['todo','progress','done'].forEach(col=>{
+    const el=document.getElementById(col==='todo'?'colTodo':col==='progress'?'colProg':'colDone');
+  });
+  document.getElementById('board').innerHTML=`
+    <div class="column" ondragover="event.preventDefault()" ondrop="dropStory(event,'todo')"><h4>To Do <span class="count">(${boardState.todo.length})</span></h4>${boardState.todo.map(s=>storyHTML(s)).join('')}</div>
+    <div class="column" ondragover="event.preventDefault()" ondrop="dropStory(event,'progress')"><h4>In Progress <span class="count">(${boardState.progress.length})</span></h4>${boardState.progress.map(s=>storyHTML(s)).join('')}</div>
+    <div class="column" ondragover="event.preventDefault()" ondrop="dropStory(event,'done')"><h4>Done <span class="count">(${boardState.done.length})</span></h4>${boardState.done.map(s=>storyHTML(s)).join('')}</div>`;
+}
+
+function storyHTML(s){return`<div class="story-card" draggable="true" ondragstart="dragStory(event,${s.id})"><div class="title">${esc(s.title)}</div><div class="meta"><span class="pts">${s.pts} pts</span></div></div>`}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function createSprint(){
+  const name=document.getElementById('sprintName').value.trim();if(!name)return;
+  sprints.push({name,start:document.getElementById('sprintStart').value,end:document.getElementById('sprintEnd').value,goal:document.getElementById('sprintGoal').value,velocity:0,retro:''});
+  activeSprintIdx=sprints.length-1;save();renderSprints();
+}
+
+function selectSprint(i){activeSprintIdx=i;save();renderSprints();renderBoard()}
+
+function completeSprint(i){
+  sprints[i].velocity=boardState.done.reduce((a,s)=>a+s.pts,0);
+  boardState={todo:[],progress:[],done:[]};save();renderSprints();
+}
+
+function renderSprints(){
+  document.getElementById('sprintList').innerHTML=sprints.map((s,i)=>`<div class="sprint-chip ${i===activeSprintIdx?'active':''}" onclick="selectSprint(${i})"><strong>${esc(s.name)}</strong><div class="status">${s.start||'?'} - ${s.end||'?'}</div><div style="font-size:10px;color:#FFCB47">Velocity: ${s.velocity}</div><button class="btn btn-sm" onclick="event.stopPropagation();completeSprint(${i})" style="margin-top:4px">Complete</button></div>`).join('')||'<p style="color:rgba(240,240,245,.4)">No sprints yet</p>';
+}
+
+function renderCharts(){
+  const vel=document.getElementById('velocityChart');
+  const maxV=Math.max(1,...sprints.map(s=>s.velocity));
+  vel.innerHTML=sprints.map(s=>`<div class="chart-bar" style="height:${s.velocity/maxV*100}%;background:#4449E2"><span>${s.velocity}</span></div>`).join('')||'<p style="color:rgba(240,240,245,.4)">No completed sprints</p>';
+
+  const canvas=document.getElementById('burndownCanvas');const ctx=canvas.getContext('2d');
+  canvas.width=canvas.clientWidth*2;canvas.height=400;ctx.scale(2,2);
+  const W=canvas.clientWidth,H=200;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#1a1a4a';ctx.fillRect(0,0,W,H);
+  const total=boardState.todo.concat(boardState.progress,boardState.done).reduce((a,s)=>a+s.pts,0);
+  if(!total){ctx.fillStyle='rgba(240,240,245,.3)';ctx.font='14px sans-serif';ctx.fillText('No data for burndown',W/2-70,H/2);return}
+  const days=10;const ideal=total/days;
+  ctx.strokeStyle='rgba(240,240,245,.3)';ctx.setLineDash([4,4]);ctx.beginPath();
+  ctx.moveTo(40,20);ctx.lineTo(40,20+(total/total)*(H-40));ctx.lineTo(W-20,20);ctx.stroke();ctx.setLineDash([]);
+  const done=boardState.done.reduce((a,s)=>a+s.pts,0);const remaining=total-done;
+  ctx.strokeStyle='#FFCB47';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(40,H-20);
+  ctx.lineTo(W-20,H-20-((total-remaining)/total)*(H-40));ctx.stroke();
+  ctx.fillStyle='rgba(240,240,245,.4)';ctx.font='10px sans-serif';
+  ctx.fillText('Ideal',W-50,15);ctx.fillStyle='#FFCB47';ctx.fillText('Actual',W-50,30);
+}
+
+function renderRetroList(){
+  const sel=document.getElementById('retroSprint');
+  sel.innerHTML=sprints.map((s,i)=>`<option value="${i}" ${i===activeSprintIdx?'selected':''}>${esc(s.name)}</option>`).join('');
+  loadRetro();
+}
+function loadRetro(){const i=parseInt(document.getElementById('retroSprint').value);document.getElementById('retroText').value=sprints[i]?.retro||''}
+function saveRetro(){const i=parseInt(document.getElementById('retroSprint').value);if(sprints[i]){sprints[i].retro=document.getElementById('retroText').value;save()}}
+
+renderBoard();
+</script>
+</body>
+</html>

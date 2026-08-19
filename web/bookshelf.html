@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bookshelf</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:900px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;margin-bottom:24px;color:#FFCB47;text-align:center}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-danger{background:#e74c3c}
+.btn-sm{padding:4px 10px;font-size:12px}
+input,select,textarea{padding:8px 12px;border:1px solid rgba(240,240,245,.2);border-radius:6px;background:#1a1a4a;color:#F0F0F5;font-size:14px;width:100%}
+textarea{min-height:60px;resize:vertical}
+.section{background:#2E2F6E;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h3{color:#FFCB47;margin-bottom:12px;font-size:16px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#2E2F6E;color:#F0F0F5;transition:.2s}
+.tabs button.active{background:#4449E2}
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:#1a1a4a;border-radius:10px;padding:14px;text-align:center}
+.stat-card .val{font-size:22px;font-weight:700;color:#FFCB47}
+.stat-card .lbl{font-size:11px;color:rgba(240,240,245,.5);margin-top:2px}
+.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.book-card{border-radius:10px;padding:14px;cursor:pointer;transition:.2s;position:relative;min-height:180px;display:flex;flex-direction:column;justify-content:flex-end}
+.book-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.book-card .stars{font-size:14px;margin-bottom:4px}
+.book-card .btitle{font-weight:700;font-size:14px}
+.book-card .bauthor{font-size:11px;opacity:.7;margin-top:2px}
+.book-card .bstatus{font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-top:6px;opacity:.8}
+.book-card .bpages{font-size:10px;opacity:.5;margin-top:2px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:span 2}
+.form-grid label{font-size:11px;color:rgba(240,240,245,.5);margin-bottom:2px;display:block}
+.detail-view{background:#1a1a4a;border-radius:12px;padding:24px}
+.detail-view h2{color:#FFCB47;margin-bottom:8px}
+.progress-bar{height:8px;background:#23225A;border-radius:4px;overflow:hidden;margin:8px 0}
+.progress-bar .fill{height:100%;background:#4449E2;border-radius:4px;transition:width .3s}
+.book-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;font-size:13px}
+.book-detail-grid dt{color:rgba(240,240,245,.5)}
+.book-detail-grid dd{font-weight:600}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>📚 Bookshelf</h1>
+<div class="tabs">
+<button class="active" onclick="showTab('shelf',this)">Shelf</button>
+<button onclick="showTab('add',this)">+ Add Book</button>
+<button onclick="showTab('stats',this)">Stats</button>
+</div>
+<div id="tabShelf">
+<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+<input type="text" id="searchInput" placeholder="Search books..." oninput="renderShelf()" style="flex:1;min-width:150px">
+<select id="filterStatus" onchange="renderShelf()" style="width:auto"><option value="">All Status</option><option>Want to Read</option><option>Currently Reading</option><option>Finished</option></select>
+<select id="filterGenre" onchange="renderShelf()" style="width:auto"><option value="">All Genres</option><option>Fiction</option><option>Non-Fiction</option><option>Sci-Fi</option><option>Fantasy</option><option>Mystery</option><option>Biography</option><option>Self-Help</option></select>
+</div>
+<div class="stat-cards" id="shelfStats"></div>
+<div class="book-grid" id="bookGrid"></div>
+<div id="bookDetail" style="display:none"></div>
+</div>
+<div id="tabAdd" style="display:none">
+<div class="section">
+<h3>Add Book</h3>
+<div class="form-grid">
+<div><label>Title</label><input id="bTitle"></div>
+<div><label>Author</label><input id="bAuthor"></div>
+<div><label>Pages</label><input type="number" id="bPages" min="1"></div>
+<div><label>Genre</label><select id="bGenre"><option>Fiction</option><option>Non-Fiction</option><option>Sci-Fi</option><option>Fantasy</option><option>Mystery</option><option>Biography</option><option>Self-Help</option></select></div>
+<div><label>Status</label><select id="bStatus"><option>Want to Read</option><option>Currently Reading</option><option>Finished</option></select></div>
+<div><label>Rating (1-5)</label><input type="number" id="bRating" min="1" max="5" value="3"></div>
+<div class="full"><label>Notes</label><textarea id="bNotes" placeholder="Your thoughts about this book..."></textarea></div>
+</div>
+<button class="btn btn-accent" onclick="saveBook()" style="margin-top:12px;width:100%">Save Book</button>
+</div>
+</div>
+<div id="tabStats" style="display:none">
+<div class="stat-cards" id="allStats"></div>
+<div class="section">
+<h3>Reading Goal Progress</h3>
+<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><label style="font-size:13px">Books per year:</label><input type="number" id="readingGoal" style="width:80px" min="1" onchange="saveGoal()"></div>
+<div class="progress-bar"><div class="fill" id="goalFill" style="width:0%"></div></div>
+<div style="font-size:12px;color:rgba(240,200,245,.5)" id="goalText"></div>
+</div>
+<div style="text-align:center;margin-top:8px"><button class="btn" onclick="exportBooks()">Export JSON</button> <button class="btn" onclick="importBooks()">Import JSON</button></div>
+</div>
+</div>
+<script>
+const coverColors=['#4449E2','#e74c3c','#2ecc71','#FFCB47','#9b59b6','#1abc9c','#e67e22','#3498db'];
+let books=JSON.parse(localStorage.getItem('books'))||[];
+let readingGoal=JSON.parse(localStorage.getItem('readingGoal'))||12;
+
+function save(){localStorage.setItem('books',JSON.stringify(books));localStorage.setItem('readingGoal',JSON.stringify(readingGoal))}
+
+function showTab(name,btn){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  ['Shelf','Add','Stats'].forEach(t=>document.getElementById('tab'+t).style.display='none');
+  document.getElementById('tab'+name.charAt(0).toUpperCase()+name.slice(1)).style.display='';
+  if(name==='shelf'){document.getElementById('bookDetail').style.display='none';document.getElementById('bookGrid').style.display='';renderShelf()}
+  if(name==='stats')renderStats();
+}
+
+function saveBook(){
+  const title=document.getElementById('bTitle').value.trim();if(!title)return;
+  books.push({
+    id:Date.now(),title,author:document.getElementById('bAuthor').value,
+    pages:parseInt(document.getElementById('bPages').value)||0,
+    genre:document.getElementById('bGenre').value,
+    status:document.getElementById('bStatus').value,
+    rating:parseInt(document.getElementById('bRating').value)||3,
+    currentPage:0,notes:document.getElementById('bNotes').value,
+    color:coverColors[books.length%coverColors.length]
+  });
+  save();document.getElementById('bTitle').value='';document.getElementById('bAuthor').value='';document.getElementById('bPages').value='';document.getElementById('bNotes').value='';
+  renderShelf();document.querySelector('.tabs button').click();
+}
+
+function renderShelf(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const status=document.getElementById('filterStatus').value;
+  const genre=document.getElementById('filterGenre').value;
+  const filtered=books.filter(b=>(!q||b.title.toLowerCase().includes(q)||b.author.toLowerCase().includes(q))&&(!status||b.status===status)&&(!genre||b.genre===genre));
+  
+  const finished=books.filter(b=>b.status==='Finished').length;
+  const reading=books.filter(b=>b.status==='Currently Reading').length;
+  const totalPages=books.filter(b=>b.status==='Finished').reduce((a,b)=>a+b.pages,0);
+  const avgRating=books.length?(books.reduce((a,b)=>a+b.rating,0)/books.length).toFixed(1):0;
+  document.getElementById('shelfStats').innerHTML=`
+    <div class="stat-card"><div class="val">${finished}</div><div class="lbl">Finished</div></div>
+    <div class="stat-card"><div class="val">${reading}</div><div class="lbl">Reading</div></div>
+    <div class="stat-card"><div class="val">${totalPages.toLocaleString()}</div><div class="lbl">Pages Read</div></div>
+    <div class="stat-card"><div class="val">${avgRating}⭐</div><div class="lbl">Avg Rating</div></div>`;
+
+  document.getElementById('bookGrid').innerHTML=filtered.length?filtered.map(b=>`<div class="book-card" style="background:${b.color}" onclick="showBookDetail(${b.id})"><div class="stars">${'★'.repeat(b.rating)}${'☆'.repeat(5-b.rating)}</div><div class="btitle">${esc(b.title)}</div><div class="bauthor">${esc(b.author)}</div><div class="bstatus">${b.status}</div>${b.status==='Currently Reading'?`<div style="margin-top:4px"><div class="progress-bar" style="background:rgba(0,0,0,.3)"><div class="fill" style="width:${b.pages?b.currentPage/b.pages*100:0}%"></div></div><div class="bpages">${b.currentPage}/${b.pages} pages</div></div>`:`<div class="bpages">${b.pages} pages</div>`}</div>`).join(''):'<p style="color:rgba(240,240,245,.4)">No books found</p>';
+}
+
+function showBookDetail(id){
+  const b=books.find(b=>b.id===id);if(!b)return;
+  document.getElementById('bookGrid').style.display='none';
+  const el=document.getElementById('bookDetail');el.style.display='';
+  el.innerHTML=`<div class="detail-view">
+    <button class="btn" onclick="document.getElementById('bookDetail').style.display='none';document.getElementById('bookGrid').style.display=''">&larr; Back</button>
+    <h2 style="margin-top:12px">${esc(b.title)}</h2>
+    <p style="color:rgba(240,200,245,.5)">${esc(b.author)}</p>
+    <div style="font-size:18px;margin:8px 0">${'★'.repeat(b.rating)}${'☆'.repeat(5-b.rating)}</div>
+    <dl class="book-detail-grid">
+      <dt>Genre</dt><dd>${b.genre}</dd>
+      <dt>Pages</dt><dd>${b.pages}</dd>
+      <dt>Status</dt><dd>${b.status}</dd>
+      ${b.status==='Currently Reading'?`<dt>Progress</dt><dd>${b.currentPage}/${b.pages} (${b.pages?Math.round(b.currentPage/b.pages*100):0}%)</dd>`:''}
+    </dl>
+    ${b.status==='Currently Reading'?`<div style="margin-top:12px"><label style="font-size:12px;color:rgba(240,240,245,.5)">Current Page</label><div style="display:flex;gap:8px"><input type="number" id="currentPageInput" value="${b.currentPage}" min="0" max="${b.pages}" style="width:80px"><button class="btn btn-sm" onclick="updateProgress(${b.id})">Update</button></div></div>`:''}
+    ${b.notes?`<div style="margin-top:12px"><h4 style="color:#FFCB47;font-size:14px;margin-bottom:4px">Notes</h4><p style="font-size:13px;line-height:1.6;white-space:pre-wrap">${esc(b.notes)}</p></div>`:''}
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-accent" onclick="changeStatus(${b.id},'Want to Read')">Want to Read</button>
+      <button class="btn" onclick="changeStatus(${b.id},'Currently Reading')">Currently Reading</button>
+      <button class="btn" onclick="changeStatus(${b.id},'Finished')">Finished</button>
+      <button class="btn btn-danger" onclick="deleteBook(${b.id})">Delete</button>
+    </div>
+  </div>`;
+}
+
+function updateProgress(id){
+  const b=books.find(b=>b.id===id);if(!b)return;
+  b.currentPage=parseInt(document.getElementById('currentPageInput').value)||0;
+  if(b.currentPage>=b.pages){b.status='Finished';b.currentPage=b.pages}
+  save();showBookDetail(id);
+}
+
+function changeStatus(id,status){const b=books.find(b=>b.id===id);if(b){b.status=status;if(status==='Finished')b.currentPage=b.pages;save();showBookDetail(id)}}
+function deleteBook(id){if(confirm('Delete this book?')){books=books.filter(b=>b.id!==id);save();document.getElementById('bookDetail').style.display='none';document.getElementById('bookGrid').style.display='';renderShelf()}}
+
+function renderStats(){
+  const finished=books.filter(b=>b.status==='Finished');
+  const thisYear=finished.filter(b=>b.id>Date.now()-365*24*60*60*1000).length;
+  const totalPages=finished.reduce((a,b)=>a+b.pages,0);
+  const avgRating=books.length?(books.reduce((a,b)=>a+b.rating,0)/books.length).toFixed(1):0;
+  document.getElementById('allStats').innerHTML=`
+    <div class="stat-card"><div class="val">${books.length}</div><div class="lbl">Total Books</div></div>
+    <div class="stat-card"><div class="val">${thisYear}</div><div class="lbl">This Year</div></div>
+    <div class="stat-card"><div class="val">${totalPages.toLocaleString()}</div><div class="lbl">Total Pages</div></div>
+    <div class="stat-card"><div class="val">${avgRating}⭐</div><div class="lbl">Avg Rating</div></div>`;
+  document.getElementById('readingGoal').value=readingGoal;
+  const pct=Math.min(100,thisYear/readingGoal*100);
+  document.getElementById('goalFill').style.width=pct+'%';
+  document.getElementById('goalText').textContent=`${thisYear} of ${readingGoal} books (${Math.round(pct)}%)`;
+}
+
+function saveGoal(){readingGoal=parseInt(document.getElementById('readingGoal').value)||12;save();renderStats()}
+
+function exportBooks(){const blob=new Blob([JSON.stringify(books,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='books.json';a.click();URL.revokeObjectURL(url)}
+function importBooks(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=e=>{const r=new FileReader();r.onload=ev=>{try{books=JSON.parse(ev.target.result);save();renderShelf()}catch(e){alert('Invalid file')}};r.readAsText(e.target.files[0])};inp.click()}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+renderShelf();
+</script>
+</body>
+</html>

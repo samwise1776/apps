@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PackForge - Release & Packaging Manager</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#23225A;--panel:#2E2F5E;--accent:#FFCB47;--text:#F0F0F5;--btn:#4449E2;--btn-hover:#5558f0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+a.back{position:fixed;top:10px;left:12px;color:var(--accent);text-decoration:none;font-size:13px;z-index:100;opacity:.8}.back:hover{opacity:1}
+.top-bar{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 80px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,.08)}
+.top-bar h1{font-size:18px;font-weight:600}
+.top-bar .spacer{flex:1}
+.btn{padding:6px 14px;border:none;border-radius:6px;background:var(--btn);color:#fff;font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--btn-hover)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-accent{background:var(--accent);color:#23225A}.btn-accent:hover{background:#ffe066}
+.btn-danger{background:#c0392b}.btn-danger:hover{background:#e74c3c}
+.content{max-width:1000px;margin:0 auto;padding:16px 16px 16px 80px}
+.stats-row{display:flex;gap:16px;margin-bottom:16px}
+.stat-card{flex:1;background:var(--panel);border-radius:8px;padding:14px;text-align:center}
+.stat-card .stat-num{font-size:24px;font-weight:700;color:var(--accent)}
+.stat-card .stat-label{font-size:11px;opacity:.5;margin-top:4px}
+.section{background:var(--panel);border-radius:10px;padding:20px;margin-bottom:16px}
+.section h2{font-size:16px;margin-bottom:12px}
+.create-form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.create-form .full{grid-column:1/-1}
+.create-form label{display:block;font-size:12px;opacity:.5;margin-bottom:4px}
+.create-form input,.create-form textarea,.create-form select{width:100%;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);font-size:13px;font-family:inherit}
+.create-form textarea{height:80px;resize:vertical}
+.app-checklist{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(0,0,0,.15);border-radius:6px;padding:10px;margin-bottom:12px}
+.app-checklist .check-item{display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0;opacity:.8}
+.app-checklist .check-item input{accent-color:var(--accent)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:8px 12px;font-size:12px;opacity:.5;border-bottom:1px solid rgba(255,255,255,.08)}
+td{padding:8px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
+tr:hover td{cursor:pointer;background:rgba(255,255,255,.04)}
+tr.selected td{background:rgba(68,73,226,.2)}
+.status-draft{color:#f39c12}.status-released{color:#2ecc71}.status-archived{color:#95a5a6}
+.detail-panel{background:var(--panel);border-radius:10px;padding:20px;margin-top:16px}
+.detail-panel h2{margin-bottom:12px}
+.detail-panel .d-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px}
+.detail-panel .d-row span:first-child{opacity:.5}
+.detail-panel .notes{background:rgba(0,0,0,.15);border-radius:6px;padding:12px;margin:10px 0;font-size:13px;line-height:1.5;white-space:pre-wrap}
+.detail-panel .apps-list{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.detail-panel .app-badge{padding:4px 10px;border-radius:6px;background:rgba(255,255,255,.08);font-size:12px}
+.detail-panel .actions{display:flex;gap:8px;margin-top:12px}
+.detail-panel select{padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);font-size:13px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--btn);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:300;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.empty{padding:30px;text-align:center;opacity:.3;font-size:13px}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="top-bar">
+<h1>PackForge</h1>
+<div class="spacer"></div>
+<button class="btn btn-sm" onclick="exportData()">Export JSON</button>
+<button class="btn btn-sm" onclick="document.getElementById('importInput').click()">Import JSON</button>
+<input type="file" id="importInput" accept=".json" style="display:none" onchange="importData(event)">
+</div>
+<div class="content">
+<div class="stats-row">
+<div class="stat-card"><div class="stat-num" id="totalReleases">0</div><div class="stat-label">Total Releases</div></div>
+<div class="stat-card"><div class="stat-num" id="totalPackaged">0</div><div class="stat-label">Total Packaged Files</div></div>
+</div>
+<div class="section">
+<h2>📦 Create Release</h2>
+<div class="create-form">
+<div>
+<label>Version</label>
+<input type="text" id="relVersion" placeholder="e.g. 2.0.0">
+</div>
+<div>
+<label>Status</label>
+<select id="relStatus"><option>Draft</option><option>Released</option></select>
+</div>
+<div class="full">
+<label>Release Notes</label>
+<textarea id="relNotes" placeholder="What's new in this release..."></textarea>
+</div>
+<div class="full">
+<label>Apps to Include</label>
+<div class="app-checklist" id="appChecklist"></div>
+</div>
+<div class="full">
+<button class="btn btn-accent" onclick="createRelease()">📦 Package Release</button>
+</div>
+</div>
+</div>
+<div class="section">
+<h2>📋 Release History</h2>
+<div id="historyContent"></div>
+</div>
+<div class="detail-panel" id="detailPanel" style="display:none"></div>
+</div>
+<script>
+const LS_KEY='packforge_data';
+const DATACENTER_APPS=[
+'DataCenter Hub','CloudSync','NetProbe','VaultGuard','LogStream',
+'MetricVault','DeployBot','CacheForge','ConfigHub','TaskRunner',
+'WebMonitor','BackupMaster','AuthGateway','DataForge','InsightAI'
+];
+const SIM_FILE_COUNTS=[12,18,8,15,22,14,10,6,9,11,20,16,13,19,25];
+
+let releases=[];
+let selected=new Set(DATACENTER_APPS);
+
+function load(){try{const d=localStorage.getItem(LS_KEY);if(d){const p=JSON.parse(d);releases=p.releases||[]}}catch(e){}}
+function save(){localStorage.setItem(LS_KEY,JSON.stringify({releases}))}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function fakeChecksum(){return Array.from({length:64},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('')}
+
+load();
+if(!releases.length){
+releases=[
+{id:genId(),version:'1.0.0',date:'2026-01-15',notes:'Initial release of the Datacenter platform.\nIncludes core monitoring and deployment tools.',apps:['DataCenter Hub','CloudSync','NetProbe'],fileCount:38,checksum:fakeChecksum(),status:'Released'},
+{id:genId(),version:'1.5.0',date:'2026-04-01',notes:'Added security modules and improved log streaming.',apps:['DataCenter Hub','CloudSync','VaultGuard','LogStream'],fileCount:67,checksum:fakeChecksum(),status:'Released'},
+{id:genId(),version:'2.0.0-beta',date:'2026-06-10',notes:'Major version with new analytics and deployment pipeline.\nBreaking changes in API v2.',apps:DATACENTER_APPS.slice(0,10),fileCount:142,checksum:fakeChecksum(),status:'Draft'},
+];
+}
+
+function renderChecklist(){
+document.getElementById('appChecklist').innerHTML=DATACENTER_APPS.map(a=>
+`<div class="check-item"><input type="checkbox" ${selected.has(a)?'checked':''} onchange="toggleApp('${a}')"><span>${a}</span></div>`
+).join('');
+}
+
+function toggleApp(a){if(selected.has(a))selected.delete(a);else selected.add(a)}
+
+function createRelease(){
+const version=document.getElementById('relVersion').value.trim();if(!version){toast('Enter a version');return}
+const notes=document.getElementById('relNotes').value.trim();
+const status=document.getElementById('relStatus').value;
+const apps=[...selected];
+const fileCount=apps.reduce((s,a)=>{const i=DATACENTER_APPS.indexOf(a);return s+(i>=0?SIM_FILE_COUNTS[i]:10)},0);
+releases.unshift({id:genId(),version,date:new Date().toISOString().slice(0,10),notes,apps,fileCount,checksum:fakeChecksum(),status});
+save();document.getElementById('relVersion').value='';document.getElementById('relNotes').value='';renderAll();toast('Release v'+version+' created');
+}
+
+function renderHistory(){
+const el=document.getElementById('historyContent');
+if(!releases.length){el.innerHTML='<div class="empty">No releases yet</div>';return}
+el.innerHTML=`<table><thead><tr><th>Version</th><th>Date</th><th>Apps</th><th>Files</th><th>Checksum</th><th>Status</th></tr></thead><tbody>
+${releases.map(r=>`<tr onclick="showDetail('${r.id}')">
+<td>v${esc(r.version)}</td>
+<td>${r.date}</td>
+<td>${r.apps.length}</td>
+<td>${r.fileCount}</td>
+<td style="font-family:monospace;font-size:11px;opacity:.5">${r.checksum.slice(0,16)}...</td>
+<td class="status-${r.status.toLowerCase()}">${r.status}</td>
+</tr>`).join('')}
+</tbody></table>`;
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function showDetail(id){
+const r=releases.find(x=>x.id===id);if(!r)return;
+const p=document.getElementById('detailPanel');p.style.display='block';
+p.innerHTML=`<h2>📦 Release v${esc(r.version)}</h2>
+<div class="d-row"><span>Date</span><span>${r.date}</span></div>
+<div class="d-row"><span>Status</span><span class="status-${r.status.toLowerCase()}">${r.status}</span></div>
+<div class="d-row"><span>Apps Included</span><span>${r.apps.length}</span></div>
+<div class="d-row"><span>File Count</span><span>${r.fileCount}</span></div>
+<div class="d-row"><span>Checksum</span><span style="font-family:monospace;font-size:11px">${r.checksum}</span></div>
+<div style="font-size:12px;opacity:.5;margin-top:12px">Release Notes</div>
+<div class="notes">${esc(r.notes||'No release notes')}</div>
+<div style="font-size:12px;opacity:.5;margin-top:8px">Apps Included</div>
+<div class="apps-list">${r.apps.map(a=>`<span class="app-badge">✅ ${esc(a)}</span>`).join('')}</div>
+<div class="actions">
+<label style="font-size:12px;opacity:.5;margin-right:4px">Change Status:</label>
+<select onchange="changeStatus('${r.id}',this.value)">
+<option ${r.status==='Draft'?'selected':''}>Draft</option>
+<option ${r.status==='Released'?'selected':''}>Released</option>
+<option ${r.status==='Archived'?'selected':''}>Archived</option>
+</select>
+<button class="btn btn-danger" style="margin-left:auto" onclick="deleteRelease('${r.id}')">🗑️ Delete</button>
+</div>`;
+}
+
+function changeStatus(id,status){const r=releases.find(x=>x.id===id);if(r){r.status=status;save();renderAll();showDetail(id);toast('Status changed to '+status)}}
+
+function deleteRelease(id){releases=releases.filter(x=>x.id!==id);save();document.getElementById('detailPanel').style.display='none';renderAll();toast('Release deleted')}
+
+function renderStats(){
+document.getElementById('totalReleases').textContent=releases.length;
+document.getElementById('totalPackaged').textContent=releases.reduce((s,r)=>s+r.fileCount,0);
+}
+
+function exportData(){
+const blob=new Blob([JSON.stringify({releases},null,2)],{type:'application/json'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='packforge_export.json';a.click();
+}
+
+function importData(e){
+const file=e.target.files[0];if(!file)return;
+const reader=new FileReader();
+reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.releases)releases=d.releases;save();renderAll();toast('Imported')}catch(err){toast('Import failed')}};reader.readAsText(file);e.target.value='';
+}
+
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
+
+function renderAll(){renderStats();renderChecklist();renderHistory()}
+renderAll();
+</script>
+</body>
+</html>

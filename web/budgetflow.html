@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BudgetFlow - Personal Finance Tracker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;z-index:100;background:rgba(35,34,90,.9);padding:4px 10px;border-radius:6px}
+a.back:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:50px 20px 20px}
+h1{color:#FFCB47;font-size:28px;margin-bottom:16px}
+h2{color:#FFCB47;font-size:18px;margin-bottom:10px}
+h3{color:#F0F0F5;font-size:15px;margin-bottom:8px}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:#2E2F5E;border:1px solid #4449E2;border-radius:10px;padding:16px;text-align:center}
+.stat .val{font-size:26px;font-weight:700;color:#FFCB47}
+.stat .lbl{font-size:12px;color:#8888bb;margin-top:4px}
+.stat.income .val{color:#2ecc71}
+.stat.expense .val{color:#e74c3c}
+.panel{background:#2E2F5E;border:1px solid #4449E2;border-radius:10px;padding:18px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+input,select{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:8px 12px;font-size:14px;width:100%;margin-bottom:8px}
+.btn{background:#4449E2;color:#F0F0F5;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600}
+.btn:hover{background:#5555FF}
+.btn.danger{background:#e74c3c}
+.btn.secondary{background:transparent;border:1px solid #4449E2}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:#FFCB47;padding:8px 10px;border-bottom:1px solid #4449E2;font-size:12px;text-transform:uppercase}
+td{padding:8px 10px;border-bottom:1px solid #353670}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.cat-bar{display:flex;height:24px;border-radius:6px;overflow:hidden;margin-bottom:6px}
+.cat-seg{transition:width .3s}
+.cat-legend{display:flex;flex-wrap:wrap;gap:8px;font-size:12px;margin-bottom:12px}
+.cat-legend span{display:flex;align-items:center;gap:4px}
+.cat-legend .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.budget-row{margin-bottom:8px}
+.budget-row .info{display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px}
+.progress{height:8px;background:#23225A;border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;border-radius:4px;transition:width .3s}
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:10px}
+.bar-group{flex:1;display:flex;gap:3px;align-items:flex-end;justify-content:center}
+.bar{width:20px;border-radius:3px 3px 0 0;transition:height .3s;min-height:2px}
+.bar-label{font-size:10px;color:#8888bb;text-align:center;margin-top:4px}
+.filters{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filters select,.filters input{width:auto;margin-bottom:0}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>BudgetFlow</h1>
+<div class="stats-bar" id="stats"></div>
+<div class="panel">
+<h3>Add Transaction</h3>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<input id="tName" placeholder="Name" style="flex:2">
+<input id="tAmount" placeholder="Amount" type="number" step="0.01" style="flex:1">
+<select id="tType" style="flex:1"><option value="expense">Expense</option><option value="income">Income</option></select>
+<select id="tCat" style="flex:1"><option>Food</option><option>Transport</option><option>Housing</option><option>Entertainment</option><option>Salary</option><option>Freelance</option><option>Other</option></select>
+<input id="tDate" type="date" style="flex:1">
+<button class="btn" onclick="addTransaction()">Add</button>
+</div>
+</div>
+<div class="grid2">
+<div class="panel">
+<h3>Transactions</h3>
+<div class="filters">
+<select id="fType" onchange="render()" style="width:120px"><option value="">All Types</option><option>income</option><option>expense</option></select>
+<select id="fCat" onchange="render()" style="width:140px"><option value="">All Categories</option><option>Food</option><option>Transport</option><option>Housing</option><option>Entertainment</option><option>Salary</option><option>Freelance</option><option>Other</option></select>
+</div>
+<div class="table-wrap"><table><thead><tr><th>Date</th><th>Name</th><th>Category</th><th>Amount</th><th></th></tr></thead><tbody id="tList"></tbody></table></div>
+</div>
+<div class="panel">
+<h3>Category Breakdown</h3>
+<div class="cat-bar" id="catBar"></div>
+<div class="cat-legend" id="catLegend"></div>
+<h3 style="margin-top:16px">Monthly Summary</h3>
+<div class="bar-chart" id="monthChart"></div>
+<div style="display:flex;gap:12px;font-size:11px;color:#8888bb;margin-top:4px;justify-content:center">
+<span><span style="color:#2ecc71">■</span> Income</span>
+<span><span style="color:#e74c3c">■</span> Expenses</span>
+</div>
+</div>
+</div>
+<div class="panel">
+<h3>Budget Limits</h3>
+<div id="budgetLimits"></div>
+<div style="display:flex;gap:8px;margin-top:10px">
+<select id="blCat"><option>Food</option><option>Transport</option><option>Housing</option><option>Entertainment</option><option>Other</option></select>
+<input id="blAmt" placeholder="Limit $" type="number" style="width:120px">
+<button class="btn" onclick="setBudget()">Set Limit</button>
+</div>
+</div>
+<div class="panel" style="display:flex;gap:8px">
+<button class="btn secondary" onclick="exportData()">Export JSON</button>
+<button class="btn secondary" onclick="document.getElementById('importFile').click()">Import JSON</button>
+<input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
+</div>
+</div>
+<script>
+const DB='bf_data';
+const COLORS=['#FFCB47','#4449E2','#2ecc71','#e74c3c','#9b59b6','#e67e22','#1abc9c'];
+let transactions=[],budgets={};
+
+function loadData(){try{const d=JSON.parse(localStorage.getItem(DB));if(d){transactions=d.transactions||[];budgets=d.budgets||{};}}catch(e){}}
+function saveData(){localStorage.setItem(DB,JSON.stringify({transactions,budgets}))}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function addTransaction(){
+    const name=document.getElementById('tName').value.trim();
+    const amount=parseFloat(document.getElementById('tAmount').value);
+    if(!name||!amount)return;
+    transactions.push({
+        id:Date.now(),name,amount,
+        type:document.getElementById('tType').value,
+        category:document.getElementById('tCat').value,
+        date:document.getElementById('tDate').value||new Date().toISOString().slice(0,10)
+    });
+    document.getElementById('tName').value='';document.getElementById('tAmount').value='';
+    saveData();render();
+}
+
+function deleteTransaction(id){transactions=transactions.filter(t=>t.id!==id);saveData();render()}
+
+function getFiltered(){
+    const ft=document.getElementById('fType').value;
+    const fc=document.getElementById('fCat').value;
+    return transactions.filter(t=>(!ft||t.type===ft)&&(!fc||t.category===fc)).sort((a,b)=>b.date.localeCompare(a.date));
+}
+
+function render(){
+    const totalIncome=transactions.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    const totalExpense=transactions.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    const balance=totalIncome-totalExpense;
+    const savingsRate=totalIncome?Math.round((1-totalExpense/totalIncome)*100):0;
+
+    document.getElementById('stats').innerHTML=
+        '<div class="stat"><div class="val">$'+balance.toFixed(2)+'</div><div class="lbl">Balance</div></div>'+
+        '<div class="stat income"><div class="val">$'+totalIncome.toFixed(2)+'</div><div class="lbl">Income</div></div>'+
+        '<div class="stat expense"><div class="val">$'+totalExpense.toFixed(2)+'</div><div class="lbl">Expenses</div></div>'+
+        '<div class="stat"><div class="val">'+savingsRate+'%</div><div class="lbl">Savings Rate</div></div>';
+
+    const filtered=getFiltered();
+    document.getElementById('tList').innerHTML=filtered.map(t=>
+        '<tr><td>'+t.date+'</td><td>'+esc(t.name)+'</td><td><span class="tag" style="background:'+(t.type==='income'?'rgba(46,204,113,.2);color:#2ecc71':'rgba(231,76,60,.2);color:#e74c3c')+'">'+t.category+'</span></td>'+
+        '<td style="color:'+(t.type==='income'?'#2ecc71':'#e74c3c')+'">$'+t.amount.toFixed(2)+'</td>'+
+        '<td><button onclick="deleteTransaction('+t.id+')" style="background:none;border:none;color:#e74c3c;cursor:pointer">✕</button></td></tr>'
+    ).join('')||'<tr><td colspan="5" style="color:#8888bb">No transactions</td></tr>';
+
+    const cats={};transactions.filter(t=>t.type==='expense').forEach(t=>{cats[t.category]=(cats[t.category]||0)+t.amount});
+    const totalExp=Object.values(cats).reduce((s,v)=>s+v,0)||1;
+    const catKeys=Object.keys(cats);
+    document.getElementById('catBar').innerHTML=catKeys.map((k,i)=>
+        '<div class="cat-seg" style="width:'+cats[k]/totalExp*100+'%;background:'+COLORS[i%COLORS.length]+'"></div>'
+    ).join('');
+    document.getElementById('catLegend').innerHTML=catKeys.map((k,i)=>
+        '<span><span class="dot" style="background:'+COLORS[i%COLORS.length]+'"></span>'+k+' $'+cats[k].toFixed(0)+'</span>'
+    ).join('');
+
+    const months={};transactions.forEach(t=>{
+        const m=t.date.slice(0,7);
+        if(!months[m])months[m]={income:0,expense:0};
+        months[m][t.type]+=t.amount;
+    });
+    const mKeys=Object.keys(months).sort().slice(-6);
+    const maxVal=Math.max(1,...mKeys.map(m=>Math.max(months[m].income,months[m].expense)));
+    document.getElementById('monthChart').innerHTML=mKeys.map(m=>
+        '<div class="bar-group"><div class="bar" style="height:'+months[m].income/maxVal*100+'%;background:#2ecc71" title="Income $'+months[m].income.toFixed(0)+'"></div>'+
+        '<div class="bar" style="height:'+months[m].expense/maxVal*100+'%;background:#e74c3c" title="Expense $'+months[m].expense.toFixed(0)+'"></div></div>'
+    ).join('')||'<p style="color:#8888bb;font-size:12px;width:100%;text-align:center">No data</p>';
+
+    document.getElementById('monthChart').innerHTML=mKeys.map(m=>
+        '<div style="flex:1;display:flex;flex-direction:column;align-items:center"><div style="display:flex;gap:2px;align-items:flex-end;height:100px">'+
+        '<div class="bar" style="height:'+months[m].income/maxVal*100+'%;background:#2ecc71"></div>'+
+        '<div class="bar" style="height:'+months[m].expense/maxVal*100+'%;background:#e74c3c"></div></div>'+
+        '<div class="bar-label">'+m.slice(5)+'</div></div>'
+    ).join('');
+
+    renderBudgets();
+}
+
+function renderBudgets(){
+    const expByCat={};transactions.filter(t=>t.type==='expense').forEach(t=>{expByCat[t.category]=(expByCat[t.category]||0)+t.amount});
+    document.getElementById('budgetLimits').innerHTML=Object.keys(budgets).map(cat=>{
+        const spent=expByCat[cat]||0;
+        const limit=budgets[cat];
+        const pct=Math.min(100,spent/limit*100);
+        const color=pct>90?'#e74c3c':pct>70?'#f1c40f':'#2ecc71';
+        return '<div class="budget-row"><div class="info"><span>'+cat+'</span><span>$'+spent.toFixed(0)+' / $'+limit+'</span></div>'+
+            '<div class="progress"><div class="progress-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
+    }).join('')||'<p style="color:#8888bb;font-size:13px">No budget limits set</p>';
+}
+
+function setBudget(){
+    const cat=document.getElementById('blCat').value;
+    const amt=parseFloat(document.getElementById('blAmt').value);
+    if(!amt)return;
+    budgets[cat]=amt;saveData();render();
+}
+
+function exportData(){
+    const blob=new Blob([JSON.stringify({transactions,budgets},null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='budgetflow.json';a.click();
+}
+
+function importData(e){
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{try{const d=JSON.parse(ev.target.result);if(d.transactions)transactions=d.transactions;if(d.budgets)budgets=d.budgets;saveData();render();}catch(e){alert('Invalid JSON');}};
+    reader.readAsText(file);
+}
+
+loadData();render();
+</script>
+</body>
+</html>

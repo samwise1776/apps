@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notepad - Simple Notepad</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;height:100vh;display:flex;flex-direction:column}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.toolbar{display:flex;gap:8px;padding:10px 20px;background:#2E2F6E;align-items:center;flex-wrap:wrap}
+.toolbar h1{font-size:18px;color:#FFCB47;margin-right:12px}
+.btn{padding:6px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-danger{background:#e74c3c}
+.btn-danger:hover{background:#c0392b}
+.toolbar .spacer{flex:1}
+.save-indicator{font-size:12px;color:rgba(240,240,245,.5)}
+.font-controls{display:flex;gap:4px;align-items:center}
+.font-controls button{width:28px;height:28px;border:none;border-radius:4px;background:#2E2F6E;color:#F0F0F5;cursor:pointer;font-size:16px}
+.font-controls button:hover{background:#4449E2}
+textarea{flex:1;width:100%;padding:20px;background:#1a1a4a;color:#F0F0F5;border:none;resize:none;font-size:16px;line-height:1.8;font-family:'Fira Code',monospace}
+textarea:focus{outline:none}
+textarea.no-wrap{white-space:nowrap;overflow-x:auto}
+.statusbar{display:flex;gap:20px;padding:8px 20px;background:#2E2F6E;font-size:12px;color:rgba(240,240,245,.6);flex-wrap:wrap}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="toolbar">
+<h1>📝 Notepad</h1>
+<button class="btn" onclick="newNote()">New</button>
+<button class="btn" onclick="downloadNote()">Download .txt</button>
+<div class="font-controls">
+<button onclick="changeFontSize(-1)">A-</button>
+<span id="fontSizeLabel" style="font-size:12px;min-width:30px;text-align:center">16px</span>
+<button onclick="changeFontSize(1)">A+</button>
+</div>
+<button class="btn" id="wrapBtn" onclick="toggleWrap()">Wrap: ON</button>
+<span class="spacer"></span>
+<span class="save-indicator" id="saveIndicator">Not saved</span>
+</div>
+<textarea id="editor" placeholder="Start typing..."></textarea>
+<div class="statusbar">
+<span id="charCount">0 characters</span>
+<span id="wordCount">0 words</span>
+<span id="lineCount">1 line</span>
+<span id="lastSave">Last saved: never</span>
+</div>
+<script>
+const editor=document.getElementById('editor');
+let fontSize=16,wordWrap=true,saveTimer=null;
+
+function load(){
+  const data=localStorage.getItem('notepad');
+  if(data){const d=JSON.parse(data);editor.value=d.text||'';fontSize=d.fontSize||16;wordWrap=d.wordWrap!==false}
+  applyFontSize();applyWrap();updateStats();
+}
+
+function save(){
+  localStorage.setItem('notepad',JSON.stringify({text:editor.value,fontSize,wordWrap,saved:new Date().toISOString()}));
+  document.getElementById('saveIndicator').textContent='✓ Saved';
+  document.getElementById('lastSave').textContent='Last saved: '+new Date().toLocaleTimeString();
+  setTimeout(()=>{document.getElementById('saveIndicator').textContent='Auto-saved'},1500);
+}
+
+function updateStats(){
+  const text=editor.value;
+  document.getElementById('charCount').textContent=text.length+' characters';
+  document.getElementById('wordCount').textContent=(text.trim()?text.trim().split(/\s+/).length:0)+' words';
+  document.getElementById('lineCount').textContent=text.split('\n').length+' line'+(text.split('\n').length!==1?'s':'');
+}
+
+editor.addEventListener('input',()=>{updateStats();clearTimeout(saveTimer);saveTimer=setTimeout(save,2000)});
+
+function newNote(){
+  if(editor.value.trim()&&!confirm('Clear current note? This cannot be undone.'))return;
+  editor.value='';updateStats();save();
+}
+
+function downloadNote(){
+  const blob=new Blob([editor.value],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='note.txt';a.click();
+  URL.revokeObjectURL(url);
+}
+
+function changeFontSize(d){fontSize=Math.max(10,Math.min(32,fontSize+d*2));applyFontSize();save()}
+
+function applyFontSize(){editor.style.fontSize=fontSize+'px';document.getElementById('fontSizeLabel').textContent=fontSize+'px'}
+
+function toggleWrap(){wordWrap=!wordWrap;applyWrap();document.getElementById('wrapBtn').textContent='Wrap: '+(wordWrap?'ON':'OFF');save()}
+
+function applyWrap(){if(wordWrap){editor.classList.remove('no-wrap');editor.style.whiteSpace='pre-wrap';editor.style.overflowX='hidden'}else{editor.classList.add('no-wrap');editor.style.whiteSpace='nowrap';editor.style.overflowX='auto'}}
+
+load();
+</script>
+</body>
+</html>

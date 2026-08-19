@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ContactBook</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:900px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;margin-bottom:24px;color:#FFCB47;text-align:center}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-danger{background:#e74c3c}
+.btn-sm{padding:4px 10px;font-size:12px}
+input,select{padding:8px 12px;border:1px solid rgba(240,240,245,.2);border-radius:6px;background:#1a1a4a;color:#F0F0F5;font-size:14px;width:100%}
+.section{background:#2E2F6E;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h3{color:#FFCB47;margin-bottom:12px;font-size:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .full{grid-column:span 2}
+.form-grid label{font-size:11px;color:rgba(240,240,245,.5);margin-bottom:2px;display:block}
+.search-row{display:flex;gap:8px;margin-bottom:16px}
+.search-row input{flex:1}
+.search-row select{width:auto}
+.letter-header{color:#FFCB47;font-size:20px;font-weight:700;padding:12px 0 4px;border-bottom:1px solid rgba(240,240,245,.1);margin-top:8px}
+.contact-card{display:flex;align-items:center;gap:12px;padding:10px;border-radius:8px;cursor:pointer;transition:.15s;border-bottom:1px solid rgba(240,240,245,.05)}
+.contact-card:hover{background:rgba(68,73,226,.2)}
+.contact-card .avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#F0F0F5;flex-shrink:0}
+.contact-card .info{flex:1;min-width:0}
+.contact-card .name{font-weight:600;font-size:14px}
+.contact-card .meta{font-size:12px;color:rgba(240,240,245,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.contact-card .fav{font-size:16px;cursor:pointer}
+.detail-view{background:#1a1a4a;border-radius:12px;padding:24px}
+.detail-view h2{color:#FFCB47;margin-bottom:12px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px}
+.detail-grid dt{color:rgba(240,240,245,.5)}
+.detail-grid dd{font-weight:600}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>📒 ContactBook</h1>
+<div class="tabs" style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap">
+<button class="btn" id="tabList" onclick="showTab('list')">Contacts</button>
+<button class="btn" id="tabAdd" onclick="showTab('add')">+ Add</button>
+</div>
+<div id="viewList">
+<div class="search-row">
+<input type="text" id="searchInput" placeholder="Search contacts..." oninput="renderContacts()">
+<select id="filterGroup" onchange="renderContacts()"><option value="">All Groups</option><option>Family</option><option>Friend</option><option>Work</option><option>Other</option></select>
+</div>
+<div id="contactList"></div>
+<div id="contactDetail" style="display:none"></div>
+</div>
+<div id="viewAdd" style="display:none">
+<div class="section">
+<h3 id="formTitle">Add Contact</h3>
+<div class="form-grid">
+<div><label>Name *</label><input id="cName"></div>
+<div><label>Phone</label><input id="cPhone"></div>
+<div><label>Email</label><input id="cEmail"></div>
+<div><label>Company</label><input id="cCompany"></div>
+<div class="full"><label>Address</label><input id="cAddress"></div>
+<div><label>Birthday</label><input id="cBirthday" type="date"></div>
+<div><label>Group</label><select id="cGroup"><option>Family</option><option>Friend</option><option>Work</option><option>Other</option></select></div>
+<div class="full"><label>Notes</label><input id="cNotes"></div>
+</div>
+<button class="btn btn-accent" onclick="saveContact()" style="margin-top:12px;width:100%" id="saveBtn">Save</button>
+</div>
+</div>
+</div>
+<script>
+let contacts=JSON.parse(localStorage.getItem('contacts'))||[];
+let editingId=null;
+const avatarColors=['#4449E2','#e74c3c','#2ecc71','#FFCB47','#9b59b6','#1abc9c'];
+
+function save(){localStorage.setItem('contacts',JSON.stringify(contacts))}
+
+function showTab(tab){
+  document.getElementById('viewList').style.display=tab==='list'?'':'none';
+  document.getElementById('viewAdd').style.display=tab==='add'?'':'none';
+  document.getElementById('tabList').style.background=tab==='list'?'#4449E2':'#2E2F6E';
+  document.getElementById('tabAdd').style.background=tab==='add'?'#4449E2':'#2E2F6E';
+  if(tab==='list')renderContacts();
+  if(tab==='add'&&!editingId){document.getElementById('formTitle').textContent='Add Contact';document.getElementById('saveBtn').textContent='Save';clearForm()}
+}
+
+function clearForm(){['cName','cPhone','cEmail','cCompany','cAddress','cBirthday','cNotes'].forEach(id=>document.getElementById(id).value='');document.getElementById('cGroup').value='Family';editingId=null}
+
+function saveContact(){
+  const name=document.getElementById('cName').value.trim();if(!name)return;
+  const data={name,phone:document.getElementById('cPhone').value,email:document.getElementById('cEmail').value,company:document.getElementById('cCompany').value,address:document.getElementById('cAddress').value,birthday:document.getElementById('cBirthday').value,group:document.getElementById('cGroup').value,notes:document.getElementById('cNotes').value};
+  if(editingId){const c=contacts.find(c=>c.id===editingId);if(c)Object.assign(c,data)}
+  else{contacts.push({id:Date.now(),...data,fav:false})}
+  save();editingId=null;showTab('list');
+}
+
+function editContact(id){
+  const c=contacts.find(c=>c.id===id);if(!c)return;
+  editingId=id;
+  document.getElementById('cName').value=c.name;document.getElementById('cPhone').value=c.phone||'';document.getElementById('cEmail').value=c.email||'';document.getElementById('cCompany').value=c.company||'';document.getElementById('cAddress').value=c.address||'';document.getElementById('cBirthday').value=c.birthday||'';document.getElementById('cGroup').value=c.group||'Other';document.getElementById('cNotes').value=c.notes||'';
+  document.getElementById('formTitle').textContent='Edit Contact';document.getElementById('saveBtn').textContent='Update';
+  document.getElementById('viewList').style.display='none';document.getElementById('viewAdd').style.display='';
+  document.getElementById('tabList').style.background='#2E2F6E';document.getElementById('tabAdd').style.background='#4449E2';
+}
+
+function deleteContact(id){if(confirm('Delete this contact?')){contacts=contacts.filter(c=>c.id!==id);save();document.getElementById('contactDetail').style.display='none';renderContacts()}}
+function toggleFav(id){const c=contacts.find(c=>c.id===id);if(c){c.fav=!c.fav;save();renderContacts()}}
+
+function renderContacts(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const group=document.getElementById('filterGroup').value;
+  let filtered=contacts.filter(c=>(!q||c.name.toLowerCase().includes(q))&&(!group||c.group===group));
+  filtered.sort((a,b)=>a.name.localeCompare(b.name));
+  
+  const grouped={};filtered.forEach(c=>{const letter=c.name[0].toUpperCase();if(!grouped[letter])grouped[letter]=[];grouped[letter].push(c)});
+  
+  const colorMap={};let ci=0;
+  document.getElementById('contactList').innerHTML=Object.keys(grouped).sort().map(letter=>{
+    return`<div class="letter-header">${letter}</div>`+grouped[letter].map(c=>{
+      if(!colorMap[c.name])colorMap[c.name]=avatarColors[ci++%avatarColors.length];
+      const initials=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      return`<div class="contact-card" onclick="showDetail(${c.id})"><div class="avatar" style="background:${colorMap[c.name]}">${initials}</div><div class="info"><div class="name">${esc(c.name)}</div><div class="meta">${c.company||c.email||c.phone||c.group||''}</div></div><span class="fav" onclick="event.stopPropagation();toggleFav(${c.id})">${c.fav?'❤️':'🤍'}</span></div>`;
+    }).join('');
+  }).join('')||'<p style="color:rgba(240,240,245,.4)">No contacts</p>';
+}
+
+function showDetail(id){
+  const c=contacts.find(c=>c.id===id);if(!c)return;
+  document.getElementById('contactList').style.display='none';
+  const el=document.getElementById('contactDetail');el.style.display='';
+  const initials=c.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  el.innerHTML=`<div class="detail-view">
+    <button class="btn" onclick="document.getElementById('contactDetail').style.display='none';document.getElementById('contactList').style.display=''">&larr; Back</button>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:12px">
+      <div class="avatar" style="background:#4449E2;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700">${initials}</div>
+      <div><h2>${esc(c.name)}</h2><p style="color:rgba(240,240,245,.5)">${c.group||''} ${c.company?'· '+c.company:''}</p></div>
+    </div>
+    <dl class="detail-grid" style="margin-top:16px">
+      ${c.phone?`<dt>Phone</dt><dd>${esc(c.phone)}</dd>`:''}
+      ${c.email?`<dt>Email</dt><dd>${esc(c.email)}</dd>`:''}
+      ${c.address?`<dt>Address</dt><dd>${esc(c.address)}</dd>`:''}
+      ${c.birthday?`<dt>Birthday</dt><dd>${esc(c.birthday)}</dd>`:''}
+      ${c.notes?`<dt>Notes</dt><dd>${esc(c.notes)}</dd>`:''}
+    </dl>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn" onclick="editContact(${c.id})">Edit</button>
+      <button class="btn btn-danger" onclick="deleteContact(${c.id})">Delete</button>
+    </div>
+  </div>`;
+}
+
+function exportVCard(){
+  const vcards=contacts.map(c=>`BEGIN:VCARD\nVERSION:3.0\nFN:${c.name}\nTEL:${c.phone||''}\nEMAIL:${c.email||''}\nORG:${c.company||''}\nADR:;;${c.address||'};;;;\nNOTE:${c.notes||''}\nEND:VCARD`).join('\n');
+  const blob=new Blob([vcards],{type:'text/vcard'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='contacts.vcf';a.click();URL.revokeObjectURL(url);
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+renderContacts();
+</script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DailyLog - Daily Journal</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:800px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;margin-bottom:24px;color:#FFCB47;text-align:center}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-danger{background:#e74c3c}
+.btn-sm{padding:4px 10px;font-size:12px}
+input,select,textarea{padding:8px 12px;border:1px solid rgba(240,240,245,.2);border-radius:6px;background:#1a1a4a;color:#F0F0F5;font-size:14px;width:100%}
+textarea{min-height:120px;resize:vertical;font-size:14px;line-height:1.6}
+.section{background:#2E2F6E;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h3{color:#FFCB47;margin-bottom:12px;font-size:16px}
+.date-nav{display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:20px}
+.date-nav button{width:32px;height:32px;border:none;border-radius:6px;background:#2E2F6E;color:#F0F0F5;cursor:pointer;font-size:18px}
+.date-nav button:hover{background:#4449E2}
+.mood-selector{display:flex;gap:12px;justify-content:center;margin:12px 0}
+.mood-btn{font-size:32px;cursor:pointer;opacity:.5;transition:.2s;border:none;background:none;padding:4px}
+.mood-btn:hover,.mood-btn.active{opacity:1;transform:scale(1.2)}
+.gratitude-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.gratitude-grid input{font-size:13px}
+.tags-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{padding:4px 10px;border-radius:12px;background:#1a1a4a;font-size:12px;cursor:pointer;transition:.15s}
+.tag:hover{background:#4449E2}
+.tag.active{background:#FFCB47;color:#23225A}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:12px;text-align:center}
+.cal-header{color:rgba(240,240,245,.4);font-weight:600;padding:4px}
+.cal-day{padding:6px;border-radius:6px;cursor:pointer;transition:.15s;min-height:36px}
+.cal-day:hover{background:rgba(68,73,226,.3)}
+.cal-day.today{border:2px solid #FFCB47}
+.cal-day.has-entry{background:rgba(68,73,226,.3)}
+.cal-day .mood-dot{width:8px;height:8px;border-radius:50%;margin:2px auto 0}
+.stat-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}
+.stat-item{font-size:12px;color:rgba(240,240,245,.5)}
+.stat-item span{color:#FFCB47;font-weight:600}
+@media(max-width:600px){.gratitude-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>📔 DailyLog</h1>
+<div class="date-nav">
+<button onclick="changeDate(-1)">&lt;</button>
+<span id="dateLabel" style="font-weight:600;min-width:180px;text-align:center"></span>
+<button onclick="changeDate(1)">&gt;</button>
+<button class="btn btn-sm" onclick="goToday()">Today</button>
+<button class="btn btn-sm" onclick="exportDay()">Export</button>
+</div>
+<div class="section">
+<h3>How are you feeling?</h3>
+<div class="mood-selector">
+<button class="mood-btn" data-mood="5" onclick="setMood(5,this)">😊</button>
+<button class="mood-btn" data-mood="4" onclick="setMood(4,this)">🙂</button>
+<button class="mood-btn" data-mood="3" onclick="setMood(3,this)">😐</button>
+<button class="mood-btn" data-mood="2" onclick="setMood(2,this)">🙁</button>
+<button class="mood-btn" data-mood="1" onclick="setMood(1,this)">😢</button>
+</div>
+</div>
+<div class="section">
+<h3>I'm grateful for...</h3>
+<div class="gratitude-grid">
+<input id="grat1" placeholder="1. Something good..." oninput="autoSave()">
+<input id="grat2" placeholder="2. Something good..." oninput="autoSave()">
+<input id="grat3" placeholder="3. Something good..." oninput="autoSave()">
+</div>
+</div>
+<div class="section">
+<h3>Journal</h3>
+<textarea id="journalText" placeholder="Write about your day..." oninput="autoSave()"></textarea>
+</div>
+<div class="section">
+<h3>Tags</h3>
+<div style="display:flex;gap:6px;margin-bottom:8px">
+<input id="tagInput" placeholder="Add tag..." style="width:auto;flex:1" onkeydown="if(event.key==='Enter'){addTag();event.preventDefault()}">
+<button class="btn btn-sm" onclick="addTag()">Add</button>
+</div>
+<div class="tags-row" id="tagsContainer"></div>
+</div>
+<div class="section">
+<h3>Calendar</h3>
+<div class="calendar-grid" id="calendar"></div>
+<div class="stat-row" id="moodStats"></div>
+</div>
+</div>
+<script>
+let currentDate=dateKey(new Date());
+let entries=JSON.parse(localStorage.getItem('dailyLog'))||{};
+let saveTimeout=null;
+
+function dateKey(d){return d.toISOString().split('T')[0]}
+function formatDate(d){return new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}
+
+function changeDate(d){const dt=new Date(currentDate+'T12:00:00');dt.setDate(dt.getDate()+d);currentDate=dateKey(dt);loadEntry()}
+function goToday(){currentDate=dateKey(new Date());loadEntry()}
+
+function getEntry(){if(!entries[currentDate])entries[currentDate]={mood:0,gratitude:['','',''],text:'',tags:[]};return entries[currentDate]}
+
+function setMood(mood,btn){
+  const entry=getEntry();entry.mood=mood;
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  save();renderCalendar();
+}
+
+function addTag(){
+  const input=document.getElementById('tagInput');
+  const tag=input.value.trim();if(!tag)return;
+  const entry=getEntry();
+  if(!entry.tags.includes(tag))entry.tags.push(tag);
+  input.value='';save();renderTags();
+}
+
+function removeTag(tag){
+  const entry=getEntry();entry.tags=entry.tags.filter(t=>t!==tag);save();renderTags();
+}
+
+function renderTags(){
+  const entry=getEntry();
+  document.getElementById('tagsContainer').innerHTML=entry.tags.map(t=>`<span class="tag" onclick="removeTag('${esc(t)}')">${esc(t)} ×</span>`).join('');
+}
+
+function autoSave(){
+  clearTimeout(saveTimeout);
+  saveTimeout=setTimeout(()=>{
+    const entry=getEntry();
+    entry.gratitude=[document.getElementById('grat1').value,document.getElementById('grat2').value,document.getElementById('grat3').value];
+    entry.text=document.getElementById('journalText').value;
+    save();renderCalendar();
+  },1000);
+}
+
+function loadEntry(){
+  document.getElementById('dateLabel').textContent=formatDate(currentDate);
+  const entry=getEntry();
+  document.querySelectorAll('.mood-btn').forEach(b=>{b.classList.toggle('active',parseInt(b.dataset.mood)===entry.mood)});
+  document.getElementById('grat1').value=entry.gratitude?.[0]||'';
+  document.getElementById('grat2').value=entry.gratitude?.[1]||'';
+  document.getElementById('grat3').value=entry.gratitude?.[2]||'';
+  document.getElementById('journalText').value=entry.text||'';
+  renderTags();renderCalendar();
+}
+
+function save(){localStorage.setItem('dailyLog',JSON.stringify(entries))}
+
+function renderCalendar(){
+  const now=new Date();const year=now.getFullYear(),month=now.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=now.getDate();
+  const moodColors={5:'#2ecc71',4:'#27ae60',3:'#f39c12',2:'#e67e22',1:'#e74c3c'};
+  
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html=dayNames.map(d=>`<div class="cal-header">${d}</div>`).join('');
+  for(let i=0;i<firstDay;i++)html+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const entry=entries[key];const isToday=d===today;
+    const moodDot=entry&&entry.mood?`<div class="mood-dot" style="background:${moodColors[entry.mood]}"></div>`:'';
+    html+=`<div class="cal-day ${isToday?'today':''} ${entry?'has-entry':''}" onclick="goToDate('${key}')">${d}${moodDot}</div>`;
+  }
+  document.getElementById('calendar').innerHTML=html;
+
+  // Stats
+  const thisMonth=Object.entries(entries).filter(([k])=>k.startsWith(`${year}-${String(month+1).padStart(2,'0')}`));
+  const streak=calcStreak();
+  const avgMood=thisMonth.length?(thisMonth.reduce((a,[,e])=>a+(e.mood||0),0)/thisMonth.length).toFixed(1):'-';
+  document.getElementById('moodStats').innerHTML=`
+    <div class="stat-item">Entries this month: <span>${thisMonth.length}</span></div>
+    <div class="stat-item">Current streak: <span>${streak} days</span></div>
+    <div class="stat-item">Avg mood: <span>${avgMood}</span></div>
+    <div class="stat-item">Total entries: <span>${Object.keys(entries).length}</span></div>`;
+}
+
+function goToDate(date){currentDate=date;loadEntry()}
+
+function calcStreak(){
+  let streak=0;const today=new Date();
+  for(let i=0;i<365;i++){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    if(entries[dateKey(d)])streak++;else if(i>0)break;
+  }
+  return streak;
+}
+
+function exportDay(){
+  const entry=getEntry();
+  const moodEmoji={5:'😊',4:'🙂',3:'😐',2:'🙁',1:'😢'};
+  let text=`Daily Journal - ${formatDate(currentDate)}\n${'='.repeat(40)}\n\n`;
+  text+=`Mood: ${moodEmoji[entry.mood]||'Not set'} (${entry.mood||0}/5)\n\n`;
+  text+=`Gratitude:\n${(entry.gratitude||[]).filter(g=>g).map((g,i)=>`${i+1}. ${g}`).join('\n')||'Not set'}\n\n`;
+  text+=`Journal:\n${entry.text||'No entry'}\n\n`;
+  text+=`Tags: ${(entry.tags||[]).join(', ')||'None'}\n`;
+  const blob=new Blob([text],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`journal-${currentDate}.txt`;a.click();URL.revokeObjectURL(url);
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+loadEntry();
+</script>
+</body>
+</html>

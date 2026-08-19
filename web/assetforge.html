@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AssetForge - Asset Browser/Manager</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#23225A;--panel:#2E2F5E;--accent:#FFCB47;--text:#F0F0F5;--btn:#4449E2;--btn-hover:#5558f0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+a.back{position:absolute;top:10px;left:12px;color:var(--accent);text-decoration:none;font-size:13px;z-index:100;opacity:.8}.back:hover{opacity:1}
+.top-bar{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 80px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,.08)}
+.top-bar h1{font-size:18px;font-weight:600;margin-right:16px}
+.top-bar input[type=text]{flex:1;max-width:300px;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);font-size:13px}
+.top-bar input::placeholder{color:rgba(240,240,245,.4)}
+.btn{padding:6px 14px;border:none;border-radius:6px;background:var(--btn);color:#fff;font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--btn-hover)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.filter-bar{display:flex;gap:6px;padding:8px 16px 8px 80px;flex-wrap:wrap;align-items:center;background:rgba(0,0,0,.15)}
+.filter-bar .pill{padding:4px 12px;border-radius:20px;font-size:12px;cursor:pointer;background:rgba(255,255,255,.08);border:1px solid transparent;transition:.15s}
+.filter-bar .pill.active{background:var(--btn);border-color:var(--btn)}
+.filter-bar .pill:hover{background:rgba(255,255,255,.15)}
+.filter-bar .pill.active:hover{background:var(--btn-hover)}
+.main{display:flex;flex:1;overflow:hidden}
+.tree-panel{width:220px;min-width:180px;background:var(--panel);border-right:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;overflow-y:auto}
+.tree-panel .tree-header{padding:10px 12px;font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.06)}
+.tree-item{padding:5px 12px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+.tree-item:hover{background:rgba(255,255,255,.06)}
+.tree-item.selected{background:rgba(68,73,226,.3)}
+.tree-item .arrow{font-size:10px;width:14px;text-align:center;transition:.2s}
+.tree-item .arrow.open{transform:rotate(90deg)}
+.tree-children{display:none}.tree-children.open{display:block}
+.tree-children .tree-item{padding-left:28px}
+.assets-panel{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.assets-toolbar{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.assets-toolbar .sort-btn{background:none;border:none;color:var(--text);font-size:12px;cursor:pointer;opacity:.6}
+.assets-toolbar .sort-btn.active{opacity:1;color:var(--accent)}
+.view-toggle{display:flex;gap:2px;margin-left:auto}
+.view-toggle button{background:rgba(255,255,255,.08);border:none;color:var(--text);padding:4px 8px;cursor:pointer;font-size:12px}
+.view-toggle button.active{background:var(--btn)}
+.assets-grid{flex:1;overflow-y:auto;padding:16px;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+.assets-grid.list-view{grid-template-columns:1fr;gap:4px}
+.asset-card{background:var(--panel);border-radius:8px;padding:16px;cursor:pointer;border:2px solid transparent;transition:.15s}
+.asset-card:hover{border-color:rgba(255,255,255,.15)}
+.asset-card.selected{border-color:var(--accent)}
+.asset-card .icon{font-size:32px;margin-bottom:8px}
+.asset-card .name{font-size:13px;font-weight:600;margin-bottom:4px}
+.asset-card .tags{display:flex;gap:4px;flex-wrap:wrap}
+.asset-card .tag{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(255,255,255,.1)}
+.asset-card .star{position:absolute;top:8px;right:8px;font-size:14px;cursor:pointer;opacity:.5}
+.asset-card .star.active{opacity:1;color:var(--accent)}
+.asset-card{position:relative}
+.list-view .asset-card{display:flex;align-items:center;gap:12px;padding:8px 16px}
+.list-view .asset-card .icon{font-size:20px;margin:0}
+.list-view .asset-card .name{flex:1}
+.detail-panel{width:280px;background:var(--panel);border-left:1px solid rgba(255,255,255,.08);padding:16px;overflow-y:auto;display:none}
+.detail-panel.open{display:block}
+.detail-panel h3{font-size:15px;margin-bottom:12px}
+.detail-panel .d-icon{font-size:48px;text-align:center;margin:12px 0}
+.detail-panel .d-row{font-size:12px;margin-bottom:8px;display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);padding-bottom:6px}
+.detail-panel .d-row span:first-child{opacity:.5}
+.detail-panel .d-tags{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0}
+.detail-panel .d-tags .tag{font-size:11px;padding:2px 10px;border-radius:10px;background:rgba(255,255,255,.1)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--panel);border-radius:12px;padding:24px;width:400px;max-width:90vw}
+.modal h2{font-size:16px;margin-bottom:16px}
+.modal label{display:block;font-size:12px;margin-bottom:4px;opacity:.7}
+.modal input,.modal textarea,.modal select{width:100%;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);font-size:13px;margin-bottom:12px;font-family:inherit}
+.modal textarea{height:80px;resize:vertical}
+.modal .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--btn);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:300;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="top-bar">
+<h1>AssetForge</h1>
+<input type="text" id="searchInput" placeholder="Search assets...">
+<button class="btn" onclick="openCreateModal()">+ Create Asset</button>
+<button class="btn btn-sm" onclick="exportJSON()">Export</button>
+<button class="btn btn-sm" onclick="document.getElementById('importInput').click()">Import</button>
+<input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)">
+</div>
+<div class="filter-bar" id="filterBar"></div>
+<div class="main">
+<div class="tree-panel">
+<div class="tree-header"><span>Folders</span><button class="btn btn-sm" onclick="createFolder()">+</button></div>
+<div id="folderTree"></div>
+</div>
+<div class="assets-panel">
+<div class="assets-toolbar">
+<button class="sort-btn active" data-sort="name" onclick="setSort('name')">Name</button>
+<button class="sort-btn" data-sort="date" onclick="setSort('date')">Date</button>
+<button class="sort-btn" data-sort="type" onclick="setSort('type')">Type</button>
+<div class="view-toggle">
+<button class="active" onclick="setView('grid')">Grid</button>
+<button onclick="setView('list')">List</button>
+</div>
+</div>
+<div class="assets-grid" id="assetsGrid"></div>
+</div>
+<div class="detail-panel" id="detailPanel"></div>
+</div>
+<div class="modal-overlay" id="createModal">
+<div class="modal">
+<h2>Create Asset</h2>
+<label>Name</label>
+<input type="text" id="assetName" placeholder="Asset name">
+<label>Type</label>
+<select id="assetType"><option>Image</option><option>Audio</option><option>Video</option><option>Document</option><option>3D</option><option>Code</option></select>
+<label>Description</label>
+<textarea id="assetDesc" placeholder="Description"></textarea>
+<label>Tags (comma separated)</label>
+<input type="text" id="assetTags" placeholder="tag1, tag2">
+<div class="modal-actions">
+<button class="btn btn-sm" onclick="closeCreateModal()">Cancel</button>
+<button class="btn" onclick="createAsset()">Create</button>
+</div>
+</div>
+</div>
+<script>
+const TYPE_ICONS={Image:'🖼️',Audio:'🎵',Video:'🎬',Document:'📄',Code:'💻','3D':'🧊'};
+const LS_KEY='assetforge_data';
+let data={folders:[{id:'root',name:'All Assets',children:['images','code']}],assets:[],activeFolder:'root',selectedAsset:null,view:'grid',sort:'name',filterTag:null,search:''};
+
+function loadData(){try{const d=localStorage.getItem(LS_KEY);if(d)data={...data,...JSON.parse(d)}}catch(e){}}
+function saveData(){localStorage.setItem(LS_KEY,JSON.stringify(data))}
+function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+
+loadData();
+if(!data.folders||data.folders.length===0)data.folders=[{id:'root',name:'All Assets',children:[]}];
+if(!data.assets||data.assets.length===0){
+data.assets=[
+{id:genId(),name:'Logo Dark',type:'Image',desc:'Dark theme logo asset',tags:['logo','branding'],folder:'root',starred:false,created:'2026-01-15',size:'2.4 MB'},
+{id:genId(),name:'Theme Song',type:'Audio',desc:'Main theme music',tags:['music','theme'],folder:'root',starred:true,created:'2026-02-10',size:'8.1 MB'},
+{id:genId(),name:'Intro Video',type:'Video',desc:'App intro animation',tags:['video','intro'],folder:'root',starred:false,created:'2026-03-05',size:'45.2 MB'},
+{id:genId(),name:'User Guide',type:'Document',desc:'User documentation',tags:['docs','help'],folder:'root',starred:false,created:'2026-04-01',size:'1.1 MB'},
+{id:genId(),name:'Main Script',type:'Code',desc:'Core application logic',tags:['js','core'],folder:'code',starred:true,created:'2026-05-20',size:'12 KB'},
+{id:genId(),name:'Hero Model',type:'3D',desc:'3D character model',tags:['3d','character'],folder:'root',starred:false,created:'2026-06-12',size:'34.5 MB'},
+];
+}
+
+function getAllTags(){const s=new Set();data.assets.forEach(a=>a.tags.forEach(t=>s.add(t)));return[...s].sort()}
+
+function renderFilterBar(){
+const tags=getAllTags();
+const bar=document.getElementById('filterBar');
+let h='<span style="font-size:12px;opacity:.5;margin-right:4px">Tags:</span>';
+h+=`<span class="pill ${data.filterTag===null?'active':''}" onclick="filterTag(null)">All</span>`;
+tags.forEach(t=>{h+=`<span class="pill ${data.filterTag===t?'active':''}" onclick="filterTag('${t}')">${t}</span>`});
+bar.innerHTML=h;
+}
+
+function filterTag(t){data.filterTag=t;saveData();renderFilterBar();renderAssets()}
+
+function renderTree(){
+const el=document.getElementById('folderTree');
+const allCount=data.assets.length;
+function buildItem(id,name,children,depth){
+const isActive=data.activeFolder===id;
+const hasKids=children&&children.length>0;
+let h=`<div class="tree-item ${isActive?'selected':''}" onclick="selectFolder('${id}')" style="padding-left:${12+depth*16}px">`;
+if(hasKids)h+=`<span class="arrow open">▶</span>`;else h+=`<span style="width:14px"></span>`;
+h+=`📁 ${name} <span style="opacity:.4;font-size:11px;margin-left:auto">${id==='root'?allCount:data.assets.filter(a=>a.folder===id).length}</span></div>`;
+if(hasKids){h+=`<div class="tree-children open">`;children.forEach(c=>{const f=data.folders.find(x=>x.id===c);if(f)h+=buildItem(f.id,f.name,f.children,depth+1)});h+=`</div>`}
+return h;
+}
+let html='';
+data.folders.forEach(f=>{if(f.id!=='root')html+=buildItem(f.id,f.name,f.children,0)});
+if(!data.folders.find(f=>f.id==='root'))data.folders.unshift({id:'root',name:'All Assets',children:[]});
+el.innerHTML=buildItem('root','All Assets',data.folders.find(f=>f.id==='root').children,0)+html;
+}
+
+function selectFolder(id){data.activeFolder=id;data.selectedAsset=null;saveData();renderTree();renderAssets();closeDetail()}
+
+function renderAssets(){
+let assets=[...data.assets];
+if(data.filterTag)assets=assets.filter(a=>a.tags.includes(data.filterTag));
+if(data.search){const s=data.search.toLowerCase();assets=assets.filter(a=>a.name.toLowerCase().includes(s)||a.tags.some(t=>t.toLowerCase().includes(s)))}
+if(data.sort==='name')assets.sort((a,b)=>a.name.localeCompare(b.name));
+else if(data.sort==='date')assets.sort((a,b)=>new Date(b.created)-new Date(a.created));
+else if(data.sort==='type')assets.sort((a,b)=>a.type.localeCompare(b.type));
+const grid=document.getElementById('assetsGrid');
+grid.className='assets-grid'+(data.view==='list'?' list-view':'');
+grid.innerHTML=assets.map(a=>`<div class="asset-card ${data.selectedAsset===a.id?'selected':''}" onclick="selectAsset('${a.id}')">
+<span class="star ${a.starred?'active':''}" onclick="event.stopPropagation();toggleStar('${a.id}')">${a.starred?'⭐':'☆'}</span>
+<div class="icon">${TYPE_ICONS[a.type]||'📦'}</div>
+<div class="name">${esc(a.name)}</div>
+<div class="tags">${a.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+</div>`).join('');
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function selectAsset(id){data.selectedAsset=id;saveData();renderAssets();showDetail(id)}
+
+function showDetail(id){
+const a=data.assets.find(x=>x.id===id);if(!a)return;
+const p=document.getElementById('detailPanel');p.classList.add('open');
+p.innerHTML=`<h3>Asset Details</h3>
+<div class="d-icon">${TYPE_ICONS[a.type]||'📦'}</div>
+<div class="d-row"><span>Name</span><span>${esc(a.name)}</span></div>
+<div class="d-row"><span>Type</span><span>${a.type}</span></div>
+<div class="d-row"><span>Created</span><span>${a.created}</span></div>
+<div class="d-row"><span>Size</span><span>${a.size||'N/A'}</span></div>
+<div class="d-row"><span>Folder</span><span>${a.folder}</span></div>
+<div class="d-row"><span>Favorite</span><span>${a.starred?'Yes':'No'}</span></div>
+<div style="font-size:12px;opacity:.5;margin-top:8px">Description</div>
+<p style="font-size:13px;margin-top:4px">${esc(a.desc||'No description')}</p>
+<div class="d-tags">${a.tags.map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>
+<button class="btn btn-sm" style="margin-top:12px;background:#c0392b" onclick="deleteAsset('${a.id}')">Delete</button>`;
+}
+
+function closeDetail(){document.getElementById('detailPanel').classList.remove('open')}
+
+function toggleStar(id){const a=data.assets.find(x=>x.id===id);if(a){a.starred=!a.starred;saveData();renderAssets();if(data.selectedAsset===id)showDetail(id)}}
+
+function setSort(s){data.sort=s;saveData();document.querySelectorAll('.sort-btn').forEach(b=>b.classList.toggle('active',b.dataset.sort===s));renderAssets()}
+function setView(v){data.view=v;saveData();document.querySelectorAll('.view-toggle button').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===v));renderAssets()}
+
+function openCreateModal(){document.getElementById('createModal').classList.add('open')}
+function closeCreateModal(){document.getElementById('createModal').classList.remove('open');document.getElementById('assetName').value='';document.getElementById('assetDesc').value='';document.getElementById('assetTags').value=''}
+
+function createAsset(){
+const name=document.getElementById('assetName').value.trim();if(!name)return;
+const type=document.getElementById('assetType').value;
+const desc=document.getElementById('assetDesc').value.trim();
+const tags=document.getElementById('assetTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+data.assets.push({id:genId(),name,type,desc,tags,folder:data.activeFolder,starred:false,created:new Date().toISOString().slice(0,10),size:Math.floor(Math.random()*50+1)+' KB'});
+saveData();closeCreateModal();renderAssets();renderFilterBar();toast('Asset created');
+}
+
+function deleteAsset(id){data.assets=data.assets.filter(a=>a.id!==id);data.selectedAsset=null;saveData();closeDetail();renderAssets();renderFilterBar();toast('Asset deleted')}
+
+function createFolder(){
+const name=prompt('Folder name:');if(!name)return;
+const id=name.toLowerCase().replace(/\s+/g,'_')+'_'+genId();
+const parent=data.folders.find(f=>f.id===data.activeFolder)||data.folders.find(f=>f.id==='root');
+if(!parent.children)parent.children=[];
+parent.children.push(id);
+data.folders.push({id,name,children:[]});
+saveData();renderTree();toast('Folder created');
+}
+
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000)}
+
+function exportJSON(){
+const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='assetforge_export.json';a.click();
+}
+
+function importJSON(e){
+const file=e.target.files[0];if(!file)return;
+const reader=new FileReader();
+reader.onload=ev=>{try{data={...data,...JSON.parse(ev.target.result)};saveData();renderAll();toast('Import complete')}catch(err){toast('Import failed')}};
+reader.readAsText(file);e.target.value='';
+}
+
+function renderAll(){renderTree();renderAssets();renderFilterBar()}
+document.getElementById('searchInput').addEventListener('input',e=>{data.search=e.target.value;renderAssets()});
+renderAll();
+</script>
+</body>
+</html>

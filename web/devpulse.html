@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DevPulse - Developer Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;z-index:1000;color:#FFCB47;text-decoration:none;font-size:13px;background:rgba(46,47,94,.85);padding:4px 10px;border-radius:6px}
+a.back:hover{background:rgba(68,73,226,.6)}
+.header{padding:16px 24px;display:flex;align-items:center;gap:14px;background:#2E2F5E;border-bottom:2px solid #4449E2}
+.header h1{font-size:20px;color:#FFCB47}
+.header .refresh{margin-left:auto;padding:6px 14px;border:none;border-radius:6px;background:#4449E2;color:#F0F0F5;cursor:pointer;font-size:12px}
+.header .refresh:hover{background:#5a5ff0}
+.container{padding:24px;max-width:1400px;margin:0 auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.card{background:#2E2F5E;border-radius:12px;padding:20px;text-align:center}
+.card .num{font-size:36px;font-weight:bold;display:block}
+.card .lbl{font-size:13px;color:#888}
+.section{background:#2E2F5E;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h3{color:#FFCB47;margin-bottom:12px;font-size:16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;background:#1a1a40;color:#FFCB47;border-bottom:2px solid #4449E2;position:sticky;top:0}
+td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)}
+.badge{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold}
+.badge.success{background:#44e26e33;color:#44e26e}
+.badge.failed{background:#e2444433;color:#e24444}
+.badge.progress{background:#4488ff33;color:#4488ff}
+.badge.ERROR{background:#e2444433;color:#e24444}
+.badge.WARN{background:#e2a84433;color:#e2a844}
+.badge.INFO{background:#4488ff33;color:#4488ff}
+.bar-wrap{height:20px;background:#1a1a40;border-radius:4px;overflow:hidden;margin:4px 0}
+.bar{height:100%;border-radius:4px;transition:width .5s}
+.timeline{display:flex;flex-direction:column;gap:10px}
+.timeline .event{padding:10px 14px;background:#1a1a40;border-radius:8px;border-left:3px solid #4449E2;font-size:13px}
+.timeline .event .time{color:#888;font-size:11px;margin-top:4px}
+.table-wrap{max-height:320px;overflow-y:auto;border-radius:8px}
+</style>
+</head>
+<body>
+<a class="back" href="../">&larr; Back</a>
+<div class="header">
+  <h1>DevPulse</h1><span style="color:#888;font-size:13px">Developer Dashboard</span>
+  <button class="refresh" id="refreshBtn">↻ Refresh Data</button>
+</div>
+<div class="container" id="content"></div>
+<script>
+const apps=[
+  {name:"DataDocs",status:"Active"},{name:"Learner",status:"Active"},
+  {name:"ProjectHub",status:"Active"},{name:"Trestrio",status:"Development"},
+  {name:"CodeShelf",status:"Development"},{name:"LogScope",status:"Active"},
+  {name:"TestBench",status:"Active"},{name:"DevPulse",status:"Active"},
+  {name:"CanvasAlly",status:"Active"},{name:"AssetForge",status:"Unfinished"},
+  {name:"FilePilot",status:"Unfinished"},{name:"DataLaunch",status:"Retired"}
+];
+
+function genData(){
+  const builds=apps.map(a=>({
+    app:a.name,
+    status:['Success','Success','Success','Failed','In Progress'][Math.floor(Math.random()*5)],
+    duration:(30+Math.floor(Math.random()*300))+'s',
+    date:new Date(Date.now()-Math.floor(Math.random()*7*86400000)).toISOString().split('T')[0]
+  })).sort((a,b)=>b.date.localeCompare(a.date));
+
+  const coverage=apps.map(a=>({app:a.name,pct:40+Math.floor(Math.random()*56)})).sort((a,b)=>b.pct-a.pct);
+
+  const errors=[];
+  const lvl=['ERROR','WARN','INFO'];
+  for(let i=0;i<10;i++){
+    errors.push({
+      level:lvl[Math.floor(Math.random()*3)],
+      app:apps[Math.floor(Math.random()*apps.length)].name,
+      message:["Connection timeout","Null pointer exception","Memory limit exceeded","Rate limit exceeded","Invalid input","Database locked","Auth failure","File not found","Queue full","Timeout after 30s"][Math.floor(Math.random()*10)],
+      time:new Date(Date.now()-Math.floor(Math.random()*86400000)).toISOString()
+    });
+  }
+
+  const events=[];
+  const tpl=["Build completed for {a}","Tests passed for {a}","Release deployed for {a}","Bug fixed in {a}","Feature added to {a}","Code review approved for {a}"];
+  for(let i=0;i<8;i++){
+    const t=tpl[Math.floor(Math.random()*tpl.length)].replace('{a}',apps[Math.floor(Math.random()*apps.length)].name);
+    events.push({text:t,time:new Date(Date.now()-Math.floor(Math.random()*86400000)).toISOString()});
+  }
+  events.sort((a,b)=>b.time.localeCompare(a.time));
+
+  return{builds,coverage,errors,events};
+}
+
+function render(){
+  let data=localStorage.getItem('devpulse_data');
+  if(data)data=JSON.parse(data);else{data=genData();localStorage.setItem('devpulse_data',JSON.stringify(data));}
+
+  const active=apps.filter(a=>a.status==='Active').length;
+  const dev=apps.filter(a=>a.status==='Development').length;
+  const unfin=apps.filter(a=>a.status==='Unfinished').length;
+  const retired=apps.filter(a=>a.status==='Retired').length;
+
+  document.getElementById('content').innerHTML=`
+    <div class="grid">
+      <div class="card"><span class="num" style="color:#FFCB47">12</span><span class="lbl">Total Apps</span></div>
+      <div class="card"><span class="num" style="color:#44e26e">${active}</span><span class="lbl">Active</span></div>
+      <div class="card"><span class="num" style="color:#4488ff">${dev}</span><span class="lbl">In Development</span></div>
+      <div class="card"><span class="num" style="color:#e2a844">${unfin}</span><span class="lbl">Unfinished</span></div>
+      <div class="card"><span class="num" style="color:#e24444">${retired}</span><span class="lbl">Retired</span></div>
+    </div>
+
+    <div class="section">
+      <h3>Build Status</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>App</th><th>Status</th><th>Duration</th><th>Date</th></tr></thead>
+          <tbody>${data.builds.map(b=>`<tr>
+            <td>${b.app}</td>
+            <td><span class="badge ${b.status==='Success'?'success':b.status==='Failed'?'failed':'progress'}">${b.status}</span></td>
+            <td>${b.duration}</td>
+            <td style="color:#888">${b.date}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Test Coverage</h3>
+      ${data.coverage.map(c=>{
+        const color=c.pct>=80?'#44e26e':c.pct>=60?'#FFCB47':'#e24444';
+        return `<div style="display:flex;align-items:center;gap:10px;margin:6px 0">
+          <span style="width:120px;font-size:13px">${c.app}</span>
+          <div class="bar-wrap" style="flex:1"><div class="bar" style="width:${c.pct}%;background:${color}"></div></div>
+          <span style="width:40px;text-align:right;font-size:12px;color:${color}">${c.pct}%</span>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div class="section">
+        <h3>Error Log</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Level</th><th>App</th><th>Message</th><th>Time</th></tr></thead>
+            <tbody>${data.errors.map(e=>`<tr>
+              <td><span class="badge ${e.level}">${e.level}</span></td>
+              <td>${e.app}</td>
+              <td style="font-size:12px">${e.message}</td>
+              <td style="color:#888;font-size:11px;white-space:nowrap">${new Date(e.time).toLocaleString()}</td>
+            </tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3>Activity Timeline</h3>
+        <div class="timeline">
+          ${data.events.map(e=>`<div class="event">${e.text}<div class="time">${new Date(e.time).toLocaleString()}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+document.getElementById('refreshBtn').addEventListener('click',()=>{
+  localStorage.removeItem('devpulse_data');render();
+});
+
+render();
+</script>
+</body>
+</html>

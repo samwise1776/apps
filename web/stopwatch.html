@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Stopwatch</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:900px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;margin-bottom:24px;color:#FFCB47;text-align:center}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-danger{background:#e74c3c}
+.tabs{display:flex;gap:4px;margin-bottom:20px;justify-content:center}
+.tabs button{padding:10px 24px;border:none;border-radius:8px;cursor:pointer;font-size:14px;background:#2E2F6E;color:#F0F0F5;transition:.2s}
+.tabs button.active{background:#4449E2}
+.sw-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:600px){.sw-grid{grid-template-columns:1fr}}
+.sw-card{background:#2E2F6E;border-radius:12px;padding:20px;text-align:center}
+.sw-card h3{font-size:14px;color:#FFCB47;margin-bottom:8px}
+.display{font-size:48px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:2px;margin:12px 0;font-family:'Courier New',monospace}
+.display.running{color:#2ecc71}
+.display.stopped{color:#e74c3c}
+.sw-controls{display:flex;gap:6px;justify-content:center;margin:12px 0}
+.sw-controls .btn{padding:6px 14px;font-size:12px}
+.lap-list{max-height:200px;overflow-y:auto;text-align:left;font-size:12px}
+.lap-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(240,240,245,.1)}
+.lap-item .lap-num{color:#FFCB47;font-weight:600;min-width:40px}
+.lap-item .lap-time{font-family:monospace}
+.lap-item .split-time{color:rgba(240,240,245,.5);font-family:monospace}
+.countdown-form{display:flex;gap:8px;justify-content:center;align-items:end;margin-bottom:16px}
+.countdown-form>div{display:flex;flex-direction:column;gap:2px}
+.countdown-form label{font-size:11px;color:rgba(240,200,245,.5)}
+.countdown-form input{width:60px;padding:8px;border:1px solid rgba(240,240,245,.2);border-radius:6px;background:#1a1a4a;color:#F0F0F5;font-size:18px;text-align:center}
+.keys-hint{font-size:11px;color:rgba(240,240,245,.3);text-align:center;margin-top:16px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>⏱ Advanced Stopwatch</h1>
+<div class="tabs">
+<button class="active" onclick="showTab('stopwatch',this)">Stopwatch</button>
+<button onclick="showTab('countdown',this)">Countdown</button>
+</div>
+<div id="tabStopwatch">
+<div class="sw-grid" id="swGrid">
+<div class="sw-card" id="sw1">
+<h3>Stopwatch 1</h3>
+<div class="display" id="display1">00:00:00.00</div>
+<div class="sw-controls">
+<button class="btn btn-accent" onclick="swAction(1,'toggle')">Start</button>
+<button class="btn" onclick="swAction(1,'lap')">Lap</button>
+<button class="btn btn-danger" onclick="swAction(1,'reset')">Reset</button>
+</div>
+<div class="lap-list" id="laps1"></div>
+</div>
+</div>
+<div style="text-align:center;margin-bottom:12px">
+<button class="btn" onclick="addStopwatch()" id="addSwBtn">+ Add Stopwatch</button>
+<button class="btn btn-danger" onclick="removeStopwatch()">- Remove</button>
+</div>
+<div class="keys-hint">Keyboard: Space = Start/Stop | R = Reset | L = Lap</div>
+</div>
+<div id="tabCountdown" style="display:none">
+<div class="countdown-form">
+<div><label>Hours</label><input type="number" id="cdH" min="0" max="23" value="0"></div>
+<div><label>Minutes</label><input type="number" id="cdM" min="0" max="59" value="5"></div>
+<div><label>Seconds</label><input type="number" id="cdS" min="0" max="59" value="0"></div>
+<button class="btn btn-accent" onclick="startCountdown()">Start</button>
+</div>
+<div style="text-align:center">
+<div class="display" id="cdDisplay" style="font-size:64px">00:05:00</div>
+<div class="sw-controls">
+<button class="btn" onclick="pauseCountdown()">Pause</button>
+<button class="btn btn-danger" onclick="resetCountdown()">Reset</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+let stopwatches=[{running:false,start:0,elapsed:0,interval:null,laps:[]}];
+let cdRunning=false,cdElapsed=0,cdTotal=0,cdInterval=null;
+let swCount=1;
+
+function showTab(name,btn){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('tabStopwatch').style.display=name==='stopwatch'?'':'none';
+  document.getElementById('tabCountdown').style.display=name==='countdown'?'':'none';
+}
+
+function fmtTime(ms){
+  const h=Math.floor(ms/3600000);const m=Math.floor((ms%3600000)/60000);const s=Math.floor((ms%60000)/1000);const cs=Math.floor((ms%1000)/10);
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+'.'+String(cs).padStart(2,'0');
+}
+
+function fmtShort(ms){
+  const m=Math.floor(ms/60000);const s=Math.floor((ms%60000)/1000);
+  return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+function renderSW(i){
+  const sw=stopwatches[i];
+  const display=document.getElementById('display'+(i+1));
+  const laps=document.getElementById('laps'+(i+1));
+  const elapsed=sw.running?(Date.now()-sw.start+sw.elapsed):sw.elapsed;
+  display.textContent=fmtTime(elapsed);
+  display.className='display '+(sw.running?'running':'');
+  const btn=display.parentElement.querySelector('.btn-accent');
+  if(btn)btn.textContent=sw.running?'Pause':'Start';
+  if(laps)laps.innerHTML=sw.laps.map((l,idx)=>`<div class="lap-item"><span class="lap-num">Lap ${idx+1}</span><span class="split-time">${fmtTime(l.split)}</span><span class="lap-time">${fmtTime(l.total)}</span></div>`).join('');
+}
+
+function swAction(i,action){
+  const sw=stopwatches[i];
+  if(action==='toggle'){
+    if(sw.running){sw.elapsed+=Date.now()-sw.start;sw.running=false;clearInterval(sw.interval)}
+    else{sw.start=Date.now();sw.running=true;sw.interval=setInterval(()=>renderSW(i),50)}
+  }else if(action==='reset'){
+    sw.running=false;sw.elapsed=0;sw.laps=[];clearInterval(sw.interval);
+  }else if(action==='lap'&&sw.running){
+    const total=Date.now()-sw.start+sw.elapsed;
+    const split=sw.laps.length?total-sw.laps[sw.laps.length-1].total:total;
+    sw.laps.push({total,split});
+  }
+  renderSW(i);
+}
+
+function addStopwatch(){
+  if(swCount>=4)return;
+  swCount++;stopwatches.push({running:false,start:0,elapsed:0,interval:null,laps:[]});
+  const grid=document.getElementById('swGrid');
+  const card=document.createElement('div');card.className='sw-card';card.id='sw'+swCount;
+  card.innerHTML=`<h3>Stopwatch ${swCount}</h3><div class="display" id="display${swCount}">00:00:00.00</div><div class="sw-controls"><button class="btn btn-accent" onclick="swAction(${swCount},'toggle')">Start</button><button class="btn" onclick="swAction(${swCount},'lap')">Lap</button><button class="btn btn-danger" onclick="swAction(${swCount},'reset')">Reset</button></div><div class="lap-list" id="laps${swCount}"></div>`;
+  grid.appendChild(card);
+  if(swCount>=4)document.getElementById('addSwBtn').style.display='none';
+}
+
+function removeStopwatch(){
+  if(swCount<=1)return;
+  const el=document.getElementById('sw'+swCount);
+  if(stopwatches[swCount-1].running)swAction(swCount-1,'reset');
+  if(el)el.remove();stopwatches.pop();swCount--;
+  document.getElementById('addSwBtn').style.display='';
+}
+
+// Countdown
+function startCountdown(){
+  if(cdRunning)return;
+  if(cdElapsed===0){
+    const h=parseInt(document.getElementById('cdH').value)||0;
+    const m=parseInt(document.getElementById('cdM').value)||0;
+    const s=parseInt(document.getElementById('cdS').value)||0;
+    cdTotal=(h*3600+m*60+s)*1000;
+    if(cdTotal<=0)return;
+    cdElapsed=cdTotal;
+  }
+  cdRunning=true;
+  cdInterval=setInterval(()=>{
+    cdElapsed-=100;
+    if(cdElapsed<=0){cdElapsed=0;cdRunning=false;clearInterval(cdInterval);playBeep();renderCD()}
+    renderCD();
+  },100);
+}
+
+function pauseCountdown(){cdRunning=false;clearInterval(cdInterval)}
+function resetCountdown(){pauseCountdown();cdElapsed=0;cdTotal=0;renderCD()}
+
+function renderCD(){
+  const display=document.getElementById('cdDisplay');
+  const remaining=cdElapsed;
+  display.textContent=fmtShort(remaining)+'.'+String(Math.floor((remaining%1000)/100)).padStart(1,'0');
+  display.className='display '+(cdRunning?'running':cdElapsed>0?'stopped':'');
+}
+
+function playBeep(){
+  try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
+  [0,.2,.4].forEach((d,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;o.type='sine';g.gain.value=.3;o.start(ctx.currentTime+d);o.stop(ctx.currentTime+d+.15)})}
+  catch(e){}
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.target.matches('input,textarea'))return;
+  if(e.code==='Space'){e.preventDefault();swAction(1,'toggle')}
+  if(e.key==='r'||e.key==='R')swAction(1,'reset');
+  if(e.key==='l'||e.key==='L')swAction(1,'lap');
+});
+
+renderSW(0);renderCD();
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Budget Calculator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:900px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;margin-bottom:24px;color:#FFCB47;text-align:center}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-danger{background:#e74c3c}
+.btn-sm{padding:4px 10px;font-size:12px}
+input,select{padding:8px 12px;border:1px solid rgba(240,240,245,.2);border-radius:6px;background:#1a1a4a;color:#F0F0F5;font-size:14px;width:100%}
+.section{background:#2E2F6E;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h3{color:#FFCB47;margin-bottom:12px;font-size:16px}
+.form-row{display:flex;gap:8px;margin-bottom:8px;align-items:end}
+.form-row>div{flex:1;display:flex;flex-direction:column;gap:2px}
+.form-row label{font-size:11px;color:rgba(240,200,245,.5)}
+.summary-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.card{background:#1a1a4a;border-radius:10px;padding:16px;text-align:center}
+.card .val{font-size:24px;font-weight:700}
+.card .lbl{font-size:12px;color:rgba(240,240,245,.5);margin-top:4px}
+.card.income .val{color:#2ecc71}
+.card.expense .val{color:#e74c3c}
+.card.balance .val{color:#FFCB47}
+.entry-row{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px solid rgba(240,240,245,.05);font-size:13px}
+.cat-bar{display:flex;gap:4px;height:10px;border-radius:5px;overflow:hidden;margin:8px 0}
+.cat-bar div{height:100%;border-radius:5px;transition:width .3s}
+.cat-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px}
+.cat-legend span{display:flex;align-items:center;gap:4px}
+.cat-legend .dot{width:10px;height:10px;border-radius:50%}
+.month-nav{display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:20px}
+.month-nav button{width:32px;height:32px;border:none;border-radius:6px;background:#2E2F6E;color:#F0F0F5;cursor:pointer;font-size:18px}
+.month-nav button:hover{background:#4449E2}
+.savings-bar{height:20px;background:#1a1a4a;border-radius:10px;overflow:hidden;margin:8px 0}
+.savings-bar .fill{height:100%;background:linear-gradient(90deg,#4449E2,#FFCB47);border-radius:10px;transition:width .3s}
+@media(max-width:600px){.summary-cards{grid-template-columns:1fr}.form-row{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>💰 Budget Calculator</h1>
+<div class="month-nav">
+<button onclick="changeMonth(-1)">&lt;</button>
+<span id="monthLabel" style="font-weight:600;min-width:140px;text-align:center"></span>
+<button onclick="changeMonth(1)">&gt;</button>
+</div>
+<div class="summary-cards">
+<div class="card income"><div class="val" id="totalIncome">$0</div><div class="lbl">Income</div></div>
+<div class="card expense"><div class="val" id="totalExpense">$0</div><div class="lbl">Expenses</div></div>
+<div class="card balance"><div class="val" id="balance">$0</div><div class="lbl">Balance</div></div>
+</div>
+<div class="section">
+<h3>Add Income</h3>
+<div class="form-row">
+<div><label>Name</label><input id="incName" placeholder="e.g. Salary"></div>
+<div style="flex:.5"><label>Amount ($)</label><input id="incAmt" type="number" min="0" step="0.01"></div>
+<button class="btn btn-accent" onclick="addIncome()">Add</button>
+</div>
+<div id="incomeList"></div>
+</div>
+<div class="section">
+<h3>Add Expense</h3>
+<div class="form-row">
+<div><label>Name</label><input id="expName" placeholder="e.g. Groceries"></div>
+<div style="flex:.5"><label>Amount ($)</label><input id="expAmt" type="number" min="0" step="0.01"></div>
+<div style="flex:.5"><label>Category</label><select id="expCat"><option>Housing</option><option>Food</option><option>Transport</option><option>Entertainment</option><option>Utilities</option><option>Other</option></select></div>
+<button class="btn btn-accent" onclick="addExpense()">Add</button>
+</div>
+<div id="expenseList"></div>
+</div>
+<div class="section">
+<h3>Category Breakdown</h3>
+<div class="cat-bar" id="catBar"></div>
+<div class="cat-legend" id="catLegend"></div>
+</div>
+<div class="section">
+<h3>Savings Goal</h3>
+<div class="form-row">
+<div style="flex:1"><label>Goal ($)</label><input id="savingsGoal" type="number" min="0" onchange="saveGoal()"></div>
+</div>
+<div class="savings-bar"><div class="fill" id="savingsFill" style="width:0%"></div></div>
+<div style="font-size:12px;color:rgba(240,240,245,.5);margin-top:4px" id="savingsText">Set a savings goal above</div>
+</div>
+<div style="text-align:center"><button class="btn" onclick="exportCSV()">Export CSV</button></div>
+</div>
+<script>
+let currentMonth=new Date().toISOString().slice(0,7);
+let data=JSON.parse(localStorage.getItem('budgetData'))||{};
+let savingsGoal=JSON.parse(localStorage.getItem('budgetGoal'))||0;
+
+const cats=['Housing','Food','Transport','Entertainment','Utilities','Other'];
+const catColors=['#4449E2','#FFCB47','#e74c3c','#9b59b6','#2ecc71','#95a5a6'];
+
+function save(){localStorage.setItem('budgetData',JSON.stringify(data));localStorage.setItem('budgetGoal',JSON.stringify(savingsGoal))}
+function getMonth(){if(!data[currentMonth])data[currentMonth]={income:[],expenses:[]};return data[currentMonth]}
+
+function changeMonth(d){
+  const [y,m]=currentMonth.split('-').map(Number);
+  const dt=new Date(y,m-1+d+1);currentMonth=dt.toISOString().slice(0,7);render();
+}
+
+function fmtMoney(n){return'$'+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+
+function addIncome(){
+  const name=document.getElementById('incName').value.trim();
+  const amt=parseFloat(document.getElementById('incAmt').value)||0;
+  if(!name||amt<=0)return;
+  getMonth().income.push({name,amt});save();render();
+  document.getElementById('incName').value='';document.getElementById('incAmt').value='';
+}
+function addExpense(){
+  const name=document.getElementById('expName').value.trim();
+  const amt=parseFloat(document.getElementById('expAmt').value)||0;
+  const cat=document.getElementById('expCat').value;
+  if(!name||amt<=0)return;
+  getMonth().expenses.push({name,amt,cat});save();render();
+  document.getElementById('expName').value='';document.getElementById('expAmt').value='';
+}
+function delIncome(i){getMonth().income.splice(i,1);save();render()}
+function delExpense(i){getMonth().expenses.splice(i,1);save();render()}
+
+function render(){
+  const m=getMonth();
+  const totalInc=m.income.reduce((a,e)=>a+e.amt,0);
+  const totalExp=m.expenses.reduce((a,e)=>a+e.amt,0);
+  const bal=totalInc-totalExp;
+  document.getElementById('totalIncome').textContent=fmtMoney(totalInc);
+  document.getElementById('totalExpense').textContent=fmtMoney(totalExp);
+  document.getElementById('balance').textContent=fmtMoney(bal);
+  const [y,mo]=currentMonth.split('-');
+  const dt=new Date(y,mo-1);
+  document.getElementById('monthLabel').textContent=dt.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  document.getElementById('incomeList').innerHTML=m.income.map((e,i)=>`<div class="entry-row"><span>${esc(e.name)}</span><span style="color:#2ecc71">${fmtMoney(e.amt)}</span><button class="btn btn-danger btn-sm" onclick="delIncome(${i})">×</button></div>`).join('');
+  document.getElementById('expenseList').innerHTML=m.expenses.map((e,i)=>`<div class="entry-row"><span>${esc(e.name)} <span style="color:rgba(240,240,245,.4)">(${e.cat})</span></span><span style="color:#e74c3c">${fmtMoney(e.amt)}</span><button class="btn btn-danger btn-sm" onclick="delExpense(${i})">×</button></div>`).join('');
+
+  const catTotals=cats.map(c=>m.expenses.filter(e=>e.cat===c).reduce((a,e)=>a+e.amt,0));
+  document.getElementById('catBar').innerHTML=catTotals.map((t,i)=>t>0?`<div style="width:${totalExp?t/totalExp*100:0}%;background:${catColors[i]}" title="${cats[i]}: ${fmtMoney(t)}"></div>`:'').join('');
+  document.getElementById('catLegend').innerHTML=cats.map((c,i)=>`<span><span class="dot" style="background:${catColors[i]}"></span>${c}: ${fmtMoney(catTotals[i])}</span>`).join('');
+
+  document.getElementById('savingsGoal').value=savingsGoal||'';
+  if(savingsGoal>0){
+    const pct=Math.min(100,Math.max(0,(bal/savingsGoal)*100));
+    document.getElementById('savingsFill').style.width=pct+'%';
+    document.getElementById('savingsText').textContent=`${fmtMoney(Math.max(0,bal))} of ${fmtMoney(savingsGoal)} (${Math.round(pct)}%)`;
+  }else{
+    document.getElementById('savingsFill').style.width='0%';
+    document.getElementById('savingsText').textContent='Set a savings goal above';
+  }
+}
+
+function saveGoal(){savingsGoal=parseFloat(document.getElementById('savingsGoal').value)||0;save();render()}
+
+function exportCSV(){
+  const m=getMonth();
+  let csv='Type,Name,Amount,Category\n';
+  m.income.forEach(e=>csv+=`Income,"${e.name}",${e.amt},\n`);
+  m.expenses.forEach(e=>csv+=`Expense,"${e.name}",${e.amt},${e.cat}\n`);
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`budget-${currentMonth}.csv`;a.click();URL.revokeObjectURL(url);
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+render();
+</script>
+</body>
+</html>

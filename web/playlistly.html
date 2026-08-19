@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playlistly - Music Playlist Manager</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;z-index:100;background:rgba(35,34,90,.9);padding:4px 10px;border-radius:6px}
+a.back:hover{text-decoration:underline}
+.container{max-width:1000px;margin:0 auto;padding:50px 20px 20px}
+h1{color:#FFCB47;font-size:28px;margin-bottom:16px}
+h2{color:#FFCB47;font-size:18px;margin-bottom:10px}
+h3{color:#F0F0F5;font-size:15px;margin-bottom:8px}
+.panel{background:#2E2F5E;border:1px solid #4449E2;border-radius:10px;padding:18px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1.5fr;gap:16px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+input,select{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:8px 12px;font-size:14px;width:100%;margin-bottom:8px}
+.btn{background:#4449E2;color:#F0F0F5;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn:hover{background:#5555FF}
+.btn.danger{background:#e74c3c}
+.btn.secondary{background:transparent;border:1px solid #4449E2}
+.btn.sm{padding:4px 10px;font-size:11px}
+.playlist-card{background:#23225A;border:1px solid #4449E2;border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.playlist-card:hover{border-color:#FFCB47}
+.playlist-card.active{border-color:#FFCB47;background:rgba(255,203,71,.05)}
+.playlist-card h4{margin-bottom:2px;font-size:14px}
+.playlist-card .meta{font-size:11px;color:#8888bb}
+.song-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid #353670;font-size:13px}
+.song-item:last-child{border-bottom:none}
+.song-item:hover{background:rgba(68,73,226,.05)}
+.song-item .num{color:#8888bb;width:24px;text-align:center;font-size:12px}
+.song-item .info{flex:1}
+.song-item .title{font-weight:600}
+.song-item .artist{font-size:11px;color:#8888bb}
+.song-item .duration{color:#8888bb;font-size:12px}
+.song-item .actions{display:flex;gap:4px}
+.now-playing{background:#2E2F5E;border:2px solid #FFCB47;border-radius:10px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:16px}
+.now-playing .art{width:60px;height:60px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.now-playing .info{flex:1}
+.now-playing .title{font-weight:600;font-size:16px}
+.now-playing .artist{font-size:13px;color:#8888bb}
+.progress-bar{width:100%;height:4px;background:#353670;border-radius:2px;margin-top:8px;position:relative;cursor:pointer}
+.progress-fill{height:100%;background:#FFCB47;border-radius:2px}
+.controls{display:flex;gap:8px;align-items:center;margin-top:8px}
+.controls button{background:none;border:none;color:#F0F0F5;font-size:18px;cursor:pointer;padding:4px 8px}
+.controls button:hover{color:#FFCB47}
+.controls .play-btn{font-size:24px}
+.genre-tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;margin-right:4px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>Playlistly</h1>
+<div id="nowPlaying" class="now-playing hidden"></div>
+<div class="grid2">
+<div class="panel">
+<h3>Playlists</h3>
+<div style="display:flex;gap:8px;margin-bottom:10px">
+<input id="newPlaylist" placeholder="New playlist name" style="flex:1">
+<button class="btn" onclick="createPlaylist()">Create</button>
+</div>
+<div id="playlistList"></div>
+</div>
+<div class="panel">
+<h3 id="songPanelTitle">Select a playlist</h3>
+<div id="addSongForm" class="hidden" style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+<input id="songTitle" placeholder="Song title" style="flex:2">
+<input id="songArtist" placeholder="Artist" style="flex:2">
+<input id="songDuration" placeholder="Duration (e.g. 3:45)" style="flex:1">
+<select id="songGenre" style="flex:1"><option>Pop</option><option>Rock</option><option>Jazz</option><option>Classical</option><option>Hip-Hop</option><option>Electronic</option><option>R&B</option><option>Country</option><option>Other</option></select>
+<button class="btn" onclick="addSong()">Add</button>
+</div>
+<div id="songList"></div>
+</div>
+</div>
+</div>
+<script>
+const DB='pl_data';
+let playlists=[];let activePL=null;let playingSong=null;let playingPL=null;
+const GENRE_COLORS={'Pop':'#FFCB47','Rock':'#e74c3c','Jazz':'#9b59b6','Classical':'#2ecc71','Hip-Hop':'#e67e22','Electronic':'#4449E2','R&B':'#e91e63','Country':'#1abc9c','Other':'#8888bb'};
+
+function loadData(){try{const d=JSON.parse(localStorage.getItem(DB));if(d)playlists=d.playlists||[];}catch(e){}}
+function saveData(){localStorage.setItem(DB,JSON.stringify({playlists}))}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function createPlaylist(){
+    const name=document.getElementById('newPlaylist').value.trim();if(!name)return;
+    playlists.push({id:Date.now(),name,songs:[]});
+    document.getElementById('newPlaylist').value='';saveData();render();
+}
+
+function deletePlaylist(id){playlists=playlists.filter(p=>p.id!==id);if(activePL===id)activePL=null;saveData();render()}
+
+function addSong(){
+    const title=document.getElementById('songTitle').value.trim();if(!title)return;
+    const pl=playlists.find(p=>p.id===activePL);if(!pl)return;
+    pl.songs.push({
+        id:Date.now(),title,
+        artist:document.getElementById('songArtist').value.trim()||'Unknown',
+        duration:document.getElementById('songDuration').value.trim()||'3:00',
+        genre:document.getElementById('songGenre').value
+    });
+    document.getElementById('songTitle').value='';document.getElementById('songArtist').value='';document.getElementById('songDuration').value='';
+    saveData();renderSongs();
+}
+
+function removeSong(songId){
+    const pl=playlists.find(p=>p.id===activePL);if(!pl)return;
+    pl.songs=pl.songs.filter(s=>s.id!==songId);saveData();renderSongs();
+}
+
+function playSong(songId,plId){
+    const pl=playlists.find(p=>p.id===plId);if(!pl)return;
+    const song=pl.songs.find(s=>s.id===songId);if(!song)return;
+    playingSong=song;playingPL=pl;
+    renderNowPlaying();
+}
+
+function renderNowPlaying(){
+    const el=document.getElementById('nowPlaying');
+    if(!playingSong){el.classList.add('hidden');return;}
+    el.classList.remove('hidden');
+    const genreColor=GENRE_COLORS[playingSong.genre]||'#8888bb';
+    el.innerHTML='<div class="art" style="background:'+genreColor+'">♫</div>'+
+        '<div class="info"><div class="title">'+esc(playingSong.title)+'</div>'+
+        '<div class="artist">'+esc(playingSong.artist)+' &middot; '+esc(playingSong.genre)+'</div>'+
+        '<div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>'+
+        '<div class="controls"><button onclick="prevSong()">⏮</button>'+
+        '<button class="play-btn">▶</button><button onclick="nextSong()">⏭</button>'+
+        '<span style="font-size:12px;color:#8888bb;margin-left:8px">'+esc(playingSong.duration)+'</span></div></div>';
+}
+
+function prevSong(){
+    if(!playingPL||!playingSong)return;
+    const idx=playingPL.songs.findIndex(s=>s.id===playingSong.id);
+    if(idx>0)playSong(playingPL.songs[idx-1].id,playingPL.id);
+}
+
+function nextSong(){
+    if(!playingPL||!playingSong)return;
+    const idx=playingPL.songs.findIndex(s=>s.id===playingSong.id);
+    if(idx<playingPL.songs.length-1)playSong(playingPL.songs[idx+1].id,playingPL.id);
+}
+
+function render(){
+    document.getElementById('playlistList').innerHTML=playlists.map(p=>
+        '<div class="playlist-card'+(activePL===p.id?' active':'')+'" onclick="selectPlaylist('+p.id+')">'+
+        '<div><h4>🎵 '+esc(p.name)+'</h4><div class="meta">'+p.songs.length+' songs</div></div>'+
+        '<button onclick="event.stopPropagation();deletePlaylist('+p.id+')" style="background:none;border:none;color:#e74c3c;cursor:pointer">✕</button></div>'
+    ).join('')||'<p style="color:#8888bb;font-size:13px">No playlists yet</p>';
+    renderSongs();
+}
+
+function selectPlaylist(id){activePL=id;render()}
+
+function renderSongs(){
+    const pl=playlists.find(p=>p.id===activePL);
+    if(!pl){
+        document.getElementById('songPanelTitle').textContent='Select a playlist';
+        document.getElementById('songList').innerHTML='';
+        document.getElementById('addSongForm').style.display='none';
+        return;
+    }
+    document.getElementById('songPanelTitle').textContent=pl.name;
+    document.getElementById('addSongForm').style.display='flex';
+    document.getElementById('songList').innerHTML=pl.songs.map((s,i)=>{
+        const gc=GENRE_COLORS[s.genre]||'#8888bb';
+        return '<div class="song-item"><span class="num">'+(i+1)+'</span>'+
+        '<div class="info"><div class="title">'+esc(s.title)+'</div>'+
+        '<div class="artist">'+esc(s.artist)+' <span class="genre-tag" style="background:'+gc+'20;color:'+gc+'">'+esc(s.genre)+'</span></div></div>'+
+        '<span class="duration">'+esc(s.duration)+'</span>'+
+        '<div class="actions"><button class="btn sm" onclick="playSong('+s.id+','+pl.id+')">▶</button>'+
+        '<button class="btn sm danger" onclick="removeSong('+s.id+')">✕</button></div></div>';
+    }).join('')||'<p style="color:#8888bb;font-size:13px;text-align:center;padding:20px">No songs yet</p>';
+}
+
+loadData();render();
+</script>
+</body>
+</html>

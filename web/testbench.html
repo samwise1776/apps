@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TestBench - Test Runner</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;z-index:1000;color:#FFCB47;text-decoration:none;font-size:13px;background:rgba(46,47,94,.85);padding:4px 10px;border-radius:6px}
+a.back:hover{background:rgba(68,73,226,.6)}
+.header{padding:16px 24px;display:flex;align-items:center;gap:14px;background:#2E2F5E;border-bottom:2px solid #4449E2}
+.header h1{font-size:20px;color:#FFCB47}
+.container{display:flex;height:calc(100vh - 60px)}
+.sidebar{width:260px;background:#2E2F5E;border-right:2px solid #4449E2;overflow-y:auto;padding-top:4px}
+.app-item{padding:12px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;font-size:14px}
+.app-item:hover{background:rgba(68,73,226,.2)}
+.app-item.active{background:rgba(68,73,226,.15);border-left-color:#FFCB47}
+.app-item .app-name{font-weight:600}
+.app-item .app-status{font-size:11px;padding:2px 6px;border-radius:4px;margin-top:4px;display:inline-block}
+.status-Active{background:#44e26e33;color:#44e26e}
+.status-Development{background:#4488ff33;color:#4488ff}
+.status-Unfinished{background:#e2a84433;color:#e2a844}
+.status-Retired{background:#e2444433;color:#e24444}
+.main{flex:1;overflow-y:auto;padding:24px}
+.section{background:#2E2F5E;border-radius:12px;padding:20px;margin-bottom:16px}
+.section h3{color:#FFCB47;margin-bottom:12px;font-size:16px}
+.btn{padding:8px 16px;border:none;border-radius:6px;background:#4449E2;color:#F0F0F5;cursor:pointer;font-size:13px;transition:background .15s}
+.btn:hover{background:#5a5ff0}
+.btn.danger{background:#e24444}.btn.danger:hover{background:#ff5555}
+.btn.sm{padding:5px 10px;font-size:11px}
+.summary{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.summary .s{padding:10px 18px;border-radius:8px;background:#1a1a40;text-align:center;min-width:100px}
+.summary .s .num{font-size:28px;font-weight:bold;display:block}
+.summary .s .lbl{font-size:11px;color:#888}
+.filter-btns{display:flex;gap:6px;margin-bottom:12px}
+.filter-btns button{padding:5px 12px;border:2px solid #4449E2;border-radius:6px;background:transparent;color:#aaa;cursor:pointer;font-size:12px}
+.filter-btns button.active{background:#4449E2;color:#F0F0F5;border-color:#4449E2}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:10px 12px;background:#1a1a40;color:#FFCB47;border-bottom:2px solid #4449E2;position:sticky;top:0}
+td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.05)}
+.badge{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold}
+.badge.pass{background:#44e26e33;color:#44e26e}
+.badge.fail{background:#e2444433;color:#e24444}
+.table-wrap{max-height:400px;overflow-y:auto;border-radius:8px}
+.empty{text-align:center;padding:40px;color:#666}
+.actions{display:flex;gap:8px;margin-bottom:12px}
+.running{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+</style>
+</head>
+<body>
+<a class="back" href="../">&larr; Back</a>
+<div class="header">
+  <h1>TestBench</h1><span style="color:#888;font-size:13px">Test Runner</span>
+</div>
+<div class="container">
+  <div class="sidebar" id="appList"></div>
+  <div class="main" id="mainContent">
+    <div class="empty">Select an app from the sidebar to run tests</div>
+  </div>
+</div>
+<script>
+const apps=[
+  {name:"DataDocs",status:"Active"},{name:"Learner",status:"Active"},
+  {name:"ProjectHub",status:"Active"},{name:"Trestrio",status:"Development"},
+  {name:"CodeShelf",status:"Development"},{name:"LogScope",status:"Active"},
+  {name:"TestBench",status:"Active"},{name:"DevPulse",status:"Active"},
+  {name:"CanvasAlly",status:"Active"},{name:"AssetForge",status:"Unfinished"},
+  {name:"FilePilot",status:"Unfinished"},{name:"DataLaunch",status:"Retired"}
+];
+
+const testNames=[
+  "Login authentication","Database connection","API endpoint /health","Cache invalidation",
+  "Rate limiting","Input validation","Error handling","Session management",
+  "File upload","Search indexing","Notification service","Data export",
+  "Permission check","Memory usage","Response time < 200ms","Concurrent access",
+  "SSL certificate","Database migration","Queue processing","Log rotation"
+];
+
+let history=JSON.parse(localStorage.getItem('testbench_history')||'{}');
+let selectedApp=null, filter='all';
+
+function renderSidebar(){
+  const el=document.getElementById('appList');
+  el.innerHTML=apps.map((a,i)=>`
+    <div class="app-item ${selectedApp===i?'active':''}" data-idx="${i}">
+      <div class="app-name">${a.name}</div>
+      <div class="app-status status-${a.status}">${a.status}</div>
+    </div>`).join('');
+  el.querySelectorAll('.app-item').forEach(item=>{
+    item.addEventListener('click',()=>{selectedApp=+item.dataset.idx;renderSidebar();renderMain();});
+  });
+}
+
+function generateTests(){
+  const count=5+Math.floor(Math.random()*11);
+  const tests=[];
+  const used=new Set();
+  for(let i=0;i<count;i++){
+    let idx;
+    do{idx=Math.floor(Math.random()*testNames.length);}while(used.has(idx)&&used.size<testNames.length);
+    used.add(idx);
+    tests.push({
+      name:testNames[idx],
+      pass:Math.random()<0.8,
+      duration:10+Math.floor(Math.random()*490),
+      time:new Date().toISOString()
+    });
+  }
+  return tests;
+}
+
+function renderMain(){
+  if(selectedApp===null)return;
+  const app=apps[selectedApp];
+  const past=history[app.name]||[];
+  const lastRun=past.length?past[past.length-1]:null;
+  let filtered=lastRun?lastRun.tests:[];
+  if(filter==='pass')filtered=filtered.filter(t=>t.pass);
+  if(filter==='fail')filtered=filtered.filter(t=>!t.pass);
+
+  const passed=lastRun?lastRun.tests.filter(t=>t.pass).length:0;
+  const failed=lastRun?lastRun.tests.filter(t=>!t.pass).length:0;
+  const total=lastRun?lastRun.tests.length:0;
+  const rate=total?Math.round(passed/total*100):0;
+
+  document.getElementById('mainContent').innerHTML=`
+    <div class="section">
+      <h3>${app.name} <span class="status-${app.status}" style="font-size:12px">${app.status}</span></h3>
+      <div class="actions">
+        <button class="btn" id="runBtn">▶ Run Tests</button>
+        <button class="btn sm" id="exportBtn" ${lastRun?'':'disabled'}>Export JSON</button>
+      </div>
+      <div class="summary">
+        <div class="s"><span class="num" style="color:#aaa">${total}</span><span class="lbl">Total</span></div>
+        <div class="s"><span class="num" style="color:#44e26e">${passed}</span><span class="lbl">Passed</span></div>
+        <div class="s"><span class="num" style="color:#e24444">${failed}</span><span class="lbl">Failed</span></div>
+        <div class="s"><span class="num" style="color:#FFCB47">${rate}%</span><span class="lbl">Pass Rate</span></div>
+      </div>
+    </div>
+    ${lastRun?`
+    <div class="section">
+      <h3>Results</h3>
+      <div class="filter-btns">
+        <button class="${filter==='all'?'active':''}" data-f="all">All</button>
+        <button class="${filter==='pass'?'active':''}" data-f="pass">Pass</button>
+        <button class="${filter==='fail'?'active':''}" data-f="fail">Fail</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Test Name</th><th>Status</th><th>Duration</th><th>Timestamp</th></tr></thead>
+          <tbody>${filtered.map(t=>`<tr>
+            <td>${t.name}</td>
+            <td><span class="badge ${t.pass?'pass':'fail'}">${t.pass?'PASS':'FAIL'}</span></td>
+            <td>${t.duration}ms</td>
+            <td style="color:#888">${new Date(t.time).toLocaleTimeString()}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`:'<div class="empty">No test results yet. Click "Run Tests" to start.</div>'}
+  `;
+
+  document.getElementById('runBtn').addEventListener('click',()=>{
+    const btn=document.getElementById('runBtn');
+    btn.textContent='Running...';btn.disabled=true;btn.classList.add('running');
+    setTimeout(()=>{
+      const tests=generateTests();
+      if(!history[app.name])history[app.name]=[];
+      history[app.name].push({tests,time:new Date().toISOString()});
+      if(history[app.name].length>20)history[app.name].shift();
+      localStorage.setItem('testbench_history',JSON.stringify(history));
+      btn.textContent='▶ Run Tests';btn.disabled=false;btn.classList.remove('running');
+      renderMain();
+    },600+Math.random()*800);
+  });
+
+  document.querySelectorAll('[data-f]').forEach(b=>{
+    b.addEventListener('click',()=>{filter=b.dataset.f;renderMain();});
+  });
+
+  const expBtn=document.getElementById('exportBtn');
+  if(expBtn&&lastRun)expBtn.addEventListener('click',()=>{
+    const blob=new Blob([JSON.stringify(lastRun,null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.download=`${app.name}_tests.json`;a.href=URL.createObjectURL(blob);a.click();
+  });
+}
+
+renderSidebar();
+renderMain();
+</script>
+</body>
+</html>

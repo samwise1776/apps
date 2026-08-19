@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSONBuddy</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;height:100vh;display:flex;flex-direction:column}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.toolbar{display:flex;gap:6px;padding:8px 16px;background:#2E2F6E;align-items:center;flex-wrap:wrap}
+.toolbar h1{font-size:18px;color:#FFCB47;margin-right:8px}
+.btn{padding:6px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-sm{padding:3px 8px;font-size:11px}
+.toolbar .spacer{flex:1}
+.search-box{padding:5px 10px;border:1px solid rgba(240,240,245,.2);border-radius:6px;background:#1a1a4a;color:#F0F0F5;font-size:13px;width:180px}
+.main{display:flex;flex:1;overflow:hidden}
+.pane{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.pane-header{padding:6px 12px;background:#2E2F6E;font-size:12px;color:rgba(240,240,245,.5);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(240,240,245,.1)}
+.pane textarea{flex:1;width:100%;padding:12px;background:#1a1a4a;color:#F0F0F5;border:none;resize:none;font-family:'Fira Code',monospace;font-size:13px;line-height:1.5}
+.pane textarea:focus{outline:none}
+.pane .tree-view{flex:1;overflow-y:auto;padding:12px;font-family:'Fira Code',monospace;font-size:13px;line-height:1.6}
+.divider{width:2px;background:#4449E2;cursor:col-resize;flex-shrink:0}
+.tree-key{color:#FFCB47;cursor:pointer}
+.tree-key:hover{text-decoration:underline}
+.tree-string{color:#2ecc71}
+.tree-number{color:#e74c3c}
+.tree-bool{color:#9b59b6}
+.tree-null{color:rgba(240,240,245,.4)}
+.tree-toggle{cursor:pointer;user-select:none;color:#4449E2;margin-right:4px}
+.tree-indent{padding-left:20px}
+.tree-path{font-size:11px;color:rgba(240,240,245,.4);padding:4px 0;border-bottom:1px solid rgba(240,240,245,.05)}
+.error-msg{color:#e74c3c;padding:12px;font-size:13px}
+.highlight{background:rgba(255,203,71,.3);border-radius:2px}
+.status-bar{padding:4px 16px;background:#1a1a4a;font-size:11px;color:rgba(240,240,245,.5);display:flex;gap:16px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="toolbar">
+<h1>{ } JSONBuddy</h1>
+<button class="btn" onclick="format()">Format</button>
+<button class="btn" onclick="minify()">Minify</button>
+<button class="btn" onclick="validate()">Validate</button>
+<button class="btn" onclick="copyJSON()">Copy</button>
+<button class="btn btn-accent" onclick="importFile()">Import</button>
+<button class="btn btn-accent" onclick="exportFile()">Export</button>
+<span class="spacer"></span>
+<input class="search-box" id="searchBox" placeholder="Search key/value..." oninput="searchJSON()">
+</div>
+<div class="main">
+<div class="pane">
+<div class="pane-header"><span>Input</span><span id="inputInfo"></span></div>
+<textarea id="input" placeholder="Paste JSON here..." oninput="onInput()"></textarea>
+</div>
+<div class="divider"></div>
+<div class="pane">
+<div class="pane-header"><span>Tree View</span><span id="pathDisplay" class="tree-path">Click a key to see path</span></div>
+<div class="tree-view" id="treeView"></div>
+</div>
+</div>
+<div class="status-bar">
+<span id="statusText">Ready</span>
+<span id="sizeInfo"></span>
+</div>
+<script>
+const input=document.getElementById('input');
+const treeView=document.getElementById('treeView');
+const statusText=document.getElementById('statusText');
+let jsonData=null,searchTerm='';
+
+function onInput(){
+  try{jsonData=JSON.parse(input.value);statusText.textContent='Valid JSON';statusText.style.color='#2ecc71'}
+  catch(e){jsonData=null;statusText.textContent='Invalid: '+e.message;statusText.style.color='#e74c3c'}
+  const lines=input.value.split('\n').length;document.getElementById('inputInfo').textContent=lines+' lines';
+  document.getElementById('sizeInfo').textContent=(new Blob([input.value]).size/1024).toFixed(1)+' KB';
+  renderTree();
+}
+
+function format(){try{jsonData=JSON.parse(input.value);input.value=JSON.stringify(jsonData,null,2);onInput()}catch(e){statusText.textContent='Cannot format: '+e.message}}
+function minify(){try{jsonData=JSON.parse(input.value);input.value=JSON.stringify(jsonData);onInput()}catch(e){statusText.textContent='Cannot minify: '+e.message}}
+function validate(){onInput()}
+function copyJSON(){navigator.clipboard.writeText(input.value).then(()=>{statusText.textContent='Copied to clipboard';setTimeout(()=>statusText.textContent='Valid JSON',1500)})}
+
+function searchJSON(){searchTerm=document.getElementById('searchBox').value.toLowerCase();renderTree()}
+
+function renderTree(){
+  if(!jsonData){treeView.innerHTML='<p style="color:rgba(240,240,245,.3);padding:20px">Enter valid JSON to see tree view</p>';return}
+  treeView.innerHTML=renderNode(jsonData,'$',0);
+}
+
+function renderNode(val,path,depth){
+  if(val===null)return`<div class="tree-indent" style="padding-left:${depth*20}px"><span class="tree-null">null</span></div>`;
+  if(typeof val==='boolean')return`<div class="tree-indent" style="padding-left:${depth*20}px"><span class="tree-bool">${val}</span></div>`;
+  if(typeof val==='number')return`<div class="tree-indent" style="padding-left:${depth*20}px"><span class="tree-number">${val}</span></div>`;
+  if(typeof val==='string'){
+    const hl=searchTerm&&val.toLowerCase().includes(searchTerm)?' highlight':'';
+    const display=val.length>60?val.slice(0,60)+'...':val;
+    return`<div class="tree-indent" style="padding-left:${depth*20}px"><span class="tree-string${hl}">"${esc(display)}"</span></div>`;
+  }
+  if(Array.isArray(val)){
+    const hl=searchTerm&&path.toLowerCase().includes(searchTerm)?' highlight':'';
+    let html=`<div class="tree-indent" style="padding-left:${depth*20}px"><span class="tree-toggle" onclick="toggleNode(this)">▼</span><span class="tree-key${hl}" onclick="showPath('${esc(path)}')">${path===('$')?'root':path.split('.').pop()} </span><span style="color:rgba(240,240,245,.4)">[${val.length}]</span></div>`;
+    html+=`<div class="tree-children">`;
+    val.forEach((item,i)=>{html+=renderNode(item,path+'['+i+']',depth+1)});
+    html+=`</div>`;return html;
+  }
+  if(typeof val==='object'){
+    const hl=searchTerm&&path.toLowerCase().includes(searchTerm)?' highlight':'';
+    const keys=Object.keys(val);
+    let html=`<div class="tree-indent" style="padding-left:${depth*20}px"><span class="tree-toggle" onclick="toggleNode(this)">▼</span><span class="tree-key${hl}" onclick="showPath('${esc(path)}')">${path===('$')?'root':path.split('.').pop()} </span><span style="color:rgba(240,240,245,.4)">{${keys.length}}</span></div>`;
+    html+=`<div class="tree-children">`;
+    keys.forEach(k=>{html+=renderNode(val[k],path+'.'+k,depth+1)});
+    html+=`</div>`;return html;
+  }
+  return'';
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function toggleNode(el){const children=el.parentElement.nextElementSibling;if(children){children.style.display=children.style.display==='none'?'':'none';el.textContent=children.style.display==='none'?'▶':'▼'}}
+function showPath(path){document.getElementById('pathDisplay').textContent=path}
+
+function importFile(){const inp=document.createElement('input');inp.type='file';inp.accept='.json';inp.onchange=e=>{const r=new FileReader();r.onload=ev=>{input.value=ev.target.result;onInput()};r.readAsText(e.target.files[0])};inp.click()}
+function exportFile(){const blob=new Blob([input.value],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='data.json';a.click();URL.revokeObjectURL(url)}
+
+onInput();
+</script>
+</body>
+</html>

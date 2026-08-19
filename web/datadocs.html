@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataDocs - Document Editor</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;z-index:100;background:#2E2F5E;padding:4px 10px;border-radius:4px}
+a.back:hover{background:#4449E2}
+#welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:20px}
+#welcome h1{font-size:48px;color:#FFCB47}
+#welcome p{color:#aaa;font-size:18px}
+#welcome button{background:#4449E2;color:#F0F0F5;border:none;padding:14px 36px;font-size:18px;border-radius:8px;cursor:pointer}
+#welcome button:hover{background:#FFCB47;color:#23225A}
+#editor{display:none;flex-direction:column;height:100vh}
+#topbar{background:#2E2F5E;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:2px solid #4449E2}
+#topbar select,#topbar button{background:#4449E2;color:#F0F0F5;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-size:14px}
+#topbar select:hover,#topbar button:hover{background:#FFCB47;color:#23225A}
+#topbar .spacer{flex:1}
+textarea#doc{flex:1;background:#1a1a3e;color:#F0F0F5;border:none;padding:24px;font-size:16px;font-family:'Consolas',monospace;resize:none;outline:none;line-height:1.6}
+@media print{#topbar,a.back{display:none}textarea#doc{color:#000;background:#fff;font-size:14px}}
+</style>
+</head>
+<body>
+<a class="back" href="../">← Back</a>
+<div id="welcome">
+  <h1>DataDocs</h1>
+  <p>A simple, elegant document editor</p>
+  <button onclick="newDoc()">New Document</button>
+</div>
+<div id="editor">
+  <div id="topbar">
+    <select id="fontPicker" onchange="applyFont()">
+      <option value="Consolas,monospace">Consolas</option>
+      <option value="'Courier New',monospace">Courier New</option>
+      <option value="Georgia,serif">Georgia</option>
+      <option value="Arial,sans-serif">Arial</option>
+      <option value="'Times New Roman',serif">Times New Roman</option>
+      <option value="Verdana,sans-serif">Verdana</option>
+      <option value="'Trebuchet MS',sans-serif">Trebuchet MS</option>
+      <option value="Palatino,serif">Palatino</option>
+      <option value="Garamond,serif">Garamond</option>
+      <option value="Impact,sans-serif">Impact</option>
+    </select>
+    <select id="sizePicker" onchange="applySize()">
+      <option value="12">12px</option>
+      <option value="14">14px</option>
+      <option value="16" selected>16px</option>
+      <option value="18">18px</option>
+      <option value="20">20px</option>
+      <option value="24">24px</option>
+      <option value="28">28px</option>
+      <option value="32">32px</option>
+      <option value="36">36px</option>
+      <option value="40">40px</option>
+      <option value="44">44px</option>
+      <option value="48">48px</option>
+    </select>
+    <span class="spacer"></span>
+    <button onclick="window.print()">Print</button>
+    <button onclick="saveDoc()">Save as .txt</button>
+    <button onclick="backToMenu()">Back to Menu</button>
+  </div>
+  <textarea id="doc" placeholder="Start typing..."></textarea>
+</div>
+<script>
+let currentData=null;
+function newDoc(){
+  currentData={id:Date.now(),content:''};
+  document.getElementById('welcome').style.display='none';
+  document.getElementById('editor').style.display='flex';
+  document.getElementById('doc').value='';
+  document.getElementById('doc').focus();
+}
+function applyFont(){
+  document.getElementById('doc').style.fontFamily=document.getElementById('fontPicker').value;
+}
+function applySize(){
+  document.getElementById('doc').style.fontSize=document.getElementById('sizePicker').value+'px';
+}
+function saveDoc(){
+  const text=document.getElementById('doc').value;
+  const blob=new Blob([text],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='document-'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function backToMenu(){
+  document.getElementById('welcome').style.display='flex';
+  document.getElementById('editor').style.display='none';
+}
+</script>
+</body>
+</html>

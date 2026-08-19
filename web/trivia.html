@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivia Quiz</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#23225A;color:#F0F0F5;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;opacity:.8;z-index:10}
+a.back:hover{opacity:1}
+.container{max-width:700px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;margin-bottom:24px;color:#FFCB47;text-align:center}
+.btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#4449E2;color:#F0F0F5;transition:.2s}
+.btn:hover{background:#5559F2}
+.btn-accent{background:#FFCB47;color:#23225A}
+.btn-lg{padding:12px 28px;font-size:16px}
+.section{background:#2E2F6E;border-radius:12px;padding:20px;margin-bottom:16px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;justify-content:center;flex-wrap:wrap}
+.tabs button{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:13px;background:#2E2F6E;color:#F0F0F5;transition:.2s}
+.tabs button.active{background:#4449E2}
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:13px}
+.quiz-header .score{color:#FFCB47;font-weight:700}
+.quiz-header .streak{color:#2ecc71}
+.timer-bar{height:6px;background:#1a1a4a;border-radius:3px;margin-bottom:20px;overflow:hidden}
+.timer-bar .fill{height:100%;border-radius:3px;transition:width .1s linear;background:#4449E2}
+.timer-bar .fill.warn{background:#e74c3c}
+.question-text{font-size:18px;margin-bottom:20px;line-height:1.5}
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.option{padding:14px;border:2px solid rgba(240,240,245,.2);border-radius:10px;cursor:pointer;transition:.2s;font-size:14px;text-align:center}
+.option:hover:not(.disabled){border-color:#4449E2;background:rgba(68,73,226,.2)}
+.option.correct{border-color:#2ecc71;background:rgba(46,204,113,.2);color:#2ecc71}
+.option.wrong{border-color:#e74c3c;background:rgba(231,76,60,.2);color:#e74c3c}
+.option.disabled{cursor:default;opacity:.7}
+.feedback{margin-top:16px;padding:12px;border-radius:8px;font-size:13px;line-height:1.5}
+.feedback.correct{background:rgba(46,204,113,.15);border:1px solid #2ecc71}
+.feedback.wrong{background:rgba(231,76,60,.15);border:1px solid #e74c3c}
+.result-screen{text-align:center;padding:20px}
+.result-screen .big-score{font-size:64px;font-weight:700;color:#FFCB47}
+.result-screen .rating{font-size:20px;margin:12px 0}
+.start-screen{text-align:center;padding:20px}
+.category-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+.chip{padding:6px 14px;border-radius:20px;cursor:pointer;font-size:12px;background:#1a1a4a;border:2px solid transparent;transition:.15s}
+.chip.selected{border-color:#FFCB47;background:rgba(255,203,71,.15)}
+.hs-table{width:100%;border-collapse:collapse;font-size:13px}
+.hs-table th{text-align:left;padding:6px;border-bottom:2px solid #4449E2;color:#FFCB47;font-size:11px}
+.hs-table td{padding:6px;border-bottom:1px solid rgba(240,240,245,.1)}
+@media(max-width:500px){.options{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>🧠 Trivia Quiz</h1>
+<div class="tabs">
+<button class="active" onclick="showTab('play',this)">Play</button>
+<button onclick="showTab('scores',this)">High Scores</button>
+</div>
+<div id="tabPlay">
+<div id="startScreen" class="section start-screen">
+<h3 style="color:#FFCB47;margin-bottom:12px">Choose Settings</h3>
+<div><label style="font-size:12px;color:rgba(240,240,245,.5)">Difficulty</label>
+<div style="display:flex;gap:8px;justify-content:center;margin:8px 0">
+<button class="btn" id="diffEasy" onclick="setDifficulty('Easy')">Easy</button>
+<button class="btn" id="diffMed" onclick="setDifficulty('Medium')" style="background:#4449E2">Medium</button>
+<button class="btn" id="diffHard" onclick="setDifficulty('Hard')">Hard</button>
+</div></div>
+<div><label style="font-size:12px;color:rgba(240,240,245,.5)">Categories</label>
+<div class="category-chips" id="catChips"></div></div>
+<button class="btn btn-accent btn-lg" onclick="startQuiz()" style="margin-top:8px">Start Quiz</button>
+</div>
+<div id="quizScreen" style="display:none">
+<div class="quiz-header"><span>Question <span id="qNum">1</span>/10</span><span class="score">Score: <span id="score">0</span></span><span class="streak">Streak: <span id="streak">0</span></span></div>
+<div class="timer-bar"><div class="fill" id="timerFill" style="width:100%"></div></div>
+<div class="section">
+<div class="question-text" id="questionText"></div>
+<div class="options" id="optionsContainer"></div>
+<div class="feedback" id="feedback" style="display:none"></div>
+<div style="text-align:center;margin-top:16px"><button class="btn btn-accent" id="nextBtn" onclick="nextQuestion()" style="display:none">Next Question →</button></div>
+</div>
+</div>
+<div id="resultScreen" style="display:none">
+<div class="section result-screen">
+<div class="big-score" id="finalScore">0</div>
+<div class="rating" id="finalRating"></div>
+<p id="finalDetail" style="color:rgba(240,240,245,.6);margin-bottom:16px"></p>
+<button class="btn btn-accent btn-lg" onclick="resetQuiz()">Play Again</button>
+</div>
+</div>
+</div>
+<div id="tabScores" style="display:none">
+<div class="section"><h3 style="color:#FFCB47;margin-bottom:12px">High Scores</h3>
+<table class="hs-table"><thead><tr><th>Score</th><th>Difficulty</th><th>Date</th><th>%</th></tr></thead><tbody id="hsBody"></tbody></table></div>
+</div>
+</div>
+<script>
+const questions=[
+{q:"What planet is known as the Red Planet?",o:["Mars","Venus","Jupiter","Saturn"],a:0,cat:"Science",diff:"Easy"},
+{q:"What is the chemical symbol for water?",o:["H2O","CO2","NaCl","O2"],a:0,cat:"Science",diff:"Easy"},
+{q:"What gas do plants absorb from the atmosphere?",o:["Carbon Dioxide","Oxygen","Nitrogen","Helium"],a:0,cat:"Science",diff:"Easy"},
+{q:"What is the speed of light in km/s approximately?",o:["300,000","150,000","500,000","1,000,000"],a:0,cat:"Science",diff:"Medium"},
+{q:"What organelle is the powerhouse of the cell?",o:["Mitochondria","Nucleus","Ribosome","Golgi Body"],a:0,cat:"Science",diff:"Easy"},
+{q:"What element has the atomic number 79?",o:["Gold","Silver","Platinum","Copper"],a:0,cat:"Science",diff:"Hard"},
+{q:"In which year did World War II end?",o:["1945","1944","1946","1943"],a:0,cat:"History",diff:"Easy"},
+{q:"Who was the first President of the United States?",o:["George Washington","Thomas Jefferson","Abraham Lincoln","John Adams"],a:0,cat:"History",diff:"Easy"},
+{q:"In which year did the Berlin Wall fall?",o:["1989","1991","1987","1990"],a:0,cat:"History",diff:"Medium"},
+{q:"Who painted the Mona Lisa?",o:["Leonardo da Vinci","Michelangelo","Raphael","Donatello"],a:0,cat:"History",diff:"Easy"},
+{q:"What ancient civilization built the pyramids of Giza?",o:["Egyptians","Romans","Greeks","Mayans"],a:0,cat:"History",diff:"Easy"},
+{q:"Which empire was ruled by Genghis Khan?",o:["Mongol Empire","Ottoman Empire","Roman Empire","British Empire"],a:0,cat:"History",diff:"Medium"},
+{q:"What is the largest ocean on Earth?",o:["Pacific","Atlantic","Indian","Arctic"],a:0,cat:"Geography",diff:"Easy"},
+{q:"What is the capital of Australia?",o:["Canberra","Sydney","Melbourne","Brisbane"],a:0,cat:"Geography",diff:"Medium"},
+{q:"Which country has the most natural lakes?",o:["Canada","USA","Russia","Brazil"],a:0,cat:"Geography",diff:"Hard"},
+{q:"What is the smallest country in the world?",o:["Vatican City","Monaco","San Marino","Liechtenstein"],a:0,cat:"Geography",diff:"Easy"},
+{q:"Mount Everest is located on the border of which two countries?",o:["Nepal and China","India and China","Nepal and India","China and Pakistan"],a:0,cat:"Geography",diff:"Medium"},
+{q:"Which desert is the largest hot desert in the world?",o:["Sahara","Arabian","Gobi","Kalahari"],a:0,cat:"Geography",diff:"Easy"},
+{q:"Who directed the movie 'Jurassic Park'?",o:["Steven Spielberg","James Cameron","George Lucas","Ridley Scott"],a:0,cat:"Entertainment",diff:"Easy"},
+{q:"What year was the first iPhone released?",o:["2007","2005","2008","2006"],a:0,cat:"Technology",diff:"Medium"},
+{q:"Who is known as the father of the computer?",o:["Charles Babbage","Alan Turing","John von Neumann","Ada Lovelace"],a:0,cat:"Technology",diff:"Medium"},
+{q:"What does HTML stand for?",o:["HyperText Markup Language","High Tech Modern Language","Home Tool Markup Language","HyperText Multi Language"],a:0,cat:"Technology",diff:"Easy"},
+{q:"Who won the 2022 FIFA World Cup?",o:["Argentina","France","Brazil","Germany"],a:0,cat:"Sports",diff:"Easy"},
+{q:"In which sport is the term 'love' used?",o:["Tennis","Cricket","Badminton","Golf"],a:0,cat:"Sports",diff:"Medium"},
+{q:"How many players are on a basketball team on the court?",o:["5","6","7","4"],a:0,cat:"Sports",diff:"Easy"},
+{q:"What is the national sport of Japan?",o:["Sumo Wrestling","Karate","Judo","Baseball"],a:0,cat:"Sports",diff:"Medium"},
+{q:"Which planet has the most moons?",o:["Saturn","Jupiter","Uranus","Neptune"],a:0,cat:"Science",diff:"Hard"},
+{q:"What year was Python programming language created?",o:["1991","1989","1995","2000"],a:0,cat:"Technology",diff:"Hard"},
+{q:"Who wrote 'Romeo and Juliet'?",o:["William Shakespeare","Charles Dickens","Jane Austen","Mark Twain"],a:0,cat:"Entertainment",diff:"Easy"},
+{q:"What is the currency of Japan?",o:["Yen","Won","Yuan","Rupee"],a:0,cat:"Geography",diff:"Easy"},
+{q:"How many bones are in the adult human body?",o:["206","208","204","210"],a:0,cat:"Science",diff:"Medium"},
+{q:"Which country invented paper?",o:["China","Egypt","India","Greece"],a:0,cat:"History",diff:"Medium"},
+{q:"What is the hardest natural substance on Earth?",o:["Diamond","Quartz","Topaz","Corundum"],a:0,cat:"Science",diff:"Easy"},
+{q:"Who developed the theory of relativity?",o:["Albert Einstein","Isaac Newton","Nikola Tesla","Stephen Hawking"],a:0,cat:"Science",diff:"Easy"},
+{q:"What is the capital of Canada?",o:["Ottawa","Toronto","Vancouver","Montreal"],a:0,cat:"Geography",diff:"Medium"},
+{q:"Which element has the chemical symbol 'Fe'?",o:["Iron","Fluorine","Francium","Fermium"],a:0,cat:"Science",diff:"Medium"},
+{q:"What year was Google founded?",o:["1998","1996","2000","1999"],a:0,cat:"Technology",diff:"Medium"},
+{q:"How many strings does a standard guitar have?",o:["6","4","8","7"],a:0,cat:"Entertainment",diff:"Easy"},
+{q:"Which planet rotates on its side?",o:["Uranus","Neptune","Saturn","Mercury"],a:0,cat:"Science",diff:"Hard"},
+{q:"What is the boiling point of water in Celsius?",o:["100","90","110","80"],a:0,cat:"Science",diff:"Easy"},
+{q:"Who painted the ceiling of the Sistine Chapel?",o:["Michelangelo","Leonardo da Vinci","Raphael","Caravaggio"],a:0,cat:"History",diff:"Medium"},
+{q:"What is the largest land animal?",o:["African Elephant","White Rhinoceros","Hippopotamus","Giraffe"],a:0,cat:"Science",diff:"Easy"},
+{q:"In which city is the Eiffel Tower located?",o:["Paris","London","Rome","Berlin"],a:0,cat:"Geography",diff:"Easy"},
+{q:"What programming language is used for Android app development primarily?",o:["Java","Python","C++","Ruby"],a:0,cat:"Technology",diff:"Medium"},
+{q:"How many continents are there?",o:["7","6","5","8"],a:0,cat:"Geography",diff:"Easy"},
+{q:"What is the longest river in the world?",o:["Nile","Amazon","Yangtze","Mississippi"],a:0,cat:"Geography",diff:"Medium"},
+{q:"Who discovered penicillin?",o:["Alexander Fleming","Louis Pasteur","Robert Koch","Joseph Lister"],a:0,cat:"Science",diff:"Medium"},
+{q:"What year did the Titanic sink?",o:["1912","1914","1910","1916"],a:0,cat:"History",diff:"Medium"},
+{q:"Which blood type is the universal donor?",o:["O negative","AB positive","A positive","B negative"],a:0,cat:"Science",diff:"Medium"},
+{q:"What is the square root of 144?",o:["12","14","11","13"],a:0,cat:"Science",diff:"Easy"}
+];
+
+let difficulty='Medium';
+let selectedCats=new Set(['Science','History','Geography','Entertainment','Sports','Technology']);
+let quizQuestions=[],currentQ=0,score=0,streak=0,maxStreak=0;
+let timerInterval=null,timeLeft=15,answered=false;
+let highScores=JSON.parse(localStorage.getItem('triviaHS'))||[];
+
+function showTab(name,btn){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.getElementById('tabPlay').style.display=name==='play'?'':'none';
+  document.getElementById('tabScores').style.display=name==='scores'?'':'none';
+  if(name==='scores')renderHS();
+}
+
+function setDifficulty(d){
+  difficulty=d;
+  ['Easy','Medium','Hard'].forEach(x=>{
+    document.getElementById('diff'+x.charAt(0).toUpperCase()+x.slice(1)).style.background=x===d?'#4449E2':'#2E2F6E';
+  });
+}
+
+function initCats(){
+  const cats=[...new Set(questions.map(q=>q.cat))];
+  document.getElementById('catChips').innerHTML=cats.map(c=>`<div class="chip ${selectedCats.has(c)?'selected':''}" onclick="toggleCat('${c}',this)">${c}</div>`).join('');
+}
+
+function toggleCat(cat,el){
+  if(selectedCats.has(cat))selectedCats.delete(cat);else selectedCats.add(cat);
+  el.classList.toggle('selected');
+}
+
+function startQuiz(){
+  let pool=questions.filter(q=>selectedCats.has(q.cat));
+  if(difficulty==='Easy')pool=pool.filter(q=>q.diff==='Easy'||q.diff==='Medium');
+  if(difficulty==='Hard')pool=pool.filter(q=>q.diff==='Hard'||q.diff==='Medium');
+  if(pool.length<10)pool=questions.filter(q=>selectedCats.has(q.cat));
+  quizQuestions=shuffle(pool).slice(0,10);
+  quizQuestions.forEach(q=>{const opts=[...q.o];const correct=opts[q.a];shuffle(opts);q.o=opts;q.a=opts.indexOf(correct)});
+  currentQ=0;score=0;streak=0;maxStreak=0;answered=false;
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('quizScreen').style.display='';
+  document.getElementById('resultScreen').style.display='none';
+  showQuestion();
+}
+
+function showQuestion(){
+  if(currentQ>=quizQuestions.length){showResults();return}
+  answered=false;
+  const q=quizQuestions[currentQ];
+  document.getElementById('qNum').textContent=currentQ+1;
+  document.getElementById('score').textContent=score;
+  document.getElementById('streak').textContent=streak;
+  document.getElementById('questionText').textContent=q.q;
+  document.getElementById('optionsContainer').innerHTML=q.o.map((o,i)=>`<div class="option" onclick="answer(${i})">${esc(o)}</div>`).join('');
+  document.getElementById('feedback').style.display='none';
+  document.getElementById('nextBtn').style.display='none';
+  timeLeft=15;updateTimer();startTimer();
+}
+
+function startTimer(){
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timeLeft-=0.1;
+    if(timeLeft<=0){timeLeft=0;clearInterval(timerInterval);if(!answered)timeUp()}
+    updateTimer();
+  },100);
+}
+
+function updateTimer(){
+  const pct=(timeLeft/15)*100;
+  const fill=document.getElementById('timerFill');
+  fill.style.width=pct+'%';
+  fill.className='fill'+(timeLeft<5?' warn':'');
+}
+
+function answer(idx){
+  if(answered)return;answered=true;clearInterval(timerInterval);
+  const q=quizQuestions[currentQ];
+  const opts=document.querySelectorAll('.option');
+  opts.forEach((o,i)=>{
+    o.classList.add('disabled');
+    if(i===q.a)o.classList.add('correct');
+    if(i===idx&&i!==q.a)o.classList.add('wrong');
+  });
+  const fb=document.getElementById('feedback');fb.style.display='';
+  if(idx===q.a){
+    const pts=timeLeft>10?3:timeLeft>5?2:1;
+    score+=pts*({Easy:1,Medium:2,Hard:3}[q.diff]||1);
+    streak++;maxStreak=Math.max(maxStreak,streak);
+    fb.className='feedback correct';fb.textContent=`Correct! +${pts*({Easy:1,Medium:2,Hard:3}[q.diff]||1)} points (answered in ${(15-timeLeft).toFixed(1)}s)`;
+  }else{
+    streak=0;
+    fb.className='feedback wrong';fb.textContent=`Wrong! The answer was: ${q.o[q.a]}`;
+  }
+  document.getElementById('score').textContent=score;
+  document.getElementById('streak').textContent=streak;
+  document.getElementById('nextBtn').style.display='';
+}
+
+function timeUp(){
+  answered=true;const q=quizQuestions[currentQ];streak=0;
+  const opts=document.querySelectorAll('.option');
+  opts.forEach((o,i)=>{o.classList.add('disabled');if(i===q.a)o.classList.add('correct')});
+  const fb=document.getElementById('feedback');fb.style.display='';fb.className='feedback wrong';fb.textContent=`Time's up! The answer was: ${q.o[q.a]}`;
+  document.getElementById('streak').textContent=streak;
+  document.getElementById('nextBtn').style.display='';
+}
+
+function nextQuestion(){currentQ++;showQuestion()}
+
+function showResults(){
+  clearInterval(timerInterval);
+  document.getElementById('quizScreen').style.display='none';
+  document.getElementById('resultScreen').style.display='';
+  const maxScore=quizQuestions.reduce((a,q)=>a+3*({Easy:1,Medium:2,Hard:3}[q.diff]||1),0);
+  const pct=Math.round(score/maxScore*100);
+  document.getElementById('finalScore').textContent=score;
+  let rating='';
+  if(pct>=90)rating='🏆 Quiz Master!';
+  else if(pct>=70)rating='🌟 Great Job!';
+  else if(pct>=50)rating='👍 Good Effort!';
+  else if(pct>=30)rating='📚 Keep Studying!';
+  else rating='💪 Try Again!';
+  document.getElementById('finalRating').textContent=rating;
+  document.getElementById('finalDetail').textContent=`${score} points · ${pct}% accuracy · Best streak: ${maxStreak}`;
+  highScores.push({score,difficulty,date:new Date().toLocaleDateString(),pct});
+  highScores.sort((a,b)=>b.score-a.score);
+  highScores=highScores.slice(0,20);
+  localStorage.setItem('triviaHS',JSON.stringify(highScores));
+}
+
+function resetQuiz(){
+  document.getElementById('startScreen').style.display='';
+  document.getElementById('quizScreen').style.display='none';
+  document.getElementById('resultScreen').style.display='none';
+}
+
+function renderHS(){
+  document.getElementById('hsBody').innerHTML=highScores.map(h=>`<tr><td style="color:#FFCB47;font-weight:700">${h.score}</td><td>${h.difficulty}</td><td>${h.date}</td><td>${h.pct}%</td></tr>`).join('')||'<tr><td colspan="4" style="color:rgba(240,240,245,.4)">No scores yet</td></tr>';
+}
+
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+initCats();
+</script>
+</body>
+</html>

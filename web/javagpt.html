@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaGPT - Language Model Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#23225A;--panel:#2E2F5E;--accent:#FFCB47;--text:#F0F0F5;--btn:#4449E2;--btn-hover:#5558f0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+a.back{position:absolute;top:10px;left:12px;color:var(--accent);text-decoration:none;font-size:13px;z-index:100;opacity:.8}.back:hover{opacity:1}
+.top-bar{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 80px;background:var(--panel);border-bottom:1px solid rgba(255,255,255,.08)}
+.top-bar h1{font-size:18px;font-weight:600}
+.top-bar h1 span{color:var(--accent)}
+.main{display:flex;flex:1;overflow:hidden}
+.chat-panel{flex:1;display:flex;flex-direction:column}
+.messages{flex:1;overflow-y:auto;padding:16px 16px 16px 80px}
+.msg{display:flex;gap:10px;margin-bottom:16px;animation:fadeIn .3s}
+.msg.user{flex-direction:row-reverse}
+.msg .avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.msg.user .avatar{background:var(--btn)}
+.msg.ai .avatar{background:var(--accent);color:#23225A}
+.msg .bubble{max-width:70%;padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5}
+.msg.user .bubble{background:var(--btn);border-bottom-right-radius:4px}
+.msg.ai .bubble{background:rgba(255,255,255,.08);border-bottom-left-radius:4px}
+.input-area{padding:12px 16px 12px 80px;background:var(--panel);border-top:1px solid rgba(255,255,255,.08);display:flex;gap:8px;align-items:flex-end}
+.input-area textarea{flex:1;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);font-size:13px;font-family:inherit;resize:none;height:42px;max-height:120px;line-height:1.4}
+.input-area textarea::placeholder{color:rgba(240,240,245,.4)}
+.input-area textarea:focus{outline:none;border-color:var(--btn)}
+.btn{padding:6px 14px;border:none;border-radius:6px;background:var(--btn);color:#fff;font-size:13px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--btn-hover)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-accent{background:var(--accent);color:#23225A}.btn-accent:hover{background:#ffe066}
+.sidebar{width:260px;background:var(--panel);border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;overflow-y:auto}
+.sidebar .sb-section{padding:14px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sidebar .sb-title{font-size:11px;text-transform:uppercase;opacity:.4;font-weight:600;margin-bottom:10px}
+.sidebar .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sidebar .info-item{background:rgba(0,0,0,.2);border-radius:6px;padding:8px;text-align:center}
+.sidebar .info-item label{display:block;font-size:10px;opacity:.4;margin-bottom:2px}
+.sidebar .info-item span{font-size:13px;font-weight:600}
+.token-counter{font-size:13px;display:flex;justify-content:space-between;align-items:center}
+.token-counter .count{color:var(--accent);font-weight:600}
+.slider-row{display:flex;align-items:center;gap:8px;font-size:12px}
+.slider-row input[type=range]{flex:1;accent-color:var(--accent)}
+.slider-row .val{color:var(--accent);font-weight:600;min-width:30px}
+.train-section{margin-top:4px}
+.progress-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-top:6px}
+.progress-bar .fill{height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width 2s linear}
+.gen-section{margin-top:4px}
+.gen-section textarea{width:100%;height:60px;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:var(--text);font-size:12px;font-family:inherit;resize:vertical;margin-bottom:6px}
+.gen-output{background:rgba(0,0,0,.2);border-radius:6px;padding:8px;font-size:12px;line-height:1.5;max-height:100px;overflow-y:auto;white-space:pre-wrap}
+.history-list{display:flex;flex-direction:column;gap:4px}
+.history-item{padding:6px 8px;border-radius:6px;font-size:11px;cursor:pointer;background:rgba(255,255,255,.04);display:flex;gap:6px;align-items:center}
+.history-item:hover{background:rgba(255,255,255,.08)}
+.history-item .hi-icon{opacity:.4;font-size:12px}
+.history-item .hi-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.history-item .hi-time{opacity:.3;font-size:10px}
+.typing{display:flex;gap:4px;padding:4px 0}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1.4s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--btn);color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;z-index:300;animation:fadeIn .3s}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="top-bar">
+<h1>Java<span>GPT</span></h1>
+</div>
+<div class="main">
+<div class="chat-panel">
+<div class="messages" id="messages"></div>
+<div class="input-area">
+<textarea id="userInput" placeholder="Type a message..." rows="1" onkeydown="handleKey(event)" oninput="updateTokenCount()"></textarea>
+<button class="btn" onclick="sendMessage()">Send</button>
+<button class="btn btn-accent btn-sm" onclick="trainOnInput()">Train</button>
+</div>
+</div>
+<div class="sidebar">
+<div class="sb-section">
+<div class="sb-title">Model Info</div>
+<div class="info-grid">
+<div class="info-item"><label>Name</label><span>DataGPT-1</span></div>
+<div class="info-item"><label>Parameters</label><span>~125M</span></div>
+<div class="info-item"><label>Vocab</label><span>~50K</span></div>
+<div class="info-item"><label>Layers</label><span>12</span></div>
+<div class="info-item"><label>Heads</label><span>12</span></div>
+<div class="info-item"><label>Type</label><span>Markov</span></div>
+</div>
+</div>
+<div class="sb-section">
+<div class="sb-title">Token Counter</div>
+<div class="token-counter"><span>Input tokens</span><span class="count" id="tokenCount">0</span></div>
+</div>
+<div class="sb-section">
+<div class="sb-title">Temperature</div>
+<div class="slider-row">
+<input type="range" id="tempSlider" min="0.1" max="2.0" step="0.1" value="0.8" oninput="document.getElementById('tempVal').textContent=this.value">
+<span class="val" id="tempVal">0.8</span>
+</div>
+</div>
+<div class="sb-section train-section">
+<div class="sb-title">Training</div>
+<button class="btn btn-sm" onclick="trainOnInput()" style="width:100%">Train on Input</button>
+<div class="progress-bar"><div class="fill" id="trainFill"></div></div>
+<div style="font-size:11px;opacity:.3;margin-top:4px" id="trainStatus">Ready</div>
+</div>
+<div class="sb-section gen-section">
+<div class="sb-title">Generate Mode</div>
+<textarea id="genInput" placeholder="Enter prompt for text generation..."></textarea>
+<button class="btn btn-sm btn-accent" onclick="generateText()" style="width:100%">Generate 50-200 words</button>
+<div class="gen-output" id="genOutput" style="display:none"></div>
+</div>
+<div class="sb-section">
+<div class="sb-title">History</div>
+<div class="history-list" id="historyList"></div>
+</div>
+</div>
+</div>
+<script>
+const LS_KEY='javagpt_data';
+const CORPUS=[
+"Programming is the art of telling a computer what to do using precise instructions and logical structures that the machine can understand and execute efficiently.",
+"Algorithms are step by step procedures for solving problems and they form the foundation of all computer science and software engineering practices.",
+"Machine learning enables computers to learn from data without being explicitly programmed and has revolutionized industries from healthcare to finance.",
+"The internet is a global network of interconnected computers that communicate using standardized protocols to share information and services.",
+"Data structures like arrays, trees, and graphs are essential tools for organizing and efficiently accessing information in software systems.",
+"Artificial intelligence aims to create systems capable of performing tasks that typically require human intelligence including reasoning and perception.",
+"Software engineering involves the systematic development, testing, and maintenance of software applications following established best practices and methodologies.",
+"Cloud computing provides on demand access to computing resources over the internet enabling scalable and flexible infrastructure for applications.",
+"Cybersecurity protects computer systems and networks from unauthorized access, data breaches, and other digital threats to ensure information safety.",
+"The Python programming language is known for its simplicity and readability making it popular for both beginners and experienced developers alike.",
+"Quantum computing leverages the principles of quantum mechanics to process information in fundamentally different ways than classical computers.",
+"Neural networks are computing systems inspired by biological neural networks in the brain that can learn to recognize patterns and make decisions.",
+"The command line interface provides powerful tools for developers to interact with operating systems and automate repetitive tasks efficiently.",
+"Version control systems like Git enable developers to track changes in code and collaborate effectively on software projects with teams.",
+"Open source software encourages collaboration and transparency by making source code freely available for anyone to study modify and distribute.",
+"Data science combines statistics, programming, and domain expertise to extract meaningful insights and knowledge from structured and unstructured data.",
+"The DOM is a programming interface for web documents that represents the page structure as a tree of objects that can be modified dynamically.",
+"Functional programming is a paradigm that treats computation as the evaluation of mathematical functions avoiding shared state and mutable data.",
+"Object oriented programming organizes code into objects that combine data and behavior promoting modularity and code reuse across projects.",
+"Database management systems store organize and retrieve data efficiently using structured query languages like SQL for relational databases.",
+"RESTful APIs use standard HTTP methods to enable communication between different software systems over the web in a stateless manner.",
+"Containers package applications with their dependencies ensuring consistent behavior across different computing environments and deployment targets.",
+"Agile development methodologies emphasize iterative development, continuous feedback, and adaptive planning for delivering software products effectively.",
+"Recursion is a programming technique where a function calls itself to solve problems by breaking them down into smaller simpler subproblems.",
+"Big O notation describes the performance characteristics of algorithms helping developers choose the most efficient solutions for their problems.",
+"Encryption protects sensitive data by converting it into an unreadable format that can only be deciphered with the correct decryption key.",
+"The scientific method involves observation, hypothesis formation, experimentation, and analysis to advance our understanding of natural phenomena.",
+"Mathematics provides the theoretical foundation for computer science with concepts like logic, set theory, and probability being particularly important.",
+"Philosophy explores fundamental questions about existence, knowledge, values, reason, and the nature of reality and human experience.",
+"The theory of computation studies what can be computed and how efficiently establishing fundamental limits and capabilities of computing machines.",
+"Distributed systems consist of multiple interconnected computers that work together to achieve a common goal providing scalability and fault tolerance.",
+"Operating systems manage computer hardware and software resources providing services for application programs and user interfaces.",
+"Compiler design involves translating high level programming languages into machine code that computers can execute directly and efficiently.",
+"Graph theory studies mathematical structures used to model pairwise relations between objects with applications in network analysis and optimization.",
+"Cryptography ensures secure communication in the presence of adversaries using mathematical techniques for encryption, decryption, and digital signatures.",
+"The halting problem demonstrates that there are fundamental limits to what algorithms can determine about other programs running on a computer.",
+"Bioinformatics applies computational methods to analyze biological data including DNA sequences, protein structures, and evolutionary relationships.",
+"Natural language processing enables computers to understand, interpret, and generate human language facilitating communication between humans and machines.",
+"Computer graphics create visual content using algorithms and mathematical models for applications ranging from games to scientific visualization.",
+"The Turing machine is a mathematical model of computation that defines an abstract machine capable of simulating any algorithmic process.",
+"Parallel computing performs multiple calculations simultaneously by dividing problems across multiple processors to achieve faster computation times.",
+"The principle of least privilege ensures that programs and users have only the minimum access rights necessary to perform their functions.",
+"Formal verification uses mathematical proofs to demonstrate that software or hardware systems meet their specified correctness requirements.",
+"Networking protocols define the rules and conventions for communication between devices enabling reliable data transmission across diverse systems.",
+"Memory management in programming involves allocating and deallocating memory spaces as needed while preventing memory leaks and fragmentation.",
+"The event loop is a programming construct that waits for and dispatches events or messages in a program implementing non-blocking operations.",
+"Semantic web technologies aim to make web content machine readable enabling automated processing and intelligent information retrieval.",
+"Blockchain technology provides a decentralized and tamper proof ledger for recording transactions across a network of distributed computers.",
+"Computer vision enables machines to interpret and understand visual information from the world including images and video streams.",
+"Reinforcement learning trains agents to make decisions by interacting with an environment and receiving rewards for desired behaviors.",
+"The CAP theorem states that a distributed system can only provide two of three guarantees: consistency, availability, and partition tolerance.",
+"Type theory provides a formal system for classifying program entities ensuring type safety and preventing certain categories of runtime errors.",
+"Microservices architecture structures applications as collections of loosely coupled services that can be developed, deployed, and scaled independently.",
+"DevOps practices bridge software development and IT operations enabling continuous delivery and improved collaboration between teams.",
+"The P versus NP problem asks whether every problem whose solution can be quickly verified can also be quickly solved by a computer.",
+"Entropy in information theory measures the uncertainty or randomness in a signal or random variable quantifying information content.",
+"Molecular dynamics simulations model the physical movements of atoms and molecules to study material properties and chemical reactions.",
+"Number theory explores the properties and relationships of integers with profound applications in cryptography and computer security.",
+"Graph algorithms like Dijkstra's shortest path and breadth first search are fundamental tools for solving network and optimization problems.",
+"The Lambda calculus provides a formal system for expressing computation through function abstraction and application forming the basis of functional programming.",
+"Data warehousing involves collecting and managing data from varied sources to provide meaningful business insights through analytical processing.",
+"Computer ethics addresses moral issues related to computing including privacy, intellectual property, security, and the societal impact of technology.",
+"The three laws of robotics proposed by Isaac Asimov establish ethical guidelines for the behavior of artificial intelligent agents in society.",
+"Quantum entanglement is a phenomenon where particles become interconnected and the state of one instantly influences the state of another.",
+"Thermodynamics describes the relationships between heat, work, temperature, and energy in physical systems governing energy transfer processes.",
+"The scientific revolution transformed our understanding of the natural world through empirical observation and mathematical description of phenomena.",
+"Logic is the study of valid reasoning providing formal tools for analyzing arguments and constructing proofs in mathematics and philosophy.",
+"Information theory quantifies the amount of information in a signal establishing fundamental limits on data compression and reliable communication.",
+"Machine translation uses computational methods to automatically translate text or speech from one language to another bridging communication barriers.",
+"Responsive web design creates websites that adapt to different screen sizes and devices providing optimal user experiences across platforms.",
+"Test driven development writes automated tests before implementation code ensuring software meets requirements and enabling confident refactoring.",
+"The observer effect in physics describes how the act of measuring a quantum system inevitably disturbs the system being observed.",
+"Chaos theory studies how small changes in initial conditions can lead to vastly different outcomes in deterministic nonlinear systems.",
+"Gene editing technologies like CRISPR enable precise modifications to DNA sequences opening possibilities for treating genetic diseases.",
+"The finite element method subdivides complex problems into simpler numerical approximations for solving engineering and mathematical physics equations.",
+"Load balancing distributes network traffic across multiple servers ensuring no single server becomes overwhelmed improving application reliability.",
+"Memorization techniques include spaced repetition, active recall, and the method of loci for enhancing long term information retention.",
+"The Bayesian approach updates probability estimates as new evidence becomes available providing a framework for reasoning under uncertainty.",
+"Zero knowledge proofs allow one party to prove knowledge of information without revealing the information itself ensuring privacy and security.",
+"Natural selection drives evolution by favoring organisms with traits better suited to their environment leading to adaptation over generations.",
+"Signal processing analyzes and manipulates signals to extract meaningful information with applications in audio, image, and communication systems.",
+"The separation of concerns principle divides a program into distinct sections each addressing a separate concern improving maintainability.",
+"Automated testing frameworks enable developers to verify software correctness efficiently through repeatable and objective validation procedures.",
+"Complexity theory classifies computational problems based on their inherent difficulty and the resources needed to solve them.",
+"Graphical user interfaces provide visual interaction paradigms making computers accessible to non technical users through intuitive design.",
+"Web security best practices include input validation, parameterized queries, and proper authentication to prevent common attack vectors.",
+"Numerical methods approximate solutions to mathematical problems that cannot be solved analytically using iterative computational techniques.",
+"The scientific computing field applies computational methods to solve complex scientific and engineering problems requiring high performance systems.",
+"Data visualization transforms raw data into graphical representations enabling better understanding and communication of complex information.",
+"Operating system scheduling algorithms determine the order and allocation of CPU time to processes optimizing system throughput and response.",
+"The halting problem proof by Alan Turing demonstrates that no general algorithm can determine whether an arbitrary program will terminate.",
+"Project management methodologies like Scrum and Kanban provide frameworks for organizing work and delivering value in software development.",
+"Digital signal processing converts analog signals to digital form enabling sophisticated computational analysis and manipulation of audio and video.",
+"The lambda expression syntax in modern programming languages enables concise anonymous functions and functional programming patterns.",
+"Artificial neural networks consist of layers of interconnected nodes that process information using weighted connections and activation functions.",
+"Database normalization reduces data redundancy and improves data integrity by organizing tables according to normal form dependencies.",
+"Containerization technology packages applications with their dependencies into isolated units that run consistently across different environments.",
+"The CAP theorem illustrates fundamental tradeoffs in distributed system design between consistency, availability, and partition tolerance.",
+"Agile sprints are time boxed iterations during which specific work items are completed and reviewed for continuous improvement.",
+"Recursion enables elegant solutions to problems that can be defined in terms of smaller instances of the same problem.",
+"The MVC pattern separates application concerns into model, view, and controller components promoting organized and maintainable code architecture.",
+"API design principles emphasize consistency, clarity, and backwards compatibility to create interfaces that developers can use effectively.",
+"Continuous integration practices automate the building and testing of code changes enabling early detection of integration issues.",
+"Database indexing creates data structures that speed up data retrieval operations at the cost of additional storage space.",
+"Functional programming emphasizes pure functions and immutable data avoiding side effects and making programs easier to reason about.",
+"The publish subscribe pattern decouples message producers from consumers enabling scalable and flexible event driven architectures.",
+"Object relational mapping bridges the gap between object oriented programming and relational databases simplifying data access patterns.",
+"Code review practices improve software quality through collaborative examination of code changes before they are merged into the main codebase.",
+"Abstraction hides implementation details behind well defined interfaces reducing complexity and enabling modular software design.",
+"The principle of least astonishment states that system components should behave in ways that users naturally expect.",
+"Fault tolerance enables systems to continue operating properly in the event of component failures ensuring high availability.",
+"Hash tables provide average case constant time lookup and insertion making them one of the most versatile data structures.",
+"Binary search efficiently finds elements in sorted arrays by repeatedly dividing the search interval in half achieving logarithmic time complexity.",
+"Thread safety ensures that shared data structures are accessed correctly when multiple threads operate concurrently preventing race conditions.",
+"Garbage collection automatically reclaims memory occupied by objects that are no longer referenced by the program preventing memory leaks.",
+"The interface segregation principle states that clients should not be forced to depend on methods they do not use.",
+"Dependency injection promotes loose coupling by providing external dependencies to components rather than having them create dependencies internally.",
+"The singleton pattern ensures that a class has only one instance providing a global point of access to that instance.",
+"Event sourcing captures all changes to application state as a sequence of events enabling temporal queries and state reconstruction.",
+"CQRS separates read and write operations optimizing each for their specific access patterns and performance requirements.",
+"Domain driven design focuses on modeling software to match business domains using ubiquitous language and bounded contexts.",
+"The repository pattern abstracts data access logic providing a collection like interface for accessing domain objects.",
+"Service oriented architecture structures applications as collections of loosely coupled services communicating through standard protocols.",
+"The strategy pattern defines a family of algorithms encapsulates each one and makes them interchangeable at runtime.",
+"Observer pattern establishes a one to many dependency between objects so that when one object changes state all dependents are notified.",
+"The factory pattern provides an interface for creating objects without specifying their concrete classes enabling flexible object creation.",
+"Adapter pattern converts the interface of a class into another interface clients expect enabling incompatible interfaces to work together.",
+"The decorator pattern dynamically adds responsibilities to objects providing a flexible alternative to subclassing for extending functionality.",
+"Composite pattern composes objects into tree structures representing part whole hierarchies allowing clients to treat individual objects uniformly.",
+"The proxy pattern provides a surrogate or placeholder for another object to control access to it enabling lazy loading and access control.",
+"The command pattern encapsulates a request as an object allowing parameterization of clients with different requests and support for undoable operations.",
+"The template method pattern defines the skeleton of an algorithm in a base class letting subclasses override specific steps without changing structure.",
+"The state pattern allows an object to alter its behavior when its internal state changes appearing to change its class at runtime.",
+];
+
+let chain={};
+let messages=[];
+let history=[];
+let isTraining=false;
+
+function buildChain(text){const words=text.split(/\s+/);for(let i=0;i<words.length-1;i++){const w=words[i].toLowerCase();const n=words[i+1].toLowerCase();if(!chain[w])chain[w]=[];chain[w].push(words[i+1])}}
+
+function initChain(){chain={};CORPUS.forEach(s=>buildChain(s))}
+
+function generate(startWord,temp){
+const maxLen=Math.floor(Math.random()*150)+50;
+let result=[];
+let word=startWord||CORPUS[Math.floor(Math.random()*CORPUS.length)].split(' ')[0].toLowerCase();
+result.push(word);
+for(let i=0;i<maxLen;i++){
+const nexts=chain[word.toLowerCase()];
+if(!nexts||!nexts.length)break;
+const bucket=[];
+const temps=parseFloat(document.getElementById('tempSlider').value)||0.8;
+if(temps<=0.1){result.push(nexts[0]);word=nexts[0];continue}
+const freq={};nexts.forEach(n=>{const k=n.toLowerCase();freq[k]=(freq[k]||0)+1});
+const candidates=Object.entries(freq).sort((a,b)=>b[1]-a[1]);
+const topN=Math.max(1,Math.ceil(candidates.length*temps/2));
+const pool=candidates.slice(0,topN);
+const totalW=pool.reduce((s,c)=>s+c[1],0);
+let r=Math.random()*totalW;let chosen=pool[0][0];
+for(const[c,w]of pool){r-=w;if(r<=0){chosen=c;break}}
+const match=nexts.find(n=>n.toLowerCase()===chosen);
+result.push(match||nexts[0]);
+word=match||nexts[0];
+}
+return result.join(' ');
+}
+
+function generateFromPrompt(prompt,temp){
+const words=prompt.split(/\s+/);
+const lastWord=words[words.length-1].toLowerCase();
+const generated=generate(lastWord,temp);
+return prompt+' '+generated;
+}
+
+function load(){try{const d=localStorage.getItem(LS_KEY);if(d){const p=JSON.parse(d);messages=p.messages||[];history=p.history||[]}}catch(e){}}
+function save(){localStorage.setItem(LS_KEY,JSON.stringify({messages,history}))}
+
+load();
+initChain();
+messages.forEach(m=>addMsgToDOM(m.role,m.text,false));
+
+function updateTokenCount(){const text=document.getElementById('userInput').value;const count=text.trim()?text.trim().split(/\s+/).length:0;document.getElementById('tokenCount').textContent=count}
+
+function handleKey(e){
+if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}
+}
+
+function sendMessage(){
+const input=document.getElementById('userInput');
+const text=input.value.trim();if(!text)return;
+input.value='';updateTokenCount();
+messages.push({role:'user',text});save();
+addMsgToDOM('user',text,true);
+input.style.height='42px';
+setTimeout(()=>{
+const temp=parseFloat(document.getElementById('tempSlider').value)||0.8;
+const response=generateFromPrompt(text,temp);
+messages.push({role:'ai',text:response});save();
+addMsgToDOM('ai',response,true);
+addHistory(text);
+},500+Math.random()*1000);
+}
+
+function addMsgToDOM(role,text,scroll){
+const el=document.getElementById('messages');
+const avatar=role==='user'?'👤':'🤖';
+const cls=role==='user'?'user':'ai';
+const div=document.createElement('div');
+div.className='msg '+cls;
+div.innerHTML=`<div class="avatar">${avatar}</div><div class="bubble">${esc(text)}</div>`;
+el.appendChild(div);
+if(scroll)el.scrollTop=el.scrollHeight;
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function addHistory(text){
+history.unshift({text:text.slice(0,60)+(text.length>60?'...':''),time:new Date().toLocaleTimeString()});
+if(history.length>20)history.pop();
+save();renderHistory();
+}
+
+function renderHistory(){
+const el=document.getElementById('historyList');
+if(!history.length){el.innerHTML='<div style="font-size:12px;opacity:.3;padding:4px">No history yet</div>';return}
+el.innerHTML=history.map(h=>`<div class="history-item" onclick="reusePrompt('${esc(h.text.replace(/'/g,"\\'"))}')">
+<span class="hi-icon">💬</span>
+<span class="hi-text">${esc(h.text)}</span>
+<span class="hi-time">${h.time}</span>
+</div>`).join('');
+}
+
+function reusePrompt(text){document.getElementById('userInput').value=text.replace(/\.\.\.$/,'');updateTokenCount();document.getElementById('userInput').focus()}
+
+function trainOnInput(){
+if(isTraining)return;
+const input=document.getElementById('userInput').value.trim()||document.getElementById('genInput').value.trim();
+if(!input){toast('Enter some text to train on');return}
+isTraining=true;
+document.getElementById('trainStatus').textContent='Training...';
+const fill=document.getElementById('trainFill');
+fill.style.transition='none';fill.style.width='0%';
+setTimeout(()=>{fill.style.transition='width 2s linear';fill.style.width='100%'},50);
+buildChain(input);
+initChain();
+CORPUS.push(input);
+setTimeout(()=>{isTraining=false;document.getElementById('trainStatus').textContent='Complete - '+input.split(/\s+/).length+' tokens added';toast('Training complete')},2100);
+}
+
+function generateText(){
+const prompt=document.getElementById('genInput').value.trim();if(!prompt){toast('Enter a prompt');return}
+const temp=parseFloat(document.getElementById('tempSlider').value)||0.8;
+const result=generateFromPrompt(prompt,temp);
+const out=document.getElementById('genOutput');
+out.style.display='block';
+out.textContent=result;
+history.unshift({text:'Gen: '+prompt.slice(0,50),time:new Date().toLocaleTimeString()});
+if(history.length>20)history.pop();save();renderHistory();
+}
+
+renderHistory();
+</script>
+</body>
+</html>

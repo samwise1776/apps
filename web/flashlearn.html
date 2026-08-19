@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlashLearn - Flashcard Study App</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#23225A;color:#F0F0F5;font-family:'Segoe UI',sans-serif;min-height:100vh}
+a.back{position:fixed;top:12px;left:12px;color:#FFCB47;text-decoration:none;font-size:14px;z-index:100;background:rgba(35,34,90,.9);padding:4px 10px;border-radius:6px}
+a.back:hover{text-decoration:underline}
+.container{max-width:900px;margin:0 auto;padding:50px 20px 20px}
+h1{color:#FFCB47;font-size:28px;margin-bottom:16px}
+h2{color:#FFCB47;font-size:18px;margin-bottom:10px}
+h3{color:#F0F0F5;font-size:15px;margin-bottom:8px}
+.stats-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:#2E2F5E;border:1px solid #4449E2;border-radius:10px;padding:14px;text-align:center}
+.stat .val{font-size:24px;font-weight:700;color:#FFCB47}
+.stat .lbl{font-size:12px;color:#8888bb;margin-top:4px}
+.panel{background:#2E2F5E;border:1px solid #4449E2;border-radius:10px;padding:18px;margin-bottom:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+input,textarea,select{background:#23225A;color:#F0F0F5;border:1px solid #4449E2;border-radius:6px;padding:8px 12px;font-size:14px;width:100%;margin-bottom:8px}
+.btn{background:#4449E2;color:#F0F0F5;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600}
+.btn:hover{background:#5555FF}
+.btn.danger{background:#e74c3c}
+.btn.secondary{background:transparent;border:1px solid #4449E2}
+.btn.correct{background:#2ecc71}
+.btn.incorrect{background:#e74c3c}
+.deck-card{background:#23225A;border:1px solid #4449E2;border-radius:8px;padding:14px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.deck-card:hover{border-color:#FFCB47}
+.deck-card h4{margin-bottom:2px}
+.deck-card .meta{font-size:12px;color:#8888bb}
+.flashcard{width:100%;max-width:500px;min-height:280px;margin:20px auto;perspective:1000px;cursor:pointer}
+.flashcard-inner{width:100%;min-height:280px;position:relative;transition:transform 0.6s;transform-style:preserve-3d}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg)}
+.flashcard-front,.flashcard-back{position:absolute;width:100%;min-height:280px;backface-visibility:hidden;border-radius:12px;padding:24px;display:flex;align-items:center;justify-content:center;font-size:18px;text-align:center;line-height:1.6}
+.flashcard-front{background:#4449E2;color:#F0F0F5}
+.flashcard-back{background:#2E2F5E;border:1px solid #4449E2;color:#F0F0F5;transform:rotateY(180deg)}
+.study-actions{display:flex;gap:12px;justify-content:center;margin-top:16px}
+.study-progress{text-align:center;color:#8888bb;font-size:13px;margin-bottom:10px}
+.hidden{display:none}
+.no-cards{text-align:center;color:#8888bb;padding:40px}
+</style>
+</head>
+<body>
+<a href="../" class="back">&larr; Back</a>
+<div class="container">
+<h1>FlashLearn</h1>
+<div class="stats-bar" id="stats"></div>
+<div id="mainContent">
+<div class="panel" id="addDeckPanel">
+<h3>Create Deck</h3>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<input id="dName" placeholder="Deck name" style="flex:2">
+<input id="dSubject" placeholder="Subject" style="flex:2">
+<button class="btn" onclick="addDeck()">Create</button>
+</div>
+</div>
+<div class="panel">
+<h3>Your Decks</h3>
+<div id="deckList"></div>
+</div>
+</div>
+<div id="studyView" class="hidden"></div>
+</div>
+<script>
+const DB='fl_data';
+let decks=[];let currentDeck=null;let studyQueue=[];let studyIdx=0;let studied=0;correctCount=0;sessionStart=0;
+
+function loadData(){try{const d=JSON.parse(localStorage.getItem(DB));if(d)decks=d.decks||[];}catch(e){}}
+function saveData(){localStorage.setItem(DB,JSON.stringify({decks}))}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function addDeck(){
+    const name=document.getElementById('dName').value.trim();
+    if(!name)return;
+    decks.push({id:Date.now(),name,subject:document.getElementById('dSubject').value.trim(),cards:[],lastStudied:null});
+    document.getElementById('dName').value='';document.getElementById('dSubject').value='';
+    saveData();render();
+}
+
+function addCard(deckId){
+    const front=prompt('Front (Question):');if(!front)return;
+    const back=prompt('Back (Answer):');if(!back)return;
+    const deck=decks.find(d=>d.id===deckId);
+    deck.cards.push({id:Date.now(),front,back,wrongCount:0});
+    saveData();render();
+}
+
+function deleteDeck(id){decks=decks.filter(d=>d.id!==id);saveData();render()}
+
+function startStudy(id){
+    currentDeck=decks.find(d=>d.id===id);
+    if(!currentDeck.cards.length){alert('Add some cards first!');return;}
+    studyQueue=[...currentDeck.cards].sort(()=>Math.random()-.5);
+    studyIdx=0;studied=0;correctCount=0;sessionStart=Date.now();
+    document.getElementById('mainContent').classList.add('hidden');
+    const sv=document.getElementById('studyView');sv.classList.remove('hidden');
+    renderStudy();
+}
+
+function renderStudy(){
+    if(studyIdx>=studyQueue.length){
+        const time=Math.round((Date.now()-sessionStart)/1000);
+        const acc=studied?Math.round(correctCount/studied*100):0;
+        document.getElementById('studyView').innerHTML=
+            '<div class="panel" style="text-align:center"><h2>Session Complete!</h2>'+
+            '<p style="margin:10px 0">Cards studied: '+studied+'</p>'+
+            '<p>Accuracy: '+acc+'%</p>'+
+            '<p>Time: '+time+'s</p>'+
+            '<button class="btn" style="margin-top:16px" onclick="exitStudy()">Back to Decks</button></div>';
+        currentDeck.lastStudied=new Date().toISOString().slice(0,10);
+        saveData();return;
+    }
+    const card=studyQueue[studyIdx];
+    document.getElementById('studyView').innerHTML=
+        '<div class="study-progress">'+(studyIdx+1)+' / '+studyQueue.length+'</div>'+
+        '<div class="flashcard" id="flashcard" onclick="flipCard()"><div class="flashcard-inner">'+
+        '<div class="flashcard-front">'+esc(card.front)+'</div>'+
+        '<div class="flashcard-back">'+esc(card.back)+'</div></div></div>'+
+        '<div class="study-actions" id="studyActions" style="display:none">'+
+        '<button class="btn correct" onclick="markCorrect()">Correct</button>'+
+        '<button class="btn incorrect" onclick="markIncorrect()">Incorrect</button></div>';
+}
+
+function flipCard(){
+    document.getElementById('flashcard').classList.toggle('flipped');
+    document.getElementById('studyActions').style.display='flex';
+}
+
+function markCorrect(){
+    studied++;correctCount++;studyIdx++;renderStudy();
+}
+
+function markIncorrect(){
+    studied++;studyIdx++;
+    const card=studyQueue[studyIdx-1];
+    card.wrongCount=(card.wrongCount||0)+1;
+    const insertAt=Math.min(studyQueue.length,studyIdx+2);
+    studyQueue.splice(insertAt,0,card);
+    renderStudy();
+}
+
+function exitStudy(){
+    document.getElementById('studyView').classList.add('hidden');
+    document.getElementById('mainContent').classList.remove('hidden');
+    render();
+}
+
+function render(){
+    const totalCards=decks.reduce((s,d)=>s+d.cards.length,0);
+    const totalStudied=decks.reduce((s,d)=>s+d.cards.filter(c=>c.wrongCount!==undefined).length,0);
+    const totalWrong=decks.reduce((s,d)=>s+d.cards.reduce((s,c)=>s+(c.wrongCount||0),0),0);
+    const acc=totalStudied&&totalWrong?Math.round((1-totalWrong/(totalStudied+totalWrong))*100):100;
+
+    document.getElementById('stats').innerHTML=
+        '<div class="stat"><div class="val">'+decks.length+'</div><div class="lbl">Decks</div></div>'+
+        '<div class="stat"><div class="val">'+totalCards+'</div><div class="lbl">Total Cards</div></div>'+
+        '<div class="stat"><div class="val">'+acc+'%</div><div class="lbl">Accuracy</div></div>';
+
+    document.getElementById('deckList').innerHTML=decks.map(d=>
+        '<div class="deck-card" onclick="startStudy('+d.id+')"><div><h4>'+esc(d.name)+'</h4>'+
+        '<div class="meta">'+esc(d.subject||'No subject')+' &middot; '+d.cards.length+' cards'+
+        (d.lastStudied?' &middot; Last: '+d.lastStudied:'')+'</div></div>'+
+        '<div style="display:flex;gap:6px"><button class="btn sm secondary" onclick="event.stopPropagation();addCard('+d.id+')">+ Card</button>'+
+        '<button onclick="event.stopPropagation();deleteDeck('+d.id+')" style="background:none;border:none;color:#e74c3c;cursor:pointer">✕</button></div></div>'
+    ).join('')||'<div class="no-cards">No decks yet. Create one above!</div>';
+}
+
+loadData();render();
+</script>
+</body>
+</html>
