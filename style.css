@@ -861,3 +861,48 @@ h3 {
   }
 }
 }
+
+/* =========================================================
+   DATA CHIPS
+   ========================================================= */
+.chip-pill {
+  margin-left: auto;
+  padding: .65rem .9rem;
+  border: 1px solid rgba(127,127,127,.25);
+  border-radius: 999px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.chip-pill strong { font-size: 1.05em; }
+.chips-hero { padding: 5rem 0 2rem; max-width: 760px; }
+.chips-hero h1 { margin: .25rem 0 1rem; }
+.chips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+.chips-card {
+  border: 1px solid rgba(127,127,127,.22);
+  border-radius: 20px;
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+.chips-card > span, .chips-card small { opacity: .72; }
+.chips-card > strong { font-size: clamp(2rem, 5vw, 4rem); }
+.chips-card.chips-wide > strong { font-size: clamp(1.15rem, 2.5vw, 1.8rem); }
+.chips-wide { grid-column: span 2; }
+.chips-rules {
+  margin: 2rem 0 5rem;
+  padding: 2rem;
+  border: 1px solid rgba(127,127,127,.22);
+  border-radius: 24px;
+}
+.chips-rules li { margin: .8rem 0; line-height: 1.6; }
+@media (max-width: 700px) {
+  .chips-grid { grid-template-columns: 1fr; }
+  .chips-wide { grid-column: auto; }
+  .chip-pill { margin-left: 0; }
+}

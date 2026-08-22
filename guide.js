@@ -13,7 +13,7 @@
     "floor", "ceil", "round", "rand", "rand_int", "random", "str", "int", "float", "bool",
     "json_parse", "json_stringify", "from_json", "to_json", "sha256", "now", "time", "sleep", "typeof", "clone",
     "chr", "ord", "hex", "oct", "bin", "join", "split", "replace", "trim", "lower", "upper", "parse_int", "parse_float",
-    "exit", "readFileLines", "argu", "Window", "Frame", "Button", "Label", "TextField", "PasswordField",
+    "exit", "readFileLines", "argu", "cmd", "User", "Window", "Frame", "Button", "Label", "TextField", "PasswordField",
     "TextArea", "Checkbox", "RadioButton", "ToggleSwitch", "Slider", "Spinner", "ProgressBar", "ComboBox",
     "ListBox", "Table", "Image", "Hyperlink", "MenuBar", "Menu", "MenuItem", "MenuSeparator", "TabView",
     "Tab", "StatusBar", "Canvas"

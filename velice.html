@@ -30,14 +30,14 @@
       <p>Velice is a dependency-free, dynamic programming language with clean C-family syntax, first-class functions, object-oriented tools, pattern matching, project commands, and a native GUI library.</p>
       <div class="hero-actions">
         <a class="button velice-primary" href="#lesson-01">Start the guide <span aria-hidden="true">↓</span></a>
-        <a class="button velice-secondary" href="https://github.com/samwise1776/apps/raw/refs/heads/main/apps/velice/velice.zip">Download source <span aria-hidden="true">↓</span></a>
+        <a class="button velice-secondary" href="https://raw.githubusercontent.com/samwise1776/apps/main/apps/velice/velice.zip">Download source <span aria-hidden="true">↓</span></a>
         <a class="button velice-secondary" href="https://github.com/samwise1776/velice" target="_blank" rel="noopener noreferrer">View on GitHub <span aria-hidden="true">↗</span></a>
       </div>
     </div>
     <div class="velice-hero-art" aria-label="Velice at a glance">
       <img src="assets/velice-logo.svg" alt="Velice V logo" />
       <dl>
-        <div><dt>24</dt><dd>complete chapters</dd></div>
+        <div><dt>25</dt><dd>complete chapters</dd></div>
         <div><dt>130</dt><dd>passing tests</dd></div>
         <div><dt>0</dt><dd>runtime dependencies</dd></div>
         <div><dt>3</dt><dd>desktop platforms</dd></div>
@@ -50,10 +50,10 @@
       <div class="guide-search-wrap">
         <label for="guideSearch">Search all chapters</label>
         <input id="guideSearch" type="search" placeholder="Try classes, GUI, files…" autocomplete="off" />
-        <p id="guideSearchStatus" role="status" aria-live="polite">24 chapters available</p>
+        <p id="guideSearchStatus" role="status" aria-live="polite">25 chapters available</p>
       </div>
       <div class="guide-progress" aria-label="Guide progress">
-        <div><span>Progress</span><strong id="guideProgressText">0 / 24</strong></div>
+        <div><span>Progress</span><strong id="guideProgressText">0 / 25</strong></div>
         <span class="guide-progress-track"><i id="guideProgressBar"></i></span>
       </div>
       <ol class="guide-nav-list" id="guideNavList">
@@ -81,6 +81,8 @@
         <li><a href="#lesson-22"><span>22</span>Projects and builds</a></li>
         <li><a href="#lesson-23"><span>23</span>Packages and VS Code</a></li>
         <li><a href="#lesson-24"><span>24</span>Complete reference</a></li>
+        <li><a href="#lesson-25"><span>25</span>Modern GUI features</a></li>
+
       </ol>
     </aside>
 
@@ -354,7 +356,7 @@ print(origin.x, origin.y)
 # Dynamic code usually uses generic-style functions.
 fn identity(value) { return value }
 fn make_pair(left, right) { return [left, right] }</code></pre>
-        <aside class="guide-note"><strong>Version 0.1 scope:</strong> structs construct field records and can contain methods. Enum declarations currently create metadata only; variants are not rich runtime values. Trait declarations parse but create no runtime contract, and <code>impl</code> blocks do not currently attach methods. Generic type parameters are not supported. Use ordinary dynamic functions and higher-order functions for reusable behavior today.</aside>
+        <aside class="guide-note"><strong>Version 0.1.0 scope:</strong> structs construct field records and can contain methods. Enum declarations currently create metadata only; variants are not rich runtime values. Trait declarations parse but create no runtime contract, and <code>impl</code> blocks do not currently attach methods. Generic type parameters are not supported. Use ordinary dynamic functions and higher-order functions for reusable behavior today.</aside>
       </article>
 
       <article class="guide-lesson" id="lesson-13" data-title="Error handling" data-keywords="try catch finally throw assert defer panic nil fallback runtime error">
@@ -445,7 +447,7 @@ print(path)</code></pre>
         <p><code>inbetween(delimiters)</code> returns text between the first opening character and last closing character. It returns an empty string when the pair is not found.</p>
       </article>
 
-      <article class="guide-lesson" id="lesson-17" data-title="Files and command line arguments" data-keywords="readfilelines currentline current hasmore reset position argu argv cli file reader">
+      <article class="guide-lesson" id="lesson-17" data-title="Files, command-line arguments, and running commands" data-keywords="readfilelines currentline current hasmore reset position argu argv cli file reader cmd write capture command shell user name home terminal">
         <header><span>Chapter 17</span><h2>Read files and accept command-line arguments</h2><p><code>argu</code> exposes script arguments. <code>readFileLines</code> provides a stateful line reader.</p></header>
         <pre data-language="velice" data-validate="args"><code># Run with: velice run scan.velice source.velice
 let path = argu.0
@@ -465,6 +467,20 @@ lines.reset()
 print("first:", lines.current())
 print("cursor:", lines.position())</code></pre>
         <p>You can also index and iterate both values: <code>argu[0]</code>, <code>lines[0]</code>, <code>for item in argu</code>, and <code>for line in lines</code>. Missing files and out-of-range arguments produce runtime errors.</p>
+        <p>To run terminal commands, import <code>cmd</code>. A standalone <code>cmd.write(...)</code> prints the command’s output; assign the result to a variable to capture it instead. <code>cmd.capture(...)</code> always returns the output silently.</p>
+        <pre data-language="velice" data-validate="cmd"><code>import cmd
+
+# standalone: prints the listing to the console
+cmd.write("echo Hello")
+
+# captured: no printing, `files` holds the output
+files = cmd.capture("ls /home/${User.name}")
+print(files)
+
+# cmd.write also captures when its result is used
+files2 = cmd.write("ls /home/${User.name}")
+print(files2)</code></pre>
+        <p><code>${User.name}</code> interpolates the current user’s login name; <code>User.home</code>, <code>User.id</code>, <code>User.group</code>, <code>User.shell</code>, and <code>User.full</code> are also available.</p>
       </article>
 
       <article class="guide-lesson" id="lesson-18" data-title="First native GUI" data-keywords="gui tkinter window button label run headless desktop app">
@@ -493,14 +509,14 @@ VELICE_GUI=none python3 -m velice run app.velice</code></pre>
         <p><code>import gui</code> exposes both the <code>gui</code> module and constructors such as <code>Window</code>, <code>Button</code>, and <code>Canvas</code>. The native X button fires <code>on_close</code> but does not destroy anything automatically. In a single-window app, call <code>gui.quit()</code> as shown so the hidden Tk root and event loop also close. In a multi-window app, <code>window.close()</code> destroys only that window; quit after the final window closes.</p>
       </article>
 
-      <article class="guide-lesson" id="lesson-19" data-title="GUI widgets and properties" data-keywords="window frame button label textfield password textarea checkbox radio toggle slider spinner progress combobox list table image tabs menu status canvas property">
+      <article class="guide-lesson" id="lesson-19" data-title="GUI widgets and properties" data-keywords="window frame scrollpane scroll button label textfield password textarea checkbox radio toggle slider spinner progress combobox list table image tabs menu status canvas property">
         <header><span>Chapter 19</span><h2>GUI widgets, layout containers, and properties</h2><p>Construct a widget, add it to a container, then read or assign its properties.</p></header>
         <div class="widget-list" aria-label="Available widgets">
-          <code>Window</code><code>Frame</code><code>Button</code><code>Label</code><code>TextField</code><code>PasswordField</code><code>TextArea</code><code>Checkbox</code><code>RadioButton</code><code>ToggleSwitch</code><code>Slider</code><code>Spinner</code><code>ProgressBar</code><code>ComboBox</code><code>ListBox</code><code>Table</code><code>Image</code><code>Hyperlink</code><code>MenuBar</code><code>Menu</code><code>MenuItem</code><code>MenuSeparator</code><code>TabView</code><code>Tab</code><code>StatusBar</code><code>Canvas</code>
+          <code>Window</code><code>Frame</code><code>ScrollPane</code><code>Button</code><code>Label</code><code>TextField</code><code>PasswordField</code><code>TextArea</code><code>Checkbox</code><code>RadioButton</code><code>ToggleSwitch</code><code>Slider</code><code>Spinner</code><code>ProgressBar</code><code>ComboBox</code><code>ListBox</code><code>Table</code><code>Image</code><code>Hyperlink</code><code>MenuBar</code><code>Menu</code><code>MenuItem</code><code>MenuSeparator</code><code>TabView</code><code>Tab</code><code>StatusBar</code><code>Canvas</code>
         </div>
         <div class="feature-status-row" aria-label="Widget status"><span class="feature-status supported">Supported: core widgets and Canvas</span><span class="feature-status partial">Partial: text editing hooks, menus, and tabs</span></div>
         <table><thead><tr><th>Widget group</th><th>Current behavior</th></tr></thead><tbody>
-          <tr><td><code>Window Frame Button Label StatusBar</code></td><td>Core creation, containment, text display, and button clicks are supported.</td></tr>
+          <tr><td><code>Window Frame ScrollPane StatusBar</code></td><td>Core creation, containment, text display, and button clicks are supported. ScrollPane wraps its children in a scrollable viewport with scrollbars and mouse-wheel scrolling.</td></tr>
           <tr><td><code>TextField PasswordField TextArea</code></td><td>Native controls render; programmatic initial text works. Typed-text synchronization and TextField <code>on_change</code> are partial.</td></tr>
           <tr><td><code>Checkbox ToggleSwitch Slider</code></td><td>Values render and native <code>on_change</code> callbacks are connected. ToggleSwitch currently uses checkbox behavior.</td></tr>
           <tr><td><code>RadioButton Spinner ProgressBar</code></td><td>Basic controls render. Radio grouping, live spinner reads, and custom ProgressBar maximum behavior are incomplete.</td></tr>
@@ -536,6 +552,20 @@ gui.run()</code></pre>
         <p>Core constructor properties such as <code>text</code>, <code>value</code>, <code>items</code>, ranges, and Canvas dimensions work for their matching widgets. After a widget is added, common Tk properties including <code>text</code>, <code>enabled</code>, <code>visible</code>, <code>width</code>, <code>height</code>, <code>background</code>, <code>font_size</code>, and <code>tooltip</code> are applied where the native control accepts them.</p>
         <aside class="guide-warning"><strong>Partial property layer:</strong> <code>placeholder</code>, <code>readonly</code>, <code>max_length</code>, and generic <code>bold</code>/<code>color</code> setters are stored but are not wired to all native widgets in version 0.1. TextField reads also do not yet synchronize typed Tk text back into <code>field.text</code>. Menu and tab classes exist, but their full parent/child realization path is incomplete.</aside>
         <p><code>window.closable(false)</code> replaces the native close request with a no-op. It does not remove or gray out the title-bar X. With the default <code>true</code>, clicking X fires <code>on_close</code>; call <code>window.close()</code> when other windows should remain, or <code>gui.quit()</code> to end the whole GUI application.</p>
+        <p>Wrap large content in a <code>ScrollPane</code> viewport instead of adding it straight to the window:</p>
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("File list", 700, 500)
+
+var pane = ScrollPane(660, 420)     # viewport width and height
+var text = TextArea("many\nlines\nof\ncontent")
+text.set_readonly(true)
+pane.add(text)
+pane.scroll_to_bottom()             # also scroll_to_top() and scroll_to(x, y)
+
+window.add(pane)
+window.show()
+gui.run()</code></pre>
       </article>
 
       <article class="guide-lesson" id="lesson-20" data-title="GUI events dialogs and clipboard" data-keywords="onclick onchange key mouse focus blur load close alert toast confirm input box open save folder color font clipboard event">
@@ -572,6 +602,16 @@ gui.run()</code></pre>
         <p><strong>Events:</strong> click, double-click, select, key down/up, mouse move/enter/leave/wheel, focus, blur, load, and close are connected by the native backend. <code>on_change</code> is connected for checkbox/toggle and slider controls; TextField change notification is not wired in version 0.1. Snake case such as <code>on_key_down</code> and camelCase such as <code>onKeyDown</code> normalize to the same handler.</p>
         <p>The <code>event</code> map contains <code>x</code>, <code>y</code>, <code>key</code>, and <code>state</code> for Tk mouse/keyboard events. Command-style events such as button clicks, changes, load, and close may receive an empty map.</p>
         <p><strong>Dialogs:</strong> <code>alert</code>, <code>toast</code>, <code>confirm</code>, <code>input_box</code>, <code>open_file</code>, <code>save_file</code>, <code>choose_folder</code>, <code>choose_color</code>, and <code>choose_font</code>. File/folder/color pickers return an empty value when cancelled. <code>choose_font</code> currently returns the first available Tk font family rather than opening a full font chooser.</p>
+        <p><code>FileChooser</code> is a single entry point for native file/folder dialogs. <code>mode</code> is <code>open</code> (default), <code>save</code>, or <code>folder</code>; the optional third argument sets the starting directory. It returns the chosen path, or <code>nil</code> when cancelled.</p>
+        <pre data-language="velice" data-validate="headless"><code>import gui
+import cmd
+
+var picked = FileChooser("Pick a file", "open", "/home/${User.name}")
+if picked != nil {
+    print("you chose:", picked)
+}
+var folder = FileChooser("Pick a folder", "folder")
+print("folder:", folder)</code></pre>
       </article>
 
       <article class="guide-lesson" id="lesson-21" data-title="Canvas declarative GUI DSL and themes" data-keywords="canvas drawing rect oval line polygon text arc screenshot declarative dsl theme dark light material fluent">
@@ -679,7 +719,7 @@ velice install-dir</code></pre>
           <div><h3>CLI commands</h3><table><tbody><tr><th>Code</th><td><code>run repl eval</code></td></tr><tr><th>Project</th><td><code>new/create init build [-r|--release] debug test clean lint format [--check] docs</code></td></tr><tr><th>Packages</th><td><code>install/add uninstall/remove update search list package publish</code></td></tr><tr><th>SDK</th><td><code>version upgrade help install-dir</code></td></tr></tbody></table></div>
         </div>
         <h3>Implementation status</h3>
-        <table><thead><tr><th>Status</th><th>Version 0.1 behavior</th></tr></thead><tbody>
+        <table><thead><tr><th>Status</th><th>Version 0.1.0 behavior</th></tr></thead><tbody>
           <tr><th><span class="feature-status supported">Supported</span></th><td>Dynamic values; variables; functions, defaults, recursion, lambdas, closures, and thunks; arithmetic/logical/bitwise operators; control flow; array matching; classes and single inheritance; structs; file modules; builtin library; files/arguments; core GUI widgets, dialogs, events, themes, and Canvas; local/Git packages and <code>.vpkg</code>.</td></tr>
           <tr><th><span class="feature-status partial">Partial</span></th><td>Type annotations are stored but unenforced. Enums are metadata only. <code>mod</code> has no namespace. <code>run Main</code> shows a DSL window without starting the event loop. TextField syncing, menus, tabs, specialized theme coverage, registry access, and publishing are incomplete.</td></tr>
           <tr><th><span class="feature-status reserved">Reserved</span></th><td><code>async await spawn yield pub type where super none some ok err panic unsafe extern inline is guard new sizeof with</code>; ternary <code>?:</code>; trait/impl enforcement; tuple patterns; static generic parameters; <code>.vsrc</code> handling.</td></tr>
@@ -691,7 +731,161 @@ velice install-dir</code></pre>
       <section class="guide-empty" id="guideEmpty" hidden>
         <h2>No chapter matched that search.</h2><p>Try a broader word such as “GUI,” “function,” “file,” or “package.”</p>
       </section>
-    </main>
+    
+      <article
+        class="guide-lesson"
+        id="lesson-25"
+        data-title="Modern GUI features"
+        data-keywords="windows style html label font size title bar maximize minimize opacity modern gui">
+
+        <header>
+          <span>Chapter 25</span>
+          <h2>Modern GUI features</h2>
+          <p>
+            Build richer Velice desktop applications with Windows-style
+            windows, large fonts, HTML content, window controls, styling,
+            and modern application features.
+          </p>
+        </header>
+
+        <h3>Windows-style applications</h3>
+
+        <pre data-language="velice"><code>import gui
+
+var window = Window("My App", 900, 600)
+
+window.setStyle(App.Windows_Style)
+
+window.center()
+
+gui.run()</code></pre>
+
+        <p>
+          <code>App.Windows_Style</code> gives a Velice application a
+          Windows-inspired title bar with minimize, maximize/restore,
+          and close controls.
+        </p>
+
+        <h3>Dark Windows style</h3>
+
+        <pre data-language="velice"><code>import gui
+
+var window = Window("Dark App", 900, 600)
+
+window.setStyle(App.Windows_Dark_Style)
+
+window.center()
+
+gui.run()</code></pre>
+
+        <h3>Window controls</h3>
+
+        <pre data-language="velice"><code>window.center()
+
+window.minimize()
+
+window.maximize()
+
+window.restore()
+
+window.toggleMaximize()</code></pre>
+
+        <h3>Window size controls</h3>
+
+        <pre data-language="velice"><code>window.setMinSize(500, 400)
+
+window.setMaxSize(1600, 1000)</code></pre>
+
+        <h3>Opacity</h3>
+
+        <pre data-language="velice"><code>window.setOpacity(0.95)</code></pre>
+
+        <h3>Title-bar styling</h3>
+
+        <pre data-language="velice"><code>window.setTitleBarColor("#202020")
+
+window.setTitleBarTextColor("#ffffff")
+
+window.setAccentColor("#0078d4")</code></pre>
+
+        <h3>Large fonts</h3>
+
+        <pre data-language="velice"><code>var title = Label("Portfolio")
+
+title.font_size = 60
+title.bold = true
+title.color = "white"
+
+window.add(title)</code></pre>
+
+        <p>
+          <code>font_size</code> uses a number representing the requested
+          font size. For example, use <code>60</code>, not
+          <code>"60px"</code>.
+        </p>
+
+        <h3>HTML labels</h3>
+
+        <pre data-language="velice"><code>import gui
+
+var window = Window("HTML App", 900, 600)
+
+var page = Label.html "&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;Welcome to Velice!&lt;/p&gt;"
+
+window.add(page)
+
+gui.run()</code></pre>
+
+        <h3>HTML with CSS</h3>
+
+        <pre data-language="velice"><code>var page = Label.html "&lt;style&gt;body { background: #111; color: white; } h1 { font-size: 60px; color: cyan; }&lt;/style&gt;&lt;h1&gt;Portfolio&lt;/h1&gt;&lt;p&gt;My Velice app&lt;/p&gt;"
+
+window.add(page)</code></pre>
+
+        <p>
+          HTML labels can render rich formatted content including
+          headings, paragraphs, lists, links, tables, images,
+          forms, and CSS styling when the HTML renderer is installed.
+        </p>
+
+        <h3>Complete modern application</h3>
+
+        <pre data-language="velice"><code>import gui
+
+var window = Window("Portfolio", 1000, 700)
+
+window.setStyle(App.Windows_Style)
+
+window.center()
+
+window.setMinSize(700, 500)
+
+window.setAccentColor("#0078d4")
+
+var title = Label("Portfolio")
+
+title.font_size = 60
+title.bold = true
+
+window.add(title)
+
+var content = Label.html "&lt;h2&gt;Welcome&lt;/h2&gt;&lt;p&gt;This app was made with Velice.&lt;/p&gt;"
+
+window.add(content)
+
+gui.run()</code></pre>
+
+        <aside class="guide-success">
+          <strong>You reached the end of the course.</strong>
+          You now have the language basics, functions, collections,
+          classes, modules, files, projects, GUI development,
+          Windows styling, and HTML widgets needed to build complete
+          Velice applications.
+        </aside>
+
+      </article>
+
+</main>
   </div>
 
   <footer class="guide-footer">
