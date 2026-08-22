@@ -53,7 +53,7 @@
 
             <dl class="hero-stats" aria-label="Datacenter product overview">
                 <div><dt>30</dt><dd>Tracked products</dd></div>
-                <div><dt>11</dt><dd>Public downloads</dd></div>
+                <div><dt>8</dt><dd>Public downloads</dd></div>
                 <div><dt>Free</dt><dd>For everyone</dd></div>
                 <div><dt>Local</dt><dd>Privacy focused</dd></div>
             </dl>
@@ -373,7 +373,22 @@
                         <div><dt>Version</dt><dd>1.0.0</dd></div>
                         <div><dt>Price</dt><dd>Free</dd></div>
                     </dl>
-                    <span class="availability">Public development project</span>
+                    
+                    <!-- DC AUTO ACTIONS START -->
+                    <div class="app-actions">
+                        <a class="button button-primary"
+                           href="desktopcraft/">
+                            Open Desktopcraft
+                            <span aria-hidden="true">→</span>
+                        </a>
+                        <a class="button button-secondary"
+                           href="downloads/desktopcraft.zip"
+                           download>
+                            Download Desktopcraft
+                            <span aria-hidden="true">↓</span>
+                        </a>
+                    </div>
+                    <!-- DC AUTO ACTIONS END -->
                 </div>
             </article>
 
@@ -636,23 +651,20 @@
             </a>
         </section>
 
+        
         <section class="downloads" aria-labelledby="downloads-title">
             <div>
-                <p class="eyebrow">Discover more</p>
-                <h2 id="downloads-title">See every Datacenter app</h2>
+                <p class="eyebrow">Downloads</p>
+                <h2 id="downloads-title">Everything in one place.</h2>
                 <p>
-                    Browse the official library and download the latest
-                    Datacenter software directly from GitHub.
+                    Public Datacenter apps can be downloaded directly from
+                    their product cards above. No separate download page needed.
                 </p>
             </div>
-            <a
-                class="button button-light"
-                href="https://github.com/samwise1776/apps/"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                View all apps
-                <span aria-hidden="true">→</span>
+
+            <a class="button button-light" href="#apps-title">
+                Browse apps
+                <span aria-hidden="true">↑</span>
             </a>
         </section>
 
@@ -684,29 +696,6 @@
 
     </main>
         <script src="data-chips.js"></script>
-<a href="desktopcraft/" style="display:inline-block;padding:16px 26px;margin:16px;background:#2563eb;color:white;text-decoration:none;border-radius:12px;font-weight:700;font-size:18px;">Desktopcraft →</a>
-<a href="install.html" style="display:inline-block;padding:16px 24px;margin:16px;background:#2563eb;color:#fff;text-decoration:none;border-radius:12px;font-weight:700;">Install Apps ↓</a>
-
-<!-- DATACENTER INSTALLABLE APPS START -->
-<style>
-#dc-installable-apps{padding:50px 24px;max-width:1400px;margin:auto}
-#dc-installable-apps h1{font-size:38px;margin-bottom:10px}
-#dc-installable-apps>.dc-subtitle{margin-bottom:30px}
-.dc-install-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px}
-.dc-install-card{padding:28px;border-radius:18px;min-height:210px;box-sizing:border-box;background:#1e293b;color:white;display:flex;flex-direction:column}
-.dc-install-card h2{margin:0 0 12px;font-size:24px}
-.dc-install-card p{flex:1}
-.dc-buttons a{display:inline-block;padding:13px 18px;border-radius:10px;background:#2563eb;color:white;text-decoration:none;font-weight:700}
-.dc-buttons a:hover{filter:brightness(1.12)}
-</style>
-<section id="dc-installable-apps">
-<h1>Install Datacenter Apps</h1>
-<p class="dc-subtitle">Download every available Datacenter application.</p>
-<div class="dc-install-grid">
-
-</div>
-</section>
-<!-- DATACENTER INSTALLABLE APPS END -->
 
 </body>
 </html>

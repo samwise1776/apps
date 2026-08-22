@@ -2989,3 +2989,6 @@ button {
     display: none !important;
   }
 }
+
+/* Make content boxes 50px taller */
+.reference-card,.challenge-box,.quiz-panel,.workspace-card,.lesson-creator-card,.desktop-download-card{min-height:calc(100% + 50px);padding-bottom:50px;box-sizing:border-box;}
