@@ -30,14 +30,14 @@
       <p>Velice is a dependency-free, dynamic programming language with clean C-family syntax, first-class functions, object-oriented tools, pattern matching, project commands, and a native GUI library.</p>
       <div class="hero-actions">
         <a class="button velice-primary" href="#lesson-01">Start the guide <span aria-hidden="true">↓</span></a>
-        <a class="button velice-secondary" href="https://github.com/samwise1776/apps/raw/refs/heads/main/apps/velice/velice.zip">Download source <span aria-hidden="true">↓</span></a>
+        <a class="button velice-secondary" href="https://raw.githubusercontent.com/samwise1776/apps/main/apps/velice/velice.zip">Download source <span aria-hidden="true">↓</span></a>
         <a class="button velice-secondary" href="https://github.com/samwise1776/velice" target="_blank" rel="noopener noreferrer">View on GitHub <span aria-hidden="true">↗</span></a>
       </div>
     </div>
     <div class="velice-hero-art" aria-label="Velice at a glance">
       <img src="assets/velice-logo.svg" alt="Velice V logo" />
       <dl>
-        <div><dt>24</dt><dd>complete chapters</dd></div>
+        <div><dt>25</dt><dd>complete chapters</dd></div>
         <div><dt>130</dt><dd>passing tests</dd></div>
         <div><dt>0</dt><dd>runtime dependencies</dd></div>
         <div><dt>3</dt><dd>desktop platforms</dd></div>
@@ -50,10 +50,10 @@
       <div class="guide-search-wrap">
         <label for="guideSearch">Search all chapters</label>
         <input id="guideSearch" type="search" placeholder="Try classes, GUI, files…" autocomplete="off" />
-        <p id="guideSearchStatus" role="status" aria-live="polite">24 chapters available</p>
+        <p id="guideSearchStatus" role="status" aria-live="polite">25 chapters available</p>
       </div>
       <div class="guide-progress" aria-label="Guide progress">
-        <div><span>Progress</span><strong id="guideProgressText">0 / 24</strong></div>
+        <div><span>Progress</span><strong id="guideProgressText">0 / 25</strong></div>
         <span class="guide-progress-track"><i id="guideProgressBar"></i></span>
       </div>
       <ol class="guide-nav-list" id="guideNavList">
@@ -81,6 +81,8 @@
         <li><a href="#lesson-22"><span>22</span>Projects and builds</a></li>
         <li><a href="#lesson-23"><span>23</span>Packages and VS Code</a></li>
         <li><a href="#lesson-24"><span>24</span>Complete reference</a></li>
+        <li><a href="#lesson-25"><span>25</span>Modern GUI features</a></li>
+
       </ol>
     </aside>
 
@@ -354,7 +356,7 @@ print(origin.x, origin.y)
 # Dynamic code usually uses generic-style functions.
 fn identity(value) { return value }
 fn make_pair(left, right) { return [left, right] }</code></pre>
-        <aside class="guide-note"><strong>Version 0.1 scope:</strong> structs construct field records and can contain methods. Enum declarations currently create metadata only; variants are not rich runtime values. Trait declarations parse but create no runtime contract, and <code>impl</code> blocks do not currently attach methods. Generic type parameters are not supported. Use ordinary dynamic functions and higher-order functions for reusable behavior today.</aside>
+        <aside class="guide-note"><strong>Version 0.1.0 scope:</strong> structs construct field records and can contain methods. Enum declarations currently create metadata only; variants are not rich runtime values. Trait declarations parse but create no runtime contract, and <code>impl</code> blocks do not currently attach methods. Generic type parameters are not supported. Use ordinary dynamic functions and higher-order functions for reusable behavior today.</aside>
       </article>
 
       <article class="guide-lesson" id="lesson-13" data-title="Error handling" data-keywords="try catch finally throw assert defer panic nil fallback runtime error">
@@ -717,7 +719,7 @@ velice install-dir</code></pre>
           <div><h3>CLI commands</h3><table><tbody><tr><th>Code</th><td><code>run repl eval</code></td></tr><tr><th>Project</th><td><code>new/create init build [-r|--release] debug test clean lint format [--check] docs</code></td></tr><tr><th>Packages</th><td><code>install/add uninstall/remove update search list package publish</code></td></tr><tr><th>SDK</th><td><code>version upgrade help install-dir</code></td></tr></tbody></table></div>
         </div>
         <h3>Implementation status</h3>
-        <table><thead><tr><th>Status</th><th>Version 0.1 behavior</th></tr></thead><tbody>
+        <table><thead><tr><th>Status</th><th>Version 0.1.0 behavior</th></tr></thead><tbody>
           <tr><th><span class="feature-status supported">Supported</span></th><td>Dynamic values; variables; functions, defaults, recursion, lambdas, closures, and thunks; arithmetic/logical/bitwise operators; control flow; array matching; classes and single inheritance; structs; file modules; builtin library; files/arguments; core GUI widgets, dialogs, events, themes, and Canvas; local/Git packages and <code>.vpkg</code>.</td></tr>
           <tr><th><span class="feature-status partial">Partial</span></th><td>Type annotations are stored but unenforced. Enums are metadata only. <code>mod</code> has no namespace. <code>run Main</code> shows a DSL window without starting the event loop. TextField syncing, menus, tabs, specialized theme coverage, registry access, and publishing are incomplete.</td></tr>
           <tr><th><span class="feature-status reserved">Reserved</span></th><td><code>async await spawn yield pub type where super none some ok err panic unsafe extern inline is guard new sizeof with</code>; ternary <code>?:</code>; trait/impl enforcement; tuple patterns; static generic parameters; <code>.vsrc</code> handling.</td></tr>
@@ -729,7 +731,185 @@ velice install-dir</code></pre>
       <section class="guide-empty" id="guideEmpty" hidden>
         <h2>No chapter matched that search.</h2><p>Try a broader word such as “GUI,” “function,” “file,” or “package.”</p>
       </section>
-    </main>
+    
+      <article
+        class="guide-lesson"
+        id="lesson-25"
+        data-title="Modern GUI features"
+        data-keywords="windows style html label font size title bar maximize minimize opacity modern gui">
+
+        <header>
+          <span>Chapter 25</span>
+          <h2>Modern GUI features</h2>
+          <p>
+            Build richer Velice desktop applications with Windows-style
+            windows, large fonts, HTML content, window controls, styling,
+            and modern application features.
+          </p>
+        </header>
+
+        <h3>Windows-style applications</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("My App", 900, 600)
+
+window.setStyle(App.Windows_Style)
+
+window.center()
+
+gui.run()</code></pre>
+
+        <p>
+          <code>App.Windows_Style</code> gives a Velice application a
+          Windows-inspired title bar with minimize, maximize/restore,
+          and close controls.
+        </p>
+
+        <h3>Dark Windows style</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("Dark App", 900, 600)
+
+window.setStyle(App.Windows_Dark_Style)
+
+window.center()
+
+gui.run()</code></pre>
+
+        <h3>Window controls</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("My App", 900, 600)
+
+window.center()
+
+window.minimize()
+
+window.maximize()
+
+window.restore()
+
+window.toggleMaximize()</code></pre>
+
+        <h3>Window size controls</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("My App", 900, 600)
+
+window.setMinSize(500, 400)
+
+window.setMaxSize(1600, 1000)</code></pre>
+
+        <h3>Opacity</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("My App", 900, 600)
+
+window.setOpacity(0.95)</code></pre>
+
+        <h3>Title-bar styling</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("My App", 900, 600)
+
+window.setTitleBarColor("#202020")
+
+window.setTitleBarTextColor("#ffffff")
+
+window.setAccentColor("#0078d4")</code></pre>
+
+        <h3>Large fonts</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("My App", 900, 600)
+
+var title = Label("Portfolio")
+
+title.font_size = 60
+title.bold = true
+title.color = "white"
+
+window.add(title)</code></pre>
+
+        <p>
+          <code>font_size</code> uses a number representing the requested
+          font size. For example, use <code>60</code>, not
+          <code>"60px"</code>.
+        </p>
+
+        <h3>HTML labels</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("HTML App", 900, 600)
+
+var page = Label.html "&lt;h1&gt;Hello&lt;/h1&gt;&lt;p&gt;Welcome to Velice!&lt;/p&gt;"
+
+window.add(page)
+
+gui.run()</code></pre>
+
+        <h3>HTML with CSS</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("Styled", 900, 600)
+
+var page = Label.html "&lt;style&gt;body { background: #111; color: white; } h1 { font-size: 60px; color: cyan; }&lt;/style&gt;&lt;h1&gt;Portfolio&lt;/h1&gt;&lt;p&gt;My Velice app&lt;/p&gt;"
+
+window.add(page)</code></pre>
+
+        <p>
+          HTML labels can render rich formatted content including
+          headings, paragraphs, lists, links, tables, images,
+          forms, and CSS styling when the HTML renderer is installed.
+        </p>
+
+        <h3>Complete modern application</h3>
+
+        <pre data-language="velice" data-validate="headless"><code>import gui
+
+var window = Window("Portfolio", 1000, 700)
+
+window.setStyle(App.Windows_Style)
+
+window.center()
+
+window.setMinSize(700, 500)
+
+window.setAccentColor("#0078d4")
+
+var title = Label("Portfolio")
+
+title.font_size = 60
+title.bold = true
+
+window.add(title)
+
+var content = Label.html "&lt;h2&gt;Welcome&lt;/h2&gt;&lt;p&gt;This app was made with Velice.&lt;/p&gt;"
+
+window.add(content)
+
+gui.run()</code></pre>
+
+        <aside class="guide-success">
+          <strong>You reached the end of the course.</strong>
+          You now have the language basics, functions, collections,
+          classes, modules, files, projects, GUI development,
+          Windows styling, and HTML widgets needed to build complete
+          Velice applications.
+        </aside>
+
+      </article>
+
+</main>
   </div>
 
   <footer class="guide-footer">

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Datacenter Data Chips virtual currency rules and balance.">
+  <title>Data Chips — Datacenter</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <nav class="site-nav" aria-label="Main navigation">
+      <a class="brand" href="index.html"><span class="brand-mark">DC</span><span>Datacenter</span></a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="index.html#apps-title">Apps</a>
+        <a href="data-chips.html" aria-current="page">Data Chips</a>
+      </div>
+    </nav>
+
+    <section class="chips-hero">
+      <p class="eyebrow">Datacenter economy</p>
+      <h1>Data <span>Chips</span></h1>
+      <p>Virtual currency for getting Datacenter apps. A ZIP app download on this site counts as buying that app.</p>
+    </section>
+
+    <section class="chips-grid" aria-label="Data Chips status">
+      <article class="chips-card"><span>Balance</span><strong id="chips-balance">200</strong><small>Data Chips</small></article>
+      <article class="chips-card"><span>Resets left</span><strong id="chips-resets">3</strong><small>out of 3</small></article>
+      <article class="chips-card chips-wide"><span>Status</span><strong id="chips-status">Active</strong><small>Buying an app starts 5 weeks of protection.</small></article>
+      <article class="chips-card chips-wide"><span>Next automatic loss</span><strong id="chips-next-loss">Calculating…</strong><small>3 chips every 2 days when not protected.</small></article>
+    </section>
+
+    <section class="chips-rules">
+      <p class="eyebrow">How it works</p>
+      <h2>Rules</h2>
+      <ol>
+        <li>You start with <strong>200 Data Chips</strong> and <strong>3 resets</strong>.</li>
+        <li>Buying an app costs <strong>1 chip</strong>.</li>
+        <li>A purchase pauses the time loss for <strong>5 weeks</strong>.</li>
+        <li>After protection ends, you lose <strong>3 chips every 2 days</strong>.</li>
+        <li>At 0 chips, your balance freezes until you use a reset.</li>
+        <li>A reset restores 200 chips and uses one reset.</li>
+        <li>When all 3 resets are gone, 0 chips stays at 0.</li>
+      </ol>
+      <button class="button button-primary" id="chips-reset-button" type="button">Use reset</button>
+    </section>
+  </main>
+  <script src="data-chips.js"></script>
+</body>
+</html>
