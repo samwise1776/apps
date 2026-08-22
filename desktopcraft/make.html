@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Create and publish a free community desktop app on Desktopcraft." />
+    <title>Make a free app — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="community.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body class="community-page make-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="community-topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/desktopcraft-icon.svg" alt="" /></span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav aria-label="Community app navigation">
+        <a href="index.html">Courses</a>
+        <a href="appmaker.html">App Maker</a>
+        <a href="view.html">Browse free apps</a>
+        <a class="active" href="make.html" aria-current="page">Publish an app</a>
+      </nav>
+    </header>
+
+    <main class="make-shell" id="main-content">
+      <section class="community-hero make-hero">
+        <div>
+          <p class="section-kicker">COMMUNITY APP STUDIO</p>
+          <h1>Build it.<br />Share it free.</h1>
+          <p>Write or paste a desktop app, explain what it does, and publish the source so anyone can learn from it and download it at no cost.</p>
+        </div>
+        <aside class="free-rule-card">
+          <span class="free-seal">$0</span>
+          <div><strong>Free means free</strong><p>Desktopcraft community apps cannot have prices, checkout links, or paid download gates.</p></div>
+        </aside>
+      </section>
+
+      <div class="make-layout">
+        <aside class="make-guidance">
+          <section>
+            <p class="section-kicker">YOUR ACCOUNT</p>
+            <div class="maker-account" id="makerAccount">
+              <span class="community-avatar" id="makerAvatar">GU</span>
+              <div><strong id="makerAccountName">Checking sign-in…</strong><small id="makerAccountHandle">A server account is required to publish.</small></div>
+            </div>
+            <a class="community-signin" id="makerSignIn" href="login.html?switch=1&amp;next=make.html" hidden>Sign in or create an account</a>
+          </section>
+          <section>
+            <p class="section-kicker">PUBLISHING CHECKLIST</p>
+            <ol class="publish-checklist">
+              <li><span>1</span><p><strong>Keep it understandable</strong>Add a clear title and description.</p></li>
+              <li><span>2</span><p><strong>Review the source</strong>Remove passwords, keys, and personal data.</p></li>
+              <li><span>3</span><p><strong>Share only your work</strong>Publish code you have permission to distribute.</p></li>
+            </ol>
+          </section>
+          <section class="source-warning">
+            <strong>Source downloads only</strong>
+            <p>Community downloads are editable source files, not prebuilt installers. Builders should review code before running it.</p>
+          </section>
+        </aside>
+
+        <form class="community-maker-form" id="communityMakerForm">
+          <header class="maker-form-heading">
+            <div><p class="section-kicker">APP DETAILS</p><h2>Publish a community app</h2></div>
+            <span class="always-free-badge">Always free</span>
+          </header>
+
+          <div class="community-field-row">
+            <label class="community-field">
+              <span>App title</span>
+              <input id="communityAppTitle" name="title" minlength="3" maxlength="80" required placeholder="Focus Timer" />
+            </label>
+            <label class="community-field">
+              <span>Desktop toolkit</span>
+              <select id="communityToolkit" name="toolkit" required>
+                <option value="java">Java Swing</option>
+                <option value="python">Python Tkinter</option>
+                <option value="csharp">C# WinForms</option>
+                <option value="cpp">C++ Qt Widgets</option>
+                <option value="electron">JavaScript Electron</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="community-field">
+            <span>Description</span>
+            <textarea id="communityAppDescription" name="description" rows="4" minlength="10" maxlength="800" required placeholder="Explain what the app does, how to use it, and anything another builder should know."></textarea>
+            <small><strong id="descriptionCount">0</strong>/800</small>
+          </label>
+
+          <div class="source-editor-heading">
+            <div><span>Source code</span><small id="communityFileName">DesktopcraftApp.java</small></div>
+            <div>
+              <button id="loadStarterSource" type="button">Load starter</button>
+              <button id="downloadDraft" type="button">Download draft</button>
+            </div>
+          </div>
+          <label class="source-editor-label">
+            <span class="sr-only">App source code</span>
+            <textarea id="communitySourceCode" name="sourceCode" minlength="20" maxlength="100000" required spellcheck="false" aria-describedby="sourceHelp"></textarea>
+          </label>
+          <div class="source-editor-meta" id="sourceHelp"><span><strong id="sourceLineCount">0</strong> lines</span><span><strong id="sourceByteCount">0</strong> bytes / 100 KB</span></div>
+
+          <label class="free-agreement">
+            <input id="freeAgreement" type="checkbox" required />
+            <span>I am sharing this source app for everyone to download free of charge.</span>
+          </label>
+
+          <p class="community-form-status" id="communityFormStatus" role="status" aria-live="polite" hidden></p>
+          <div class="community-form-actions">
+            <a href="view.html">Cancel and browse</a>
+            <button class="button button-primary" id="publishCommunityApp" type="submit">Publish free app</button>
+          </div>
+          <div class="published-result" id="publishedResult" hidden>
+            <strong>Your app is live.</strong>
+            <a id="viewPublishedApp" href="view.html">View it in the free app library →</a>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="make.js"></script>
+  </body>
+</html>

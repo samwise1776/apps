@@ -1,0 +1,383 @@
+.appmaker-page {
+  min-height: 100vh;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 85% 5%, rgba(216, 239, 114, 0.22), transparent 28%),
+    var(--canvas);
+}
+
+.maker-topbar {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4vw;
+  background: rgba(255, 254, 249, 0.9);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(14px);
+}
+
+.maker-topbar nav {
+  display: flex;
+  gap: 8px;
+}
+
+.maker-topbar nav a {
+  padding: 8px 11px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+}
+
+.maker-topbar nav a:hover {
+  color: var(--green-dark);
+  background: white;
+}
+
+.maker-page-shell {
+  width: min(1440px, 92vw);
+  margin: 0 auto;
+  padding: 52px 0 64px;
+}
+
+.maker-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: 8vw;
+  align-items: end;
+  margin-bottom: 36px;
+}
+
+.maker-hero h1 {
+  margin: 8px 0 0;
+  font-family: var(--display);
+  font-size: clamp(42px, 5.6vw, 78px);
+  font-weight: 450;
+  letter-spacing: -0.055em;
+  line-height: 0.96;
+}
+
+.maker-hero > p {
+  margin: 0 0 5px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.maker-layout {
+  display: grid;
+  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.maker-controls,
+.maker-code-card,
+.maker-preview-card {
+  background: var(--paper);
+  border: 1px solid #d8d9d1;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.maker-controls {
+  display: grid;
+  gap: 15px;
+  padding: 22px;
+}
+
+.maker-panel-heading,
+.maker-preview-heading > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.maker-panel-heading > span,
+.maker-preview-heading > div > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  color: var(--nav);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 850;
+  background: var(--lime);
+  border-radius: 50%;
+}
+
+.maker-panel-heading strong {
+  font-size: 13px;
+}
+
+.maker-panel-heading p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.maker-field {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.maker-field > span {
+  color: #526059;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.maker-field input,
+.maker-field select {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  color: var(--ink);
+  font: 11px var(--sans);
+  background: white;
+  border: 1px solid #ccd1ca;
+  border-radius: 6px;
+}
+
+.maker-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.maker-field-row.dimensions {
+  grid-template-columns: 1fr 1fr;
+}
+
+.maker-generate {
+  width: 100%;
+  margin-top: 3px;
+}
+
+.maker-local-note {
+  margin: -4px 0 0;
+  color: #8a938e;
+  font-size: 9px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.maker-workspace {
+  display: grid;
+  gap: 18px;
+}
+
+.maker-code-card {
+  overflow: hidden;
+  background: #16211c;
+  border-color: #16211c;
+}
+
+.maker-code-toolbar,
+.maker-preview-heading {
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+.maker-code-toolbar {
+  color: #eef3ef;
+  font-family: var(--mono);
+  font-size: 10px;
+  background: #202e27;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.maker-code-toolbar > div,
+.maker-code-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.maker-code-actions button {
+  padding: 6px 8px;
+  color: #c3cec7;
+  font: 9px var(--sans);
+  font-weight: 750;
+  background: transparent;
+  border: 1px solid #526259;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.maker-code-actions button:hover {
+  color: white;
+  border-color: var(--lime);
+}
+
+.maker-code-card pre {
+  height: 330px;
+  margin: 0;
+  padding: 18px 20px;
+  overflow: auto;
+  color: #dce7e0;
+  font: 11px/1.65 var(--mono);
+  tab-size: 4;
+}
+
+.maker-preview-card {
+  overflow: hidden;
+}
+
+.maker-preview-heading {
+  border-bottom: 1px solid var(--line);
+}
+
+.maker-preview-heading strong {
+  font-size: 12px;
+}
+
+.maker-preview-heading small {
+  color: var(--green-dark);
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.maker-preview-stage {
+  display: grid;
+  min-height: 280px;
+  place-items: center;
+  padding: 28px;
+  overflow: auto;
+  background-color: #eef0ea;
+  background-image: radial-gradient(#cdd2cb 0.8px, transparent 0.8px);
+  background-size: 12px 12px;
+}
+
+.maker-window {
+  width: min(100%, 520px);
+  overflow: hidden;
+  background: #f6f6f4;
+  border: 1px solid #9ca49f;
+  border-radius: 7px;
+  box-shadow: 0 18px 40px rgba(34, 48, 40, 0.18);
+}
+
+.maker-window-bar {
+  display: grid;
+  grid-template-columns: 74px 1fr 74px;
+  align-items: center;
+  min-height: 35px;
+  padding: 0 10px;
+  color: #36423c;
+  font-size: 9px;
+  text-align: center;
+  background: #dfe2df;
+  border-bottom: 1px solid #c4c9c5;
+}
+
+.maker-window-bar .window-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.maker-window-bar i {
+  width: 8px;
+  height: 8px;
+  background: #aeb6b1;
+  border-radius: 50%;
+}
+
+.maker-window-bar i:first-child {
+  background: #ef946d;
+}
+
+.maker-window-body {
+  display: grid;
+  min-height: 210px;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 28px;
+  text-align: center;
+}
+
+.maker-app-badge {
+  padding: 4px 7px;
+  color: var(--green-dark);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  background: var(--green-soft);
+  border-radius: 999px;
+}
+
+.maker-window-body h2 {
+  margin: 2px 0 0;
+  font-family: var(--display);
+  font-size: 27px;
+  font-weight: 500;
+}
+
+.maker-window-body p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.maker-window-body button {
+  margin-top: 5px;
+  padding: 8px 15px;
+  color: white;
+  font-size: 10px;
+  font-weight: 750;
+  background: var(--green);
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+@media (max-width: 980px) {
+  .maker-hero,
+  .maker-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .maker-hero {
+    gap: 18px;
+  }
+}
+
+@media (max-width: 560px) {
+  .maker-topbar {
+    padding: 10px 16px;
+  }
+
+  .maker-topbar nav a:nth-last-child(-n + 2) {
+    display: none;
+  }
+
+  .maker-page-shell {
+    width: min(100% - 28px, 720px);
+    padding-top: 34px;
+  }
+
+  .maker-field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .maker-code-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 11px 14px;
+  }
+
+  .maker-code-card pre {
+    height: 290px;
+  }
+}

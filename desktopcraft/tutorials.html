@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Five interactive tutorials for building desktop applications with Java Swing, Python Tkinter, C# WinForms, C++ Qt, and JavaScript Electron." />
+    <title>Tutorials — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="tutorials.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body class="tutorials-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="tutorials-topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/desktopcraft-icon.svg" alt="" /></span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav aria-label="Tutorial navigation">
+        <a href="index.html">Courses</a>
+        <a href="forum.html">Forum</a>
+        <a href="appmaker.html">App Maker</a>
+        <a href="projects.html">Projects</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="helper.html">Helper AI</a>
+        <a href="customization.html">Customize</a>
+      </nav>
+    </header>
+
+    <main class="tutorials-shell" id="main-content">
+      <section class="tutorials-hero">
+        <div>
+          <p class="section-kicker">QUICK-START LIBRARY</p>
+          <h1>Five ways to make<br />a real desktop window.</h1>
+        </div>
+        <div class="tutorial-progress-card">
+          <div><span id="tutorialProgressCount">0 of 5 complete</span><strong id="tutorialProgressPercent">0%</strong></div>
+          <div class="progress-track" aria-hidden="true"><span id="tutorialProgressBar"></span></div>
+          <p>Finish a quick start, run its example, and continue into the full course.</p>
+        </div>
+      </section>
+
+      <div class="tutorials-layout">
+        <aside class="tutorial-catalog">
+          <label class="tutorial-search">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+            <input id="tutorialSearch" type="search" placeholder="Find a toolkit…" autocomplete="off" />
+          </label>
+          <div class="tutorial-list" id="tutorialList" aria-label="Desktop tutorials"></div>
+          <div class="tutorial-tip">
+            <strong>Make it yours</strong>
+            <p>Every example is editable. Change labels and titles, then run it again.</p>
+          </div>
+        </aside>
+
+        <article class="tutorial-detail">
+          <div class="tutorial-heading">
+            <div class="tutorial-heading-copy">
+              <span class="tutorial-language" id="tutorialLanguage">JAVA</span>
+              <p class="section-kicker" id="tutorialKicker">JAVA SWING QUICK START</p>
+              <h2 id="tutorialTitle">Build your first Swing window</h2>
+              <p id="tutorialDescription"></p>
+              <div class="lesson-tags" id="tutorialTags"></div>
+            </div>
+            <a class="button button-ghost tutorial-course-link" id="tutorialCourseLink" href="index.html">Open full course</a>
+          </div>
+
+          <section class="tutorial-steps-section">
+            <div class="tutorial-section-heading">
+              <span>01</span>
+              <div><p class="section-kicker">BUILD PLAN</p><h3>Understand the moving pieces</h3></div>
+            </div>
+            <div class="tutorial-steps" id="tutorialSteps"></div>
+          </section>
+
+          <section class="tutorial-lab">
+            <div class="tutorial-section-heading">
+              <span>02</span>
+              <div><p class="section-kicker">WORKING EXAMPLE</p><h3>Edit it, then run the simulator</h3></div>
+            </div>
+            <div class="tutorial-lab-grid">
+              <div class="tutorial-code-card">
+                <div class="tutorial-code-toolbar">
+                  <strong id="tutorialFileName">Main.java</strong>
+                  <div>
+                    <button type="button" id="resetTutorialCode">Reset</button>
+                    <button type="button" id="copyTutorialCode">Copy</button>
+                  </div>
+                </div>
+                <textarea id="tutorialCode" aria-label="Editable tutorial code" spellcheck="false"></textarea>
+                <div class="tutorial-runbar">
+                  <span id="tutorialCodeHint">Try changing the window title.</span>
+                  <button class="button button-primary" id="runTutorial" type="button">▶ Run example</button>
+                </div>
+              </div>
+
+              <div class="tutorial-preview-card">
+                <div class="tutorial-preview-heading"><span class="live-dot"></span><strong>Desktop simulator</strong></div>
+                <div class="desktop-canvas tutorial-preview" id="tutorialPreview"></div>
+                <div class="console-bar" id="tutorialConsoleBar">
+                  <div class="console-label">CONSOLE</div>
+                  <p id="tutorialConsole">Ready. Run the example to refresh the preview.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="tutorial-actions">
+            <button class="button button-ghost" id="previousTutorial" type="button">← Previous</button>
+            <button class="button button-primary" id="completeTutorial" type="button">Mark tutorial complete</button>
+            <button class="button button-ghost" id="nextTutorial" type="button">Next →</button>
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <div class="toast" id="tutorialToast" role="status" aria-live="polite"></div>
+    <script src="auth.js"></script>
+    <script src="simulator.js"></script>
+    <script src="desktop-simulator.js"></script>
+    <script src="tutorials.js"></script>
+  </body>
+</html>
