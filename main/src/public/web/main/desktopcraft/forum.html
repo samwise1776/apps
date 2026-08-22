@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="The Desktopcraft builder forum for desktop UI questions, project ideas, and code discussions." />
+    <title>Builder Forum — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="forum.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body class="forum-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="forum-topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/desktopcraft-icon.svg" alt="" /></span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav aria-label="Forum navigation">
+        <a href="index.html">Courses</a>
+        <a href="tutorials.html">Tutorials</a>
+        <a href="appmaker.html">App Maker</a>
+        <a href="projects.html">Projects</a>
+        <a href="helper.html">Helper AI</a>
+        <a href="customization.html">Customize</a>
+      </nav>
+      <div class="forum-profile" id="forumProfile">
+        <span id="forumAvatar">GU</span>
+        <div><strong id="forumProfileName">Guest learner</strong><small id="forumProfileHandle">Sign in to post</small></div>
+      </div>
+    </header>
+
+    <main class="forum-shell" id="main-content">
+      <section class="forum-hero">
+        <div>
+          <p class="section-kicker">BUILDER COMMUNITY</p>
+          <h1>Ask clearly.<br />Build together.</h1>
+          <p>Share desktop UI problems, compare toolkit patterns, and help another builder move forward.</p>
+        </div>
+        <div class="forum-hero-actions">
+          <button class="button button-primary" id="newTopicButton" type="button">+ Start a discussion</button>
+          <span>Ask questions · Share code · Help builders</span>
+        </div>
+      </section>
+
+      <section class="forum-stats" aria-label="Forum statistics">
+        <article><strong id="forumTopicCount">0</strong><span>Discussions</span></article>
+        <article><strong id="forumReplyCount">0</strong><span>Replies</span></article>
+        <article><strong id="forumMemberCount">0</strong><span>Builders</span></article>
+        <article><strong>5</strong><span>Desktop toolkits</span></article>
+      </section>
+
+      <div class="forum-layout">
+        <aside class="forum-sidebar">
+          <div class="forum-sidebar-heading"><p class="section-kicker">BROWSE</p><h2>Categories</h2></div>
+          <div class="forum-categories" id="forumCategories"></div>
+          <div class="forum-rules">
+            <strong>Build-friendly rules</strong>
+            <ol>
+              <li>Describe what you tried.</li>
+              <li>Format the smallest useful code sample.</li>
+              <li>Keep posts respectful and profanity-free.</li>
+            </ol>
+          </div>
+        </aside>
+
+        <section class="forum-board">
+          <div class="forum-controls">
+            <label class="forum-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>
+              <input id="forumSearch" type="search" placeholder="Search discussions, code, or builders…" autocomplete="off" />
+            </label>
+            <label class="forum-sort-label">
+              <span>Sort</span>
+              <select id="forumSort">
+                <option value="recent">Most recent</option>
+                <option value="popular">Most liked</option>
+                <option value="unanswered">Unanswered</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="forum-content-grid">
+            <div class="topic-column">
+              <div class="topic-column-heading"><strong id="forumListTitle">All discussions</strong><span id="forumResultCount">0 topics</span></div>
+              <div class="topic-list" id="forumTopicList"></div>
+            </div>
+
+            <article class="discussion-panel" id="forumDiscussion" aria-live="polite"></article>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <dialog class="forum-dialog" id="newTopicDialog">
+      <form id="newTopicForm" class="forum-dialog-card">
+        <div class="forum-dialog-heading">
+          <div><p class="section-kicker">NEW DISCUSSION</p><h2>Ask the builder community</h2><p>Share enough context for someone to reproduce the problem.</p></div>
+          <button class="icon-button" id="closeTopicDialog" type="button" aria-label="Close new discussion dialog"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></svg></button>
+        </div>
+        <label class="forum-field"><span>Title</span><input id="topicTitle" required minlength="8" maxlength="100" placeholder="How do I keep a JTable responsive while loading data?" /></label>
+        <label class="forum-field"><span>Category</span><select id="topicCategory" required></select></label>
+        <label class="forum-field"><span>Question or idea</span><textarea id="topicBody" required minlength="20" maxlength="3000" placeholder="Explain what you are building, what you expected, and what happened instead…"></textarea></label>
+        <label class="forum-field"><span>Code sample <small>optional</small></span><textarea class="forum-code-input" id="topicCode" maxlength="6000" spellcheck="false" placeholder="Paste the smallest relevant code sample…"></textarea></label>
+        <div class="forum-form-error" id="topicFormError" role="alert" hidden></div>
+        <div class="forum-dialog-actions">
+          <button class="button button-ghost" id="cancelTopicDialog" type="button">Cancel</button>
+          <button class="button button-primary" type="submit">Publish discussion</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="forumToast" role="status" aria-live="polite"></div>
+    <script src="auth.js"></script>
+    <script src="forum.js"></script>
+  </body>
+</html>

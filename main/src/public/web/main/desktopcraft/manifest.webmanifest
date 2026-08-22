@@ -1,0 +1,24 @@
+{
+  "name": "Desktopcraft — Desktop App Tutor",
+  "short_name": "Desktopcraft",
+  "description": "Learn Java Swing, Python Tkinter, C# WinForms, C++ Qt Widgets, and JavaScript Electron by building interactive desktop apps.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f3ec",
+  "theme_color": "#17251f",
+  "icons": [
+    {
+      "src": "assets/desktopcraft-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Courses", "url": "./index.html" },
+    { "name": "Tutorials", "url": "./tutorials.html" },
+    { "name": "App Maker", "url": "./appmaker.html" },
+    { "name": "Leaderboard", "url": "./leaderboard.html" }
+  ]
+}

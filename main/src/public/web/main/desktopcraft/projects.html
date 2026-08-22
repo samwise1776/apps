@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="A browser coding workspace with 100+ languages, a safe project terminal, file editing, versions, and change tracking." />
+    <title>Projects — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="projects.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body class="projects-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="projects-topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/desktopcraft-icon.svg" alt="" /></span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav aria-label="Projects navigation">
+        <a href="index.html">Courses</a>
+        <a href="tutorials.html">Tutorials</a>
+        <a href="appmaker.html">App Maker</a>
+        <a href="forum.html">Forum</a>
+        <a href="helper.html">Helper AI</a>
+        <a href="customization.html">Customize</a>
+      </nav>
+    </header>
+
+    <main class="projects-shell" id="main-content">
+      <section class="projects-hero">
+        <div>
+          <p class="section-kicker">PROJECT WORKSPACE</p>
+          <h1>Build in one place.<br />Keep every version.</h1>
+          <p class="projects-hero-copy">A focused code workspace with <strong id="supportedLanguageCount">100+ languages</strong>, project search, snapshots, and a safe terminal built for your files.</p>
+        </div>
+        <div class="projects-hero-actions">
+          <button class="button button-primary" id="addFileButton" type="button">+ Add file</button>
+          <button class="button button-ghost" id="newFileButton" type="button">New file</button>
+          <button class="button button-ghost" id="exportProjectButton" type="button" disabled>Export project</button>
+          <button class="button button-ghost" id="openTerminalButton" type="button">Open terminal</button>
+          <input id="folderInput" type="file" webkitdirectory multiple hidden />
+          <p id="storageStatus">Projects save automatically in this browser.</p>
+        </div>
+      </section>
+
+      <section class="project-overview" aria-label="Project overview">
+        <article><span>Files</span><strong id="overviewFiles">0</strong></article>
+        <article><span>Languages</span><strong id="overviewLanguages">0</strong></article>
+        <article><span>Lines</span><strong id="overviewLines">0</strong></article>
+        <article><span>Project size</span><strong id="overviewSize">0 B</strong></article>
+        <p id="overviewLanguageList">Add a folder or create a file to see project insights.</p>
+      </section>
+
+      <section class="projects-workspace" aria-label="Project file editor">
+        <aside class="project-files-panel">
+          <div class="project-panel-heading">
+            <div><p class="section-kicker">PROJECT</p><h2 id="projectName">No folder selected</h2></div>
+            <span id="projectFileCount">0 files</span>
+          </div>
+          <label class="project-file-search">
+            <span class="sr-only">Search project files</span>
+            <input id="projectFileSearch" type="search" placeholder="Find a file…" autocomplete="off" />
+          </label>
+          <div class="project-file-list" id="projectFileList" role="listbox" aria-label="Project files"></div>
+          <div class="project-folder-note">
+            <strong>Add File opens a folder chooser</strong>
+            <p>Select a project folder. Desktopcraft imports supported text files and keeps the folder paths intact.</p>
+          </div>
+        </aside>
+
+        <section class="project-editor-panel">
+          <header class="project-editor-toolbar">
+            <div>
+              <span class="project-change-dot" id="projectChangeDot" aria-hidden="true"></span>
+              <strong id="activeFilePath">Choose a folder to begin</strong>
+              <small id="activeFileMeta"></small>
+            </div>
+            <div class="project-editor-actions">
+              <span class="project-language-badge" id="activeLanguage">Plain text</span>
+              <button id="copyFileButton" type="button" disabled>Copy</button>
+              <button id="toggleCommentButton" type="button" disabled>Comment</button>
+              <button id="terminalButton" type="button" aria-pressed="false">Terminal</button>
+              <button id="saveFileButton" type="button" disabled>Save to computer</button>
+              <button id="downloadFileButton" type="button" disabled>Download</button>
+              <button class="version-button" id="addVersionButton" type="button" disabled>+ Add version</button>
+            </div>
+          </header>
+          <textarea id="projectEditor" aria-label="Project file editor" spellcheck="false" disabled placeholder="Import a folder or create a blank file to start editing."></textarea>
+          <section class="project-terminal" id="projectTerminal" aria-label="Workspace terminal" hidden>
+            <header>
+              <div><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span><strong>DESKTOPCRAFT WORKSPACE TERMINAL</strong></div>
+              <button id="clearTerminalButton" type="button">Clear</button>
+            </header>
+            <div class="project-terminal-output" id="terminalOutput" role="log" aria-live="polite" aria-relevant="additions"></div>
+            <form class="project-terminal-prompt" id="terminalForm">
+              <label for="terminalInput"><span aria-hidden="true">~/project $</span><span class="sr-only">Terminal command</span></label>
+              <input id="terminalInput" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type help and press Enter" />
+            </form>
+            <footer><span>↑↓ history</span><span>Ctrl + ` terminal</span><span>Commands affect only this browser workspace</span></footer>
+          </section>
+          <footer class="project-editor-status">
+            <span id="editorPosition">Line 1, column 1</span>
+            <span id="editorShortcutHint">Ctrl+P files · Ctrl+/ comment · Ctrl+S save</span>
+            <span id="editorSaveStatus" role="status" aria-live="polite">No file open</span>
+          </footer>
+        </section>
+
+        <aside class="project-history-panel">
+          <section class="project-change-card">
+            <div class="project-panel-heading compact">
+              <div><p class="section-kicker">CHANGES</p><h2>Track changes</h2></div>
+            </div>
+            <label class="version-compare-field">
+              <span>Compare with</span>
+              <select id="compareVersion" disabled><option>No versions</option></select>
+            </label>
+            <div class="change-summary" aria-label="Change totals">
+              <span class="added"><strong id="addedCount">0</strong> added</span>
+              <span class="removed"><strong id="removedCount">0</strong> removed</span>
+              <span class="changed"><strong id="changedCount">0</strong> changed</span>
+            </div>
+            <div class="change-preview" id="changePreview"><p>No file changes to show.</p></div>
+          </section>
+
+          <section class="project-versions-card">
+            <div class="project-panel-heading compact">
+              <div><p class="section-kicker">HISTORY</p><h2>File versions</h2></div>
+              <span id="versionCount">0</span>
+            </div>
+            <div class="version-list" id="versionList"><p class="version-empty">Add a version to create a restorable snapshot.</p></div>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <dialog class="project-dialog" id="newFileDialog">
+      <form class="project-dialog-card" id="newFileForm">
+        <p class="section-kicker">NEW PROJECT FILE</p>
+        <h2>Create a project file</h2>
+        <label><span>File path</span><input id="newFilePath" required maxlength="180" placeholder="src/Main.java" /></label>
+        <label class="project-check-field"><input id="newFileStarter" type="checkbox" checked /><span>Add helpful starter code when available</span></label>
+        <p class="new-file-language" id="newFileLanguage">The language is detected from the file name.</p>
+        <p class="dialog-error" id="newFileError" role="alert" hidden></p>
+        <div><button class="button button-ghost" data-close-dialog type="button">Cancel</button><button class="button button-primary" type="submit">Create file</button></div>
+      </form>
+    </dialog>
+
+    <dialog class="project-dialog" id="versionDialog">
+      <form class="project-dialog-card" id="versionForm">
+        <p class="section-kicker">SAVE A VERSION</p>
+        <h2>Add a restorable snapshot</h2>
+        <label><span>Version name</span><input id="versionName" required maxlength="70" placeholder="Working login screen" /></label>
+        <div><button class="button button-ghost" data-close-dialog type="button">Cancel</button><button class="button button-primary" type="submit">Add version</button></div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="projectToast" role="status" aria-live="polite"></div>
+    <script src="auth.js"></script>
+    <script src="projects-core.js"></script>
+    <script src="projects.js"></script>
+  </body>
+</html>

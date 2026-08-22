@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Design a desktop app and generate starter source for Java Swing, Python Tkinter, C# WinForms, C++ Qt, or JavaScript Electron." />
+    <title>App Maker — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="appmaker.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body class="appmaker-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="maker-topbar">
+      <a class="brand" href="index.html">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/desktopcraft-icon.svg" alt="" /></span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav aria-label="App Maker navigation">
+        <a href="index.html">Back to courses</a>
+        <a href="forum.html">Forum</a>
+        <a href="tutorials.html">Tutorials</a>
+        <a href="projects.html">Projects</a>
+        <a href="make.html">Publish app</a>
+        <a href="view.html">Free apps</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="helper.html">Helper AI</a>
+        <a href="customization.html">Customize</a>
+      </nav>
+    </header>
+
+    <main class="maker-page-shell" id="main-content">
+      <section class="maker-hero">
+        <div>
+          <p class="section-kicker">DESKTOP APP WORKSHOP</p>
+          <h1>Describe the window.<br />Take home the source.</h1>
+        </div>
+        <p>Choose a toolkit, shape a simple interactive window, then preview, copy, or download a generated starter project.</p>
+      </section>
+
+      <div class="maker-layout">
+        <form class="maker-controls" id="appMakerForm">
+          <div class="maker-panel-heading">
+            <span>01</span>
+            <div><strong>App blueprint</strong><p>Set the content and behavior.</p></div>
+          </div>
+
+          <label class="maker-field">
+            <span>Desktop toolkit</span>
+            <select id="makerToolkit">
+              <option value="java">Java Swing</option>
+              <option value="python">Python Tkinter</option>
+              <option value="csharp">C# WinForms</option>
+              <option value="cpp">C++ Qt Widgets</option>
+              <option value="electron">JavaScript Electron</option>
+            </select>
+          </label>
+
+          <div class="maker-field-row">
+            <label class="maker-field">
+              <span>App name</span>
+              <input id="makerAppName" maxlength="50" value="Hello Builder" required />
+            </label>
+            <label class="maker-field">
+              <span>Window title</span>
+              <input id="makerWindowTitle" maxlength="70" value="My Desktop App" required />
+            </label>
+          </div>
+
+          <label class="maker-field">
+            <span>Starting message</span>
+            <input id="makerMessage" maxlength="140" value="Ready to build something great." required />
+          </label>
+
+          <div class="maker-field-row">
+            <label class="maker-field">
+              <span>Button label</span>
+              <input id="makerButtonLabel" maxlength="40" value="Launch" required />
+            </label>
+            <label class="maker-field">
+              <span>Message after click</span>
+              <input id="makerActionMessage" maxlength="140" value="Your desktop app is working!" required />
+            </label>
+          </div>
+
+          <div class="maker-field-row dimensions">
+            <label class="maker-field">
+              <span>Width</span>
+              <input id="makerWidth" type="number" min="320" max="1200" step="10" value="520" required />
+            </label>
+            <label class="maker-field">
+              <span>Height</span>
+              <input id="makerHeight" type="number" min="220" max="900" step="10" value="320" required />
+            </label>
+          </div>
+
+          <button class="button button-primary maker-generate" type="submit">Generate app source</button>
+          <p class="maker-local-note">Generate editable starter code and preview the interface instantly.</p>
+        </form>
+
+        <section class="maker-workspace" aria-label="Generated app workspace">
+          <div class="maker-code-card">
+            <div class="maker-code-toolbar">
+              <div><span class="live-dot"></span><strong id="makerFileName">HelloBuilder.java</strong></div>
+              <div class="maker-code-actions">
+                <button type="button" id="copyGeneratedCode">Copy code</button>
+                <button type="button" id="downloadGeneratedCode">Download source</button>
+              </div>
+            </div>
+            <pre><code id="generatedCode"></code></pre>
+          </div>
+
+          <div class="maker-preview-card">
+            <div class="maker-preview-heading">
+              <div><span>02</span><strong>Interactive preview</strong></div>
+              <small id="makerStatus" role="status" aria-live="polite">Source ready</small>
+            </div>
+            <div class="maker-preview-stage">
+              <div class="maker-window" id="makerWindow">
+                <div class="maker-window-bar">
+                  <span class="window-controls"><i></i><i></i><i></i></span>
+                  <strong id="previewWindowTitle">My Desktop App</strong>
+                </div>
+                <div class="maker-window-body">
+                  <span class="maker-app-badge" id="previewToolkit">JAVA SWING</span>
+                  <h2 id="previewAppName">Hello Builder</h2>
+                  <p id="previewMessage">Ready to build something great.</p>
+                  <button id="previewAction" type="button">Launch</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div class="toast" id="makerToast" role="status" aria-live="polite"></div>
+    <script src="auth.js"></script>
+    <script src="appmaker.js"></script>
+  </body>
+</html>

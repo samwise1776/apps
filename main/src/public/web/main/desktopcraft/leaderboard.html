@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17251f" />
+    <meta name="color-scheme" content="light" />
+    <meta name="description" content="Desktopcraft learning leaderboard and course progress." />
+    <title>Leaderboard — Desktopcraft</title>
+    <link rel="icon" type="image/svg+xml" href="assets/desktopcraft-icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="leaderboard.css" />
+    <script src="customization.js"></script>
+  </head>
+  <body class="leaderboard-page">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="leaderboard-header">
+      <a class="brand" href="index.html" aria-label="Back to Desktopcraft lessons">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="assets/desktopcraft-icon.svg" alt="" />
+        </span>
+        <span>Desktopcraft</span>
+      </a>
+      <nav class="leaderboard-header-nav" aria-label="Leaderboard navigation">
+        <a class="back-to-course" href="projects.html">Projects</a>
+        <a class="back-to-course" href="helper.html">Helper AI</a>
+        <a class="back-to-course" href="customization.html">Customize</a>
+        <a class="back-to-course" href="index.html">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" /></svg>
+          Back to lessons
+        </a>
+      </nav>
+    </header>
+
+    <main class="leaderboard-main" id="main-content">
+      <section class="leaderboard-hero">
+        <div>
+          <p class="section-kicker">REAL ACCOUNT LEAGUE</p>
+          <h1>Build. Learn. Climb.</h1>
+          <p>Earn 100 XP for every completed lesson across all five desktop-development courses.</p>
+        </div>
+        <div class="league-emblem" aria-hidden="true">
+          <svg viewBox="0 0 64 64"><path d="M20 10h24v13a12 12 0 0 1-24 0V10ZM20 15H9v4c0 10 6 15 14 16M44 15h11v4c0 10-6 15-14 16M32 35v12M22 55h20M25 47h14" /></svg>
+        </div>
+      </section>
+
+      <section class="player-stats" aria-label="Your learning statistics">
+        <article>
+          <span class="stat-icon xp-icon">XP</span>
+          <div><strong id="totalXp">0</strong><span>Total XP</span></div>
+        </article>
+        <article>
+          <span class="stat-icon lesson-icon" aria-hidden="true">✓</span>
+          <div><strong id="totalCompleted">0</strong><span>Lessons completed</span></div>
+        </article>
+        <article>
+          <span class="stat-icon rank-icon" aria-hidden="true">#</span>
+          <div><strong id="playerRank">—</strong><span>Current rank</span></div>
+        </article>
+        <article>
+          <span class="stat-icon course-icon" aria-hidden="true">⌘</span>
+          <div><strong id="activeCourses">0</strong><span>Courses started</span></div>
+        </article>
+      </section>
+
+      <div class="leaderboard-layout">
+        <section class="rankings-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">ALL-TIME RANKINGS</p>
+              <h2>Builder leaderboard</h2>
+            </div>
+            <span class="league-label"><span></span> Actual profiles</span>
+          </div>
+          <div class="ranking-header" aria-hidden="true">
+            <span>RANK</span><span>BUILDER</span><span>FOCUS</span><span>XP</span>
+          </div>
+          <ol class="ranking-list" id="rankingList"></ol>
+          <p class="local-note">Rankings update from completed lessons. Every listed builder and XP total comes from a Desktopcraft account.</p>
+        </section>
+
+        <aside class="course-progress-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-kicker">YOUR COURSE MAP</p>
+              <h2>Progress by track</h2>
+            </div>
+          </div>
+          <div class="course-progress-list" id="courseProgressList"></div>
+          <a class="button button-primary continue-button" href="index.html">
+            Continue learning
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+          </a>
+        </aside>
+      </div>
+    </main>
+
+    <script src="auth.js"></script>
+    <script src="leaderboard.js"></script>
+  </body>
+</html>
